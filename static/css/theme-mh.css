@@ -1,6 +1,7 @@
 /* =========================================================
    Kidareh × MaterialHub theme overlay
-   Industrial · Iranian sky turquoise
+   Theme: Industrial · Serious · Iranian Sky Turquoise
+   Source: Tahmoures54/MaterialHub design-system
    ========================================================= */
 :root {
   color-scheme: light;
@@ -14,41 +15,82 @@
   --surface: #FFFFFF !important;
   --page: #F1F5F9 !important;
   --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
   --radius: 10px !important;
+  --radius-sm: 6px !important;
+  --radius-lg: 14px !important;
 }
+
 body {
   background: var(--page) !important;
   color: var(--ink) !important;
   font-family: "Vazirmatn", "Inter", "Segoe UI", Tahoma, system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Announcement bar — MaterialHub primary gradient */
 .announcement {
   background: linear-gradient(90deg, #0E7490, #0891B2) !important;
   color: #F0F9FF !important;
+  font-weight: 600 !important;
+  min-height: 36px !important;
 }
+.pulse-dot {
+  background: #38BDF8 !important;
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.45) !important;
+}
+
+/* Brand mark — industrial rounded square */
 .brand-mark {
   border-radius: 10px !important;
   background: linear-gradient(145deg, #0891B2, #0E7490) !important;
-  box-shadow: 0 4px 16px rgba(14, 116, 144, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(14, 116, 144, 0.25) !important;
 }
-.site-header { height: 64px !important; }
-.button { border-radius: 10px !important; }
+
+/* Header — tighter industrial height */
+.site-header {
+  height: 64px !important;
+}
+
+/* Buttons */
+.button {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease !important;
+}
 .button-primary {
   background: linear-gradient(180deg, #0891B2, #0E7490) !important;
   box-shadow: 0 1px 2px rgba(14, 116, 144, 0.25) !important;
+  border: none !important;
+  color: #fff !important;
 }
-.button-primary:hover { background: #0C637A !important; }
+.button-primary:hover {
+  background: #0C637A !important;
+}
 .button-outline {
   border-color: #CBD5E1 !important;
   color: #0E7490 !important;
+  background: #fff !important;
 }
 .button-outline:hover {
   background: #ECFEFF !important;
   border-color: #0E7490 !important;
 }
+.button-quiet:hover {
+  background: #F1F5F9 !important;
+  color: #0E7490 !important;
+}
+
+/* Hero */
 .hero {
   border-radius: 14px !important;
   background: linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 50%, #F1F5F9 100%) !important;
+  border: 1px solid #E2E8F0 !important;
 }
+.eyebrow { color: #0E7490 !important; }
+.section-kicker { color: #0E7490 !important; }
+
+/* Search panel */
 .search-panel {
   border-radius: 10px !important;
   border-color: #CBD5E1 !important;
@@ -58,39 +100,100 @@ body {
   background: #0E7490 !important;
   border-radius: 8px !important;
 }
+.button-search:hover { background: #0C637A !important; }
+
+/* Cards & tiles — industrial radius */
 .category-tile,
 .listing-card,
 .page-panel,
 .page-listing-card,
-.page-store-card {
+.page-store-card,
+.trust-strip,
+.seller-banner {
   border-radius: 14px !important;
   border-color: #CBD5E1 !important;
 }
+.listing-card,
+.page-listing-card,
+.page-store-card {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+.listing-card:hover,
+.page-listing-card:hover,
+.page-store-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+  border-color: #0E7490 !important;
+}
+
+/* Filter chips */
 .filter-chip.selected {
   background: #0E7490 !important;
   border-color: #0E7490 !important;
+  color: #fff !important;
 }
+.filter-chip:hover {
+  border-color: #0E7490 !important;
+  color: #0E7490 !important;
+}
+
+/* Seller banner */
 .seller-banner {
-  border-radius: 14px !important;
   background: linear-gradient(135deg, #0E7490 0%, #0891B2 55%, #0C637A 100%) !important;
+  color: #F0F9FF !important;
 }
+
+/* Prices & accents */
+.listing-footer strong,
+.page-listing-footer strong,
+.product-detail-price,
+.results-count {
+  color: #0E7490 !important;
+}
+.results-count {
+  background: #ECFEFF !important;
+  border-radius: 8px !important;
+}
+
+/* Nav */
+.desktop-nav a:hover,
+.desktop-nav a.active {
+  color: #0E7490 !important;
+}
+
+/* Toast */
 .toast {
   background: #0F172A !important;
   border-radius: 10px !important;
 }
-.trust-strip {
-  border-radius: 14px !important;
-  border-color: #CBD5E1 !important;
+
+/* Forms focus */
+input:focus, textarea:focus, select:focus,
+.page-input:focus, .page-select:focus, .page-textarea:focus {
+  border-color: #0E7490 !important;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15) !important;
+  outline: none !important;
+}
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+/* Bottom nav active */
+.bottom-nav a.active,
+.mobile-nav a.active {
+  color: #0E7490 !important;
+}
+
+/* Page panels */
+.page-panel {
+  background: #FFFFFF !important;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
 }
-.results-count {
-  background: #ECFEFF !important;
-  color: #0E7490 !important;
-  border-radius: 8px !important;
+
+/* Auth / modal */
+.auth-box, .modal-card {
+  border-radius: 14px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
 }
-.section-kicker { color: #0E7490 !important; }
-.listing-footer strong,
-.page-listing-footer strong,
-.product-detail-price { color: #0E7490 !important; }
-.desktop-nav a:hover,
-.desktop-nav a.active { color: #0E7490 !important; }
