@@ -183,7 +183,7 @@ def render_marketplace_page(template: str, **context):
 @app.get("/search")
 def search_page():
     return render_marketplace_page(
-        "search.html",
+        "pages/catalog/search.html",
         query=request.args.get("q", "").strip(),
         selected_category=request.args.get("category", "").strip(),
         city=request.args.get("city", "").strip(),
@@ -193,37 +193,37 @@ def search_page():
 
 @app.get("/stores")
 def stores_page():
-    return render_marketplace_page("stores.html", query=request.args.get("q", "").strip())
+    return render_marketplace_page("pages/stores/list.html", query=request.args.get("q", "").strip())
 
 
 @app.get("/store/<int:store_id>")
 def store_page(store_id: int):
-    return render_marketplace_page("store_detail.html", store_id=store_id)
+    return render_marketplace_page("pages/stores/detail.html", store_id=store_id)
 
 
 @app.get("/product/<int:product_id>")
 def product_page(product_id: int):
-    return render_marketplace_page("product_detail.html", product_id=product_id)
+    return render_marketplace_page("pages/products/detail.html", product_id=product_id)
 
 
 @app.get("/seller")
 def seller_dashboard_page():
-    return render_marketplace_page("seller_dashboard.html")
+    return render_marketplace_page("pages/seller/dashboard.html")
 
 
 @app.get("/account")
 def account_page():
-    return render_marketplace_page("account.html")
+    return render_marketplace_page("pages/account/profile.html")
 
 
 @app.get("/saved")
 def saved_products_page():
-    return render_marketplace_page("saved.html")
+    return render_marketplace_page("pages/account/saved.html")
 
 
 @app.get("/following")
 def following_stores_page():
-    return render_marketplace_page("following.html")
+    return render_marketplace_page("pages/account/following.html")
 
 
 
