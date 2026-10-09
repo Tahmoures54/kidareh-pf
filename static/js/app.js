@@ -89,7 +89,7 @@
     document.querySelector("#listings").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  citySelect.addEventListener("change", loadListings);
+  citySelect.addEventListener("change", () => { loadListings(); loadSponsoredStores(); });
 
   document.querySelectorAll("[data-search]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -146,10 +146,32 @@
     storeGrid.innerHTML = items.map((store) =>
       '<div class="store-card-wrap"><button class="store-card" type="button" data-store-id="' + store.id + '">' +
       '<span class="store-card-mark">⌂</span><span class="store-card-copy"><strong>' + escapeHTML(store.name) +
-      '</strong><small>' + escapeHTML(store.city) + ' · ' + numberFormat.format(store.product_count || 0) +
+      (store.blue_tick_active ? ' <span class="store-paid-badge" title="نشان تبلیغاتی زمان‌دار؛ نه تأیید هویت">✓ تیک آبی</span>' : '') + '</strong><small>' + escapeHTML(store.city) + ' · ' + numberFormat.format(store.product_count || 0) +
       ' کالا</small><span>' + escapeHTML(store.description || "برای دیدن کالاهای این فروشگاه وارد ویترین شو.") +
       '</span></span><span class="store-card-arrow">←</span></button><button class="share-button" type="button" data-share-url="/store/' + store.id + '" data-share-title="ویترین ' + escapeHTML(store.name) + '">↗ معرفی ویترین</button></div>'
     ).join("");
+  }
+
+
+  async function loadSponsoredStores() {
+    let section = document.querySelector("#sponsoredStores");
+    if (!section) {
+      section = document.createElement("section");
+      section.id = "sponsoredStores";
+      section.className = "section sponsored-section";
+      section.innerHTML = '<div class="section-heading"><div><span class="section-kicker">جایگاه‌های حمایت‌شده</span><h2>ویترین‌های معرفی‌شده</h2><p class="section-subtitle">این جایگاه‌ها تبلیغاتی هستند.</p></div><span class="results-count">تبلیغ</span></div><div class="sponsored-grid"></div>';
+      const storesSection = document.querySelector("#stores");
+      if (storesSection?.parentNode) storesSection.parentNode.insertBefore(section, storesSection);
+    }
+    try {
+      const city = citySelect?.value || "";
+      const response = await fetch("/api/monetization/sponsored" + (city ? "?city=" + encodeURIComponent(city) : ""), {headers:{Accept:"application/json"}});
+      const data = await response.json();
+      const items = data.items || [];
+      section.hidden = !items.length;
+      const grid = section.querySelector(".sponsored-grid");
+      grid.innerHTML = items.map(item => '<a class="sponsored-store-card" href="/store/' + item.id + '"><span class="sponsored-label">تبلیغ</span><strong>' + escapeHTML(item.name) + '</strong><small>' + escapeHTML(item.city) + ' · ' + escapeHTML(item.placement_label) + '</small><span>' + escapeHTML(item.description || "برای دیدن کالاها وارد ویترین شوید.") + '</span><b>مشاهده ویترین ←</b></a>').join("");
+    } catch (_) { if (section) section.hidden = true; }
   }
 
   async function loadStores(query = "") {
@@ -223,6 +245,7 @@
   document.querySelector("#showAllStores").addEventListener("click", () => {
     storeSearchInput.value = "";
     loadStores();
+  loadSponsoredStores();
   });
   document.querySelector("#followStoreButton").addEventListener("click", async () => {
     if (!activeStoreId) return;

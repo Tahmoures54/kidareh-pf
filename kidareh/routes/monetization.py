@@ -168,3 +168,29 @@ def monetization_status():
         store = db.execute("SELECT id, badge_until FROM stores WHERE owner_id=?", (user["id"],)).fetchone()
         promos = db.execute("SELECT package_id, ends_at FROM store_promotions WHERE user_id=? AND status='active' AND ends_at>CURRENT_TIMESTAMP ORDER BY ends_at DESC", (user["id"],)).fetchall()
     return jsonify({"store": dict(store) if store else None, "promotions": [dict(p) for p in promos]})
+
+
+@bp.get("/api/monetization/sponsored")
+def sponsored_stores():
+    ensure_tables()
+    city = request.args.get("city", "").strip()[:60]
+    now = datetime.now(timezone.utc).isoformat()
+    promo_ids = ("market_story_1d", "market_story_7d", "homepage_banner_7d", "visibility_bundle_7d")
+    placeholders = ",".join("?" for _ in promo_ids)
+    sql = f"""SELECT s.id, s.name, s.city, s.description, p.package_id, p.ends_at
+              FROM store_promotions p JOIN stores s ON s.id=p.store_id
+              WHERE p.status='active' AND p.ends_at>? AND p.package_id IN ({placeholders})"""
+    args = [now, *promo_ids]
+    if city:
+        sql += " AND s.city=?"
+        args.append(city)
+    sql += " ORDER BY p.created_at DESC LIMIT 12"
+    with get_connection() as db:
+        rows = db.execute(sql, args).fetchall()
+    labels = {
+        "market_story_1d": "استوری بازار · تبلیغ",
+        "market_story_7d": "استوری بازار · تبلیغ",
+        "homepage_banner_7d": "بنر محلی · تبلیغ",
+        "visibility_bundle_7d": "معرفی ویژه · تبلیغ",
+    }
+    return jsonify({"items": [{**dict(row), "placement_label": labels.get(row["package_id"], "تبلیغ")} for row in rows]})
