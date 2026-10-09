@@ -527,9 +527,9 @@ def test_monetization_requires_login_for_orders(monkeypatch, tmp_path):
     assert response.status_code == 401
 
 
-def test_monetization_order_does_not_activate_without_gateway(monkeypatch, tmp_path):
+def test_monetization_order_does_not_activate_without_zibal_configuration(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
-    monkeypatch.delenv("PAYPING_TOKEN", raising=False)
+    monkeypatch.delenv("ZIBAL_MERCHANT", raising=False)
     response = client.post(
         "/api/monetization/orders",
         headers={"X-CSRF-Token": "test-token"},

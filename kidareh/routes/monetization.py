@@ -47,26 +47,38 @@ def ensure_tables():
         db.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
         db.execute("UPDATE store_promotions SET status='expired' WHERE status='active' AND ends_at<?", (now,))
 
-def gateway_request(path: str, payload: dict):
-    token = os.environ.get("PAYPING_TOKEN", "").strip()
-    if not token:
-        raise RuntimeError("درگاه پرداخت هنوز پیکربندی نشده است. متغیر PAYPING_TOKEN باید در تنظیمات سرور ثبت شود.")
-    body = json.dumps(payload).encode("utf-8")
+ZIBAL_REQUEST_URL = "https://gateway.zibal.ir/v1/request"
+ZIBAL_VERIFY_URL = "https://gateway.zibal.ir/v1/verify"
+ZIBAL_START_URL = "https://gateway.zibal.ir/start"
+
+
+def zibal_merchant() -> str:
+    return os.environ.get("ZIBAL_MERCHANT", "").strip() or os.environ.get("ZIBAL_MERCHANT_ID", "").strip()
+
+
+def zibal_request(url: str, payload: dict) -> dict:
+    merchant = zibal_merchant()
+    if not merchant:
+        raise RuntimeError("درگاه زیبال پیکربندی نشده است. متغیر ZIBAL_MERCHANT را در تنظیمات سرور ثبت کنید.")
+    body = json.dumps({"merchant": merchant, **payload}).encode("utf-8")
     req = urllib.request.Request(
-        "https://api.payping.ir/v2/" + path.lstrip("/"), data=body,
-        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+        url, data=body,
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as response:
-            return json.loads(response.read().decode("utf-8") or "{}")
+            data = json.loads(response.read().decode("utf-8") or "{}")
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
-        current_app.logger.warning("PayPing %s failed (%s): %s", path, exc.code, detail)
-        raise RuntimeError("درگاه پرداخت درخواست را نپذیرفت؛ لطفاً بعداً دوباره تلاش کنید.") from exc
+        current_app.logger.warning("Zibal request failed (%s): %s", exc.code, detail)
+        raise RuntimeError("زیبال درخواست پرداخت را نپذیرفت؛ لطفاً بعداً تلاش کنید.") from exc
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        current_app.logger.warning("PayPing connection error: %s", exc)
-        raise RuntimeError("ارتباط با درگاه پرداخت برقرار نشد.") from exc
+        current_app.logger.warning("Zibal connection/response error: %s", exc)
+        raise RuntimeError("ارتباط با درگاه زیبال برقرار نشد.") from exc
+    if not isinstance(data, dict):
+        raise RuntimeError("پاسخ نامعتبر از درگاه زیبال دریافت شد.")
+    return data
 
 @bp.get("/monetization")
 def monetization_page():
@@ -76,7 +88,7 @@ def monetization_page():
 
 @bp.get("/api/monetization/packages")
 def packages():
-    return jsonify({"items": PACKAGES, "currency": "تومان", "payment_enabled": bool(os.environ.get("PAYPING_TOKEN", "").strip())})
+    return jsonify({"items": PACKAGES, "currency": "تومان", "payment_enabled": bool(zibal_merchant())})
 
 @bp.get("/api/monetization/orders")
 def my_orders():
@@ -100,58 +112,88 @@ def create_order():
     package = next((p for p in PACKAGES if p["id"] == payload.get("package_id")), None)
     if not package:
         return jsonify({"error": "invalid_package", "message": "بسته انتخاب‌شده معتبر نیست."}), 400
+    if not zibal_merchant():
+        return jsonify({"error": "payment_unavailable", "message": "درگاه زیبال پیکربندی نشده است."}), 503
     with get_connection() as db:
         store = db.execute("SELECT id FROM stores WHERE owner_id=?", (user["id"],)).fetchone()
         if not store:
             return jsonify({"error": "store_required", "message": "ابتدا از بخش ویترین من، فروشگاه خود را بسازید."}), 409
-        cursor = db.execute("INSERT INTO monetization_orders (user_id, store_id, package_id, amount_toman, status) VALUES (?, ?, ?, ?, 'pending')", (user["id"], store["id"], package["id"], package["price"]))
+        cursor = db.execute(
+            "INSERT INTO monetization_orders (user_id, store_id, package_id, amount_toman, status) VALUES (?, ?, ?, ?, 'pending')",
+            (user["id"], store["id"], package["id"], package["price"]),
+        )
         order_id = cursor.lastrowid
+    callback_url = url_for("monetization.payment_callback", order_id=order_id, _external=True)
     try:
-        result = gateway_request("pay", {
+        result = zibal_request(ZIBAL_REQUEST_URL, {
             "amount": package["price"] * 10,
-            "payerIdentity": user["phone"],
-            "payerName": user["name"] or "کاربر کی‌داره",
+            "callbackUrl": callback_url,
+            "orderId": f"kidareh-{order_id}",
             "description": f"خرید {package['name']} از کی‌داره - سفارش {order_id}",
-            "returnUrl": url_for("monetization.payment_callback", order_id=order_id, _external=True),
-            "clientRefId": f"KIDAREH-{order_id}",
+            "mobile": user["phone"],
         })
-        code = str(result.get("code", "")).strip()
-        if not code:
-            raise RuntimeError("درگاه کد پرداخت برنگرداند.")
+        track_id = str(result.get("trackId", "")).strip()
+        if result.get("result") != 100 or not track_id:
+            raise RuntimeError(str(result.get("message") or "درخواست پرداخت در زیبال ناموفق بود."))
         with get_connection() as db:
-            db.execute("UPDATE monetization_orders SET gateway_code=? WHERE id=?", (code, order_id))
-        return jsonify({"success": True, "order_id": order_id, "redirect_url": f"https://api.payping.ir/v2/pay/gotoipg/{code}"})
+            db.execute("UPDATE monetization_orders SET gateway_code=? WHERE id=? AND status='pending'", (track_id, order_id))
+        return jsonify({
+            "success": True,
+            "order_id": order_id,
+            "redirect_url": f"{ZIBAL_START_URL}/{track_id}",
+        })
     except RuntimeError as exc:
         with get_connection() as db:
             db.execute("UPDATE monetization_orders SET status='failed' WHERE id=? AND status='pending'", (order_id,))
         return jsonify({"error": "payment_unavailable", "message": str(exc)}), 503
 
+
 @bp.get("/monetization/callback")
 def payment_callback():
     ensure_tables()
     order_id = request.args.get("order_id", type=int)
-    ref_id = (request.args.get("refid") or request.args.get("refId") or "").strip()
-    if not order_id or not ref_id:
+    track_id = (request.args.get("trackId") or request.args.get("trackid") or "").strip()
+    success = request.args.get("success")
+    status = request.args.get("status")
+    if success == "0" or status == "3":
         return redirect(url_for("monetization.monetization_page", payment="cancelled"))
+    if not order_id or not track_id or not track_id.isdigit():
+        return redirect(url_for("monetization.monetization_page", payment="unverified"))
     with get_connection() as db:
         order = db.execute("SELECT * FROM monetization_orders WHERE id=?", (order_id,)).fetchone()
-    if not order or order["status"] != "pending":
+    if not order or order["status"] != "pending" or str(order["gateway_code"]) != track_id:
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     package = next((p for p in PACKAGES if p["id"] == order["package_id"]), None)
     if not package:
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     try:
-        gateway_request("pay/verify", {"refId": ref_id, "amount": int(order["amount_toman"]) * 10})
+        result = zibal_request(ZIBAL_VERIFY_URL, {"trackId": int(track_id)})
     except RuntimeError:
+        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+    if result.get("result") not in (100, 201):
+        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+    if result.get("amount") is not None and int(result["amount"]) != int(order["amount_toman"]) * 10:
+        current_app.logger.warning("Zibal amount mismatch for monetization order %s", order_id)
+        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+    expected_order_id = f"kidareh-{order_id}"
+    if result.get("orderId") and str(result["orderId"]) != expected_order_id:
+        current_app.logger.warning("Zibal order ID mismatch for monetization order %s", order_id)
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     now = datetime.now(timezone.utc)
     starts = now.isoformat()
     ends = (now + timedelta(days=package["days"])).isoformat()
+    ref_id = str(result.get("refNumber") or track_id)
     with get_connection() as db:
-        updated = db.execute("UPDATE monetization_orders SET status='paid', gateway_ref=?, paid_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'", (ref_id, order_id))
+        updated = db.execute(
+            "UPDATE monetization_orders SET status='paid', gateway_ref=?, paid_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending' AND gateway_code=?",
+            (ref_id, order_id, track_id),
+        )
         if updated.rowcount != 1:
             return redirect(url_for("monetization.monetization_page", payment="unverified"))
-        db.execute("INSERT INTO store_promotions (store_id,user_id,package_id,starts_at,ends_at,status) VALUES (?,?,?,?,?,'active')", (order["store_id"], order["user_id"], package["id"], starts, ends))
+        db.execute(
+            "INSERT INTO store_promotions (store_id,user_id,package_id,starts_at,ends_at,status) VALUES (?,?,?,?,?,'active')",
+            (order["store_id"], order["user_id"], package["id"], starts, ends),
+        )
         if package["id"] == "blue_tick_30d":
             db.execute("UPDATE stores SET badge_until=? WHERE id=?", (ends, order["store_id"]))
         if package["id"] in ("trial_boost_3d", "search_boost_7d", "search_boost_30d", "visibility_bundle_7d"):
