@@ -48,15 +48,15 @@ def _check_otp_rate_limit(phone):
             row = connection.execute("SELECT last_sent_at, window_started_at, request_count FROM otp_rate_limits WHERE scope=? AND key_hash=?", (scope, key_hash)).fetchone()
             rows[scope] = dict(row) if row else {"last_sent_at": 0, "window_started_at": now, "request_count": 0}
         phone_row, ip_row = rows["phone"], rows["ip"]
-        if now - phone_row["last_sent_at"] < 45:
-            return False, "otp_cooldown", max(1, int(45 - (now - phone_row["last_sent_at"])))
+        if now - phone_row["last_sent_at"] < 60:
+            return False, "otp_cooldown", max(1, int(60 - (now - phone_row["last_sent_at"])))
         if now - phone_row["window_started_at"] >= 3600:
             phone_row.update(window_started_at=now, request_count=0)
         if now - ip_row["window_started_at"] >= 3600:
             ip_row.update(window_started_at=now, request_count=0)
-        if phone_row["request_count"] >= 5:
+        if phone_row["request_count"] >= 3:
             return False, "otp_hourly_limit", max(1, int(3600 - (now - phone_row["window_started_at"])))
-        if ip_row["request_count"] >= 20:
+        if ip_row["request_count"] >= 10:
             return False, "otp_ip_limit", max(1, int(3600 - (now - ip_row["window_started_at"])))
         for scope, key_hash in keys.items():
             row = rows[scope]
@@ -225,24 +225,14 @@ def auth_signup():
 
 @bp.post("/login")
 def auth_login():
+    """Legacy password login is intentionally disabled: SMS OTP is the only login method."""
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
-    payload = request.get_json(silent=True) or {}
-    phone, password = payload.get("phone", ""), payload.get("password", "")
-    if not isinstance(phone, str) or not isinstance(password, str):
-        return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 400
-    phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
-    phone = re.sub(r"[\s()\-]", "", phone)
-    with get_connection() as connection:
-        user = connection.execute("SELECT id, name, phone, password_hash, role, phone_verified_at FROM users WHERE phone = ?", (phone,)).fetchone()
-    if user is None or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 401
-    if not user["phone_verified_at"]:
-        return jsonify({"error": "phone_verification_required", "message": "برای امنیت حساب، ورود پیامکی را انجام دهید."}), 403
-    session.clear()
-    session["user_id"] = user["id"]
-    session["csrf_token"] = uuid.uuid4().hex
-    return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
+    return jsonify({
+        "error": "sms_login_only",
+        "message": "ورود به کی‌داره فقط با کد یک‌بارمصرف پیامکی انجام می‌شود.",
+        "next": "/api/auth/request-otp",
+    }), 410
 
 @bp.post("/become-seller")
 def become_seller():
