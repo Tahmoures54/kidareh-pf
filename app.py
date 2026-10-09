@@ -392,7 +392,7 @@ def listing_detail(listing_id: int):
         ).fetchone()
     if row is None:
         return jsonify({"error": "listing_not_found"}), 404
-    return jsonify({"item": serialize_listing(row)})
+    return jsonify({"item": serialize_listing(row, include_contact=True)})
 
 
 @app.errorhandler(404)
