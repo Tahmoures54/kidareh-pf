@@ -22,5 +22,9 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Compile Python
         run: python -m compileall -q app.py tests
+      - name: Check JavaScript syntax
+        run: |
+          node --check static/js/app.js
+          node --check static/js/pages.js
       - name: Run tests
         run: python -m pytest -q
