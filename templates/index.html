@@ -110,8 +110,9 @@
     <section class="seller-banner" id="how-it-works">
       <div class="seller-art" aria-hidden="true"><div class="seller-circle">＋</div><span class="seller-emoji">📦</span><span class="seller-spark">✦</span></div>
       <div class="seller-copy"><span class="section-kicker">یه چیز برای فروش داری؟</span><h2>جای خوبش، کی‌داره‌ست.</h2><p>محصول یا خدماتت رو به آدم‌های شهر خودت معرفی کن. شروعش ساده‌ست.</p></div>
-      <div class="seller-actions"><button class="button button-light" id="openStoreForm" type="button">چیدن ویترین فروشگاه <span>←</span></button><button class="button button-light" id="openListingForm" type="button">افزودن کالا به ویترین <span>＋</span></button></div>
+      <div class="seller-actions"><button class="button button-light" id="openStoreForm" type="button">چیدن ویترین فروشگاه <span>←</span></button><button class="button button-light" id="openListingForm" type="button">افزودن کالا به ویترین <span>＋</span></button><a class="seller-tags-link" href="/seller/tags">🏷️ تگ‌های فروش کالا</a></div>
       <form class="listing-submit-form" id="listingSubmitForm" hidden>
+        <div class="tag-selling-prompt"><span class="tag-prompt-icon">✦</span><div><strong>کالایت رایگان منتشر می‌شود؛ می‌خواهی بیشتر به چشم بیاید؟</strong><p>بعد از ثبت کالا می‌توانی تگ‌هایی مثل «حراج» یا «فروش ویژه» بخری. این کار اختیاری است و انتشار رایگان را متوقف نمی‌کند.</p><a href="/seller/tags">دیدن تگ‌های کالا و قیمت‌ها ←</a></div></div>
         <label>عنوان آگهی<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
         <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select></label>
         <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تبریز"></label>

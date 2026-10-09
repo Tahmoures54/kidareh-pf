@@ -22,3 +22,17 @@
 
 /* Paid storefront badge: explicitly a time-limited promotional label. */
 .store-paid-badge{display:inline-flex;align-items:center;gap:4px;margin-inline-start:7px;padding:3px 8px;border-radius:999px;background:#e4f2ff;color:#1266b1;font-size:.72rem;font-weight:800;vertical-align:middle;border:1px solid #b9dcff;white-space:nowrap}
+
+
+/* Product-tag storefront: paid tags remain optional and visibly distinct from editorial labels. */
+.tag-selling-prompt{display:flex;gap:14px;align-items:flex-start;margin:8px 0 16px;padding:16px;border:1px solid #b8e8d8;border-radius:17px;background:linear-gradient(125deg,#effcf6,#f6fbff)}
+.tag-prompt-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:14px;background:#d8f6e9;color:#087f65;font-size:23px}
+.tag-selling-prompt strong{display:block;color:#155b4c;font-size:14px}
+.tag-selling-prompt p{margin:5px 0;color:#577772;font-size:12px;line-height:1.9}
+.tag-selling-prompt a,.seller-tags-link{color:#087f79;font-size:12px;font-weight:800;text-decoration:none}
+.seller-tags-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid #d2eee5;border-radius:12px;background:#f1fcf7}
+.paid-listing-tag{position:absolute;z-index:2;top:10px;right:10px;display:inline-flex;align-items:center;padding:6px 10px;border-radius:10px;background:#fff3c8;color:#875b00;border:1px solid #f0d98d;font-size:11px;font-weight:900;box-shadow:0 4px 14px #5b450018}
+.tag-listing_tag_sale{background:#fff0e9;color:#b64120;border-color:#ffd0bf}
+.tag-listing_tag_special{background:#f2eaff;color:#7441ad;border-color:#ddc5ff}
+.tag-listing_tag_discount{background:#e5f8ed;color:#167445;border-color:#b8e7c9}
+.page-listing-art{position:relative}

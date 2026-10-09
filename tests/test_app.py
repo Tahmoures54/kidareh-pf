@@ -541,3 +541,27 @@ def test_monetization_order_does_not_activate_without_zibal_configuration(monkey
     with app_module.get_connection() as connection:
         order = connection.execute("SELECT id FROM monetization_orders ORDER BY id DESC LIMIT 1").fetchone()
     assert order is None
+
+
+
+def test_seller_tags_page_renders_tag_store(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.get("/seller/tags")
+    assert response.status_code == 200
+    assert "تگ حراج".encode() in response.data
+    assert "رایگان".encode() in response.data
+
+
+def test_my_listings_for_tags_requires_login(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    response = client.get("/api/my/listings")
+    assert response.status_code == 401
+
+
+def test_listing_api_includes_paid_tag_field(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.get("/api/listings")
+    assert response.status_code == 200
+    assert all("paid_tag" in item for item in response.get_json()["items"])

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}فروشگاه تگ کالاها | کی‌داره{% endblock %}
+{% block head %}
+<style>
+.tag-hero{position:relative;overflow:hidden;margin-bottom:22px;padding:clamp(24px,4vw,42px);border-radius:26px;background:radial-gradient(circle at 10% 15%,#2aa69d55,transparent 35%),linear-gradient(125deg,#103c4b,#087f8c 68%,#149f9b);color:#fff}
+.tag-hero:after{content:"🏷️";position:absolute;left:clamp(18px,5vw,58px);bottom:-18px;font-size:clamp(100px,16vw,180px);opacity:.13;transform:rotate(-18deg)}
+.tag-hero h1{max-width:700px;margin:12px 0;font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.45}
+.tag-hero p{max-width:690px;color:#e1fbf7;line-height:2}
+.tag-free-note{display:flex;gap:12px;align-items:flex-start;margin:18px 0;padding:16px;border:1px solid #b8e8d8;border-radius:17px;background:#effcf6;color:#245b4e;line-height:1.9}
+.tag-free-note strong{display:block}
+.tag-store-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:16px;margin:18px 0 28px}
+.tag-product-card{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid #e0eae8;border-radius:22px;background:#fff;box-shadow:0 10px 28px #153d4308}
+.tag-product-card h2{margin:0;color:#183f43;font-size:1.12rem}
+.tag-product-card p{margin:0;color:#6a8182;line-height:1.9;font-size:13px;flex:1}
+.tag-product-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:17px;background:#eff8f5;font-size:30px}
+.tag-product-price{color:#073b4c;font-size:1.45rem;font-weight:900}
+.tag-product-price small{color:#6c8384;font-size:.8rem;font-weight:500}
+.tag-product-card ul{padding-right:20px;margin:0;color:#4d6869;line-height:2;font-size:12px}
+.tag-select{display:grid;gap:7px;color:#496669;font-size:13px}
+.tag-select select{width:100%;min-height:45px;padding:10px;border:1px solid #dce9e7;border-radius:12px;background:#fbfdfc;color:#24484b;font:inherit}
+.tag-buy-status{min-height:24px;color:#087f8c;line-height:1.9}
+.tag-owned-list{display:grid;gap:10px}
+.tag-owned-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid #e4eeec;border-radius:15px;background:#fff}
+.tag-owned-item strong,.tag-owned-item small{display:block}
+.tag-owned-item small{margin-top:4px;color:#809393}
+.tag-active{display:inline-flex;padding:5px 9px;border-radius:9px;background:#e3f8ec;color:#187345;font-size:11px;font-weight:800}
+@media(max-width:560px){.tag-owned-item{align-items:flex-start;flex-direction:column}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="tag-hero">
+  <span class="section-kicker" style="color:#b9ffff">ویترین تگ‌های کی‌داره</span>
+  <h1>کالایت رایگان؛ تگش به انتخاب تو.</h1>
+  <p>برای هر کالا می‌توانی یک تگ چشم‌گیر مثل «حراج»، «فروش ویژه» یا «تخفیف‌دار» انتخاب کنی. تگ روی همان کالا نمایش داده می‌شود و بعد از مدت خریداری‌شده خودکار منقضی می‌شود.</p>
+  <a class="button button-outline" style="background:#fff;color:#07515a;border-color:#fff" href="/seller">بازگشت به ویترین من</a>
+</section>
+<div class="tag-free-note"><span style="font-size:24px">✓</span><div><strong>انتشار کالا همیشه رایگان است.</strong> برای استفاده از تگ هیچ اجباری وجود ندارد. ابتدا کالا را رایگان ثبت کن، سپس در صورت نیاز تگ دلخواه را بخر. خرید تگ تضمین‌کننده فروش کالا نیست.</div></div>
+<section class="tag-store-grid" aria-label="تگ‌های قابل خرید">
+{% for package in tag_packages %}
+<article class="tag-product-card">
+  <span class="tag-product-icon">{{ package.icon }}</span><span class="money-tag">{{ package.tag }}</span>
+  <h2>{{ package.name }}</h2><p>{{ package.description }}</p>
+  <div class="tag-product-price">{{ "{:,}".format(package.price) }} <small>تومان · {{ package.days }} روز</small></div>
+  <ul>{% for feature in package.features %}<li>{{ feature }}</li>{% endfor %}</ul>
+  <label class="tag-select">برای کدام کالا؟
+    <select class="tag-listing-select" aria-label="انتخاب کالا برای {{ package.name }}"><option value="">در حال بارگذاری کالاها…</option></select>
+  </label>
+  <button class="button button-primary tag-buy-button" type="button" data-package="{{ package.id }}">انتخاب کالا و پرداخت</button>
+</article>
+{% endfor %}
+</section>
+<p id="tagBuyStatus" class="tag-buy-status" role="status" aria-live="polite"></p>
+<section class="page-panel"><h2>کالاهای من و وضعیت تگ</h2><p class="muted-copy">اگر کالایی تگ فعال داشته باشد، وضعیت و زمان پایان آن را اینجا می‌بینی.</p><div id="tagOwnedListings" class="tag-owned-list">در حال بارگذاری…</div></section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const status = document.querySelector("#tagBuyStatus");
+  const listingBox = document.querySelector("#tagOwnedListings");
+  const selectors = [...document.querySelectorAll(".tag-listing-select")];
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const labels = {listing_tag_sale:"حراج",listing_tag_special:"فروش ویژه",listing_tag_discount:"تخفیف‌دار"};
+  let items = [];
+  const say = (message) => { status.textContent = message; };
+  const fmt = (value) => Number(value || 0).toLocaleString("fa-IR");
+  const safe = (value) => String(value ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  async function load() {
+    try {
+      const response = await fetch("/api/my/listings", {credentials:"same-origin",headers:{Accept:"application/json"}});
+      if (response.status === 401) {
+        listingBox.textContent = "برای خرید تگ و دیدن کالاهای خود، ابتدا وارد حساب فروشنده شوید.";
+        selectors.forEach(select => { select.innerHTML = '<option value="">ابتدا وارد حساب فروشنده شوید</option>'; });
+        return;
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "بارگذاری کالاها ممکن نشد.");
+      items = data.items || [];
+      selectors.forEach(select => {
+        const selected = select.value;
+        select.replaceChildren(new Option("انتخاب کالا", ""));
+        items.forEach(item => select.add(new Option(item.title + " · " + item.city, String(item.id))));
+        if (items.some(item => String(item.id) === selected)) select.value = selected;
+        if (!items.length) select.add(new Option("هنوز کالایی ثبت نکرده‌اید", ""));
+      });
+      listingBox.innerHTML = items.length ? items.map(item => {
+        const active = item.active_tag ? '<span class="tag-active">تگ فعال: ' + safe(labels[item.active_tag] || "ویژه") + ' · تا ' + new Date(item.tag_ends_at).toLocaleDateString("fa-IR") + '</span>' : '<small>بدون تگ پولی · انتشار رایگان</small>';
+        return '<div class="tag-owned-item"><div><strong>' + safe(item.title) + '</strong><small>' + safe(item.city) + ' · ' + fmt(item.price) + ' تومان</small></div>' + active + '</div>';
+      }).join("") : '<div class="empty-page-state">هنوز کالایی ثبت نکرده‌ای. <a href="/?open=add-product">اولین کالا را رایگان ثبت کن ←</a></div>';
+    } catch (error) {
+      listingBox.textContent = error.message || "بارگذاری کالاها ممکن نشد.";
+      selectors.forEach(select => { select.innerHTML = '<option value="">بارگذاری ناموفق</option>'; });
+    }
+  }
+  document.querySelectorAll(".tag-buy-button").forEach(button => button.addEventListener("click", async () => {
+    const card = button.closest(".tag-product-card");
+    const listingId = card.querySelector("select").value;
+    if (!listingId) { say("ابتدا کالایی را برای این تگ انتخاب کن."); return; }
+    button.disabled = true; say("در حال آماده‌سازی پرداخت امن زیبال…");
+    try {
+      const response = await fetch("/api/monetization/orders", {method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf,Accept:"application/json"},body:JSON.stringify({package_id:button.dataset.package,listing_id:Number(listingId)})});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || (data.error === "authentication_required" ? "ابتدا وارد حساب فروشنده شوید." : "شروع پرداخت ممکن نشد."));
+      if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
+      window.location.assign(data.redirect_url);
+    } catch(error) { say(error.message || "ارتباط با درگاه برقرار نشد."); button.disabled = false; }
+  }));
+  const params = new URLSearchParams(location.search);
+  if (params.get("payment") === "success") say("پرداخت تأیید شد؛ تگ کالا فعال شد.");
+  else if (params.get("payment")) say("پرداخت تأیید نشد یا قابل بررسی نبود. اگر مبلغی کسر شده، اطلاعات سفارش را برای پیگیری نگه دارید.");
+  load();
+});
+</script>
+{% endblock %}

@@ -24,14 +24,31 @@ PACKAGES = [
     {"id": "blue_tick_30d", "name": "تیک آبی فروشگاه", "price": 79000, "days": 30, "icon": "☑️", "tag": "اعتماد بیشتر", "description": "نشان زمان‌دار فروشگاه. این نشان به‌تنهایی به معنی ضمانت کی‌داره نیست.", "features": ["نمایش نشان کنار ویترین", "مدت ۳۰ روز"]},
 ]
 
+TAG_PACKAGES = [
+    {"id": "listing_tag_sale", "name": "تگ حراج", "price": 19000, "days": 7, "icon": "🔥", "tag": "جلب توجه", "label": "حراج", "description": "برای کالایی که می‌خواهید با پیشنهاد قیمتی جذاب‌تر معرفی کنید.", "features": ["نمایش تگ روی همان کالا", "اعتبار ۷ روزه", "حذف خودکار پس از پایان اعتبار"]},
+    {"id": "listing_tag_special", "name": "تگ فروش ویژه", "price": 29000, "days": 7, "icon": "⭐", "tag": "ویژه", "label": "فروش ویژه", "description": "کالای منتخب خود را با یک نشان واضح و چشم‌گیر معرفی کنید.", "features": ["نمایش تگ روی همان کالا", "اعتبار ۷ روزه", "حذف خودکار پس از پایان اعتبار"]},
+    {"id": "listing_tag_discount", "name": "تگ تخفیف‌دار", "price": 15000, "days": 7, "icon": "％", "tag": "اقتصادی", "label": "تخفیف‌دار", "description": "به خریدار نشان دهید برای این کالا تخفیف در نظر گرفته‌اید.", "features": ["نمایش تگ روی همان کالا", "اعتبار ۷ روزه", "حذف خودکار پس از پایان اعتبار"]},
+]
+TAG_LABELS = {p["id"]: p["label"] for p in TAG_PACKAGES}
+
 def ensure_tables():
     with get_connection() as db:
         db.execute("""CREATE TABLE IF NOT EXISTS monetization_orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, store_id INTEGER NOT NULL,
-            package_id TEXT NOT NULL, amount_toman INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+            package_id TEXT NOT NULL, listing_id INTEGER, amount_toman INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
             gateway_ref TEXT NOT NULL DEFAULT '', gateway_code TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, paid_at TEXT NOT NULL DEFAULT ''
             )""")
+        order_columns = {r["name"] for r in db.execute("PRAGMA table_info(monetization_orders)")}
+        if "listing_id" not in order_columns:
+            db.execute("ALTER TABLE monetization_orders ADD COLUMN listing_id INTEGER")
+        db.execute("""CREATE TABLE IF NOT EXISTS listing_tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, listing_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
+            tag_type TEXT NOT NULL, starts_at TEXT NOT NULL, ends_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active', order_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+        db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_listing_tags_order ON listing_tags(order_id)")
+        db.execute("UPDATE listing_tags SET status='expired' WHERE status='active' AND ends_at<?", (datetime.now(timezone.utc).isoformat(),))
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_monetization_gateway_ref ON monetization_orders(gateway_ref) WHERE gateway_ref <> ''")
         db.execute("""CREATE TABLE IF NOT EXISTS store_promotions (
             id INTEGER PRIMARY KEY AUTOINCREMENT, store_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
@@ -88,7 +105,25 @@ def monetization_page():
 
 @bp.get("/api/monetization/packages")
 def packages():
-    return jsonify({"items": PACKAGES, "currency": "تومان", "payment_enabled": bool(zibal_merchant())})
+    return jsonify({"items": PACKAGES + TAG_PACKAGES, "tag_items": TAG_PACKAGES, "currency": "تومان", "payment_enabled": bool(zibal_merchant())})
+
+@bp.get("/api/my/listings")
+def my_listings_for_tags():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required"}), 401
+    ensure_tables()
+    now = datetime.now(timezone.utc).isoformat()
+    with get_connection() as db:
+        rows = db.execute(
+            """SELECT l.id, l.title, l.price, l.city,
+                      (SELECT lt.tag_type FROM listing_tags lt WHERE lt.listing_id=l.id AND lt.status='active' AND lt.ends_at>? ORDER BY lt.ends_at DESC LIMIT 1) AS active_tag,
+                      (SELECT lt.ends_at FROM listing_tags lt WHERE lt.listing_id=l.id AND lt.status='active' AND lt.ends_at>? ORDER BY lt.ends_at DESC LIMIT 1) AS tag_ends_at
+               FROM listings l WHERE l.owner_id=? ORDER BY l.id DESC LIMIT 100""",
+            (now, now, user["id"]),
+        ).fetchall()
+    return jsonify({"items": [dict(row) for row in rows], "tag_labels": TAG_LABELS})
+
 
 @bp.get("/api/monetization/orders")
 def my_orders():
@@ -109,18 +144,35 @@ def create_order():
         return jsonify({"error": "csrf_failed"}), 400
     ensure_tables()
     payload = request.get_json(silent=True) or {}
-    package = next((p for p in PACKAGES if p["id"] == payload.get("package_id")), None)
+    all_packages = PACKAGES + TAG_PACKAGES
+    package = next((p for p in all_packages if p["id"] == payload.get("package_id")), None)
     if not package:
         return jsonify({"error": "invalid_package", "message": "بسته انتخاب‌شده معتبر نیست."}), 400
     if not zibal_merchant():
         return jsonify({"error": "payment_unavailable", "message": "درگاه زیبال پیکربندی نشده است."}), 503
+    listing_id = payload.get("listing_id")
+    is_listing_tag = package["id"] in TAG_LABELS
     with get_connection() as db:
         store = db.execute("SELECT id FROM stores WHERE owner_id=?", (user["id"],)).fetchone()
         if not store:
             return jsonify({"error": "store_required", "message": "ابتدا از بخش ویترین من، فروشگاه خود را بسازید."}), 409
+        if is_listing_tag:
+            try:
+                listing_id = int(listing_id)
+            except (TypeError, ValueError):
+                return jsonify({"error": "listing_required", "message": "ابتدا کالایی را که می‌خواهید تگ بخورد انتخاب کنید."}), 400
+            listing = db.execute("SELECT id, store_id FROM listings WHERE id=? AND owner_id=?", (listing_id, user["id"])).fetchone()
+            if not listing:
+                return jsonify({"error": "listing_forbidden", "message": "فقط می‌توانید برای کالای خودتان تگ بخرید."}), 403
+            if not listing["store_id"]:
+                return jsonify({"error": "store_required", "message": "کالا باید به ویترین فروشگاه شما متصل باشد."}), 409
+            store_id = listing["store_id"]
+        else:
+            listing_id = None
+            store_id = store["id"]
         cursor = db.execute(
-            "INSERT INTO monetization_orders (user_id, store_id, package_id, amount_toman, status) VALUES (?, ?, ?, ?, 'pending')",
-            (user["id"], store["id"], package["id"], package["price"]),
+            "INSERT INTO monetization_orders (user_id, store_id, package_id, listing_id, amount_toman, status) VALUES (?, ?, ?, ?, ?, 'pending')",
+            (user["id"], store_id, package["id"], listing_id, package["price"]),
         )
         order_id = cursor.lastrowid
     callback_url = url_for("monetization.payment_callback", order_id=order_id, _external=True)
@@ -163,7 +215,7 @@ def payment_callback():
         order = db.execute("SELECT * FROM monetization_orders WHERE id=?", (order_id,)).fetchone()
     if not order or order["status"] != "pending" or str(order["gateway_code"]) != track_id:
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
-    package = next((p for p in PACKAGES if p["id"] == order["package_id"]), None)
+    package = next((p for p in PACKAGES + TAG_PACKAGES if p["id"] == order["package_id"]), None)
     if not package:
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     try:
@@ -190,10 +242,20 @@ def payment_callback():
         )
         if updated.rowcount != 1:
             return redirect(url_for("monetization.monetization_page", payment="unverified"))
-        db.execute(
-            "INSERT INTO store_promotions (store_id,user_id,package_id,starts_at,ends_at,status) VALUES (?,?,?,?,?,'active')",
-            (order["store_id"], order["user_id"], package["id"], starts, ends),
-        )
+        if package["id"] in TAG_LABELS:
+            if not order["listing_id"]:
+                db.execute("UPDATE monetization_orders SET status='failed' WHERE id=?", (order_id,))
+                return redirect(url_for("monetization.monetization_page", payment="unverified"))
+            db.execute("UPDATE listing_tags SET status='replaced' WHERE listing_id=? AND status='active'", (order["listing_id"],))
+            db.execute(
+                "INSERT INTO listing_tags (listing_id,user_id,tag_type,starts_at,ends_at,status,order_id) VALUES (?,?,?,?,?,'active',?)",
+                (order["listing_id"], order["user_id"], package["id"], starts, ends, order_id),
+            )
+        else:
+            db.execute(
+                "INSERT INTO store_promotions (store_id,user_id,package_id,starts_at,ends_at,status) VALUES (?,?,?,?,?,'active')",
+                (order["store_id"], order["user_id"], package["id"], starts, ends),
+            )
         if package["id"] == "blue_tick_30d":
             db.execute("UPDATE stores SET badge_until=? WHERE id=?", (ends, order["store_id"]))
         if package["id"] in ("trial_boost_3d", "search_boost_7d", "search_boost_30d", "visibility_bundle_7d"):

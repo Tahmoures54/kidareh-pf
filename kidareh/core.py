@@ -58,6 +58,20 @@ def initialize_database() -> None:
             )
             """
         )
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS listing_tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                listing_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                tag_type TEXT NOT NULL,
+                starts_at TEXT NOT NULL,
+                ends_at TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                order_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_listing_tags_order ON listing_tags(order_id)")
         columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
         if "image_path" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN image_path TEXT NOT NULL DEFAULT ''")

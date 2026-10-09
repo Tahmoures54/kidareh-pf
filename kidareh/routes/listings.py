@@ -11,6 +11,29 @@ from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_co
 bp = Blueprint("listings", __name__)
 
 
+def _attach_active_tags(items):
+    if not items:
+        return items
+    now = datetime.now(timezone.utc).isoformat()
+    ids = [int(item["id"]) for item in items]
+    placeholders = ",".join("?" for _ in ids)
+    with get_connection() as connection:
+        rows = connection.execute(
+            f"""SELECT listing_id, tag_type, ends_at FROM listing_tags
+                WHERE status='active' AND ends_at>? AND listing_id IN ({placeholders})
+                ORDER BY ends_at DESC""",
+            [now, *ids],
+        ).fetchall()
+    active = {}
+    for row in rows:
+        active.setdefault(row["listing_id"], {"type": row["tag_type"], "ends_at": row["ends_at"]})
+    labels = {"listing_tag_sale": "حراج", "listing_tag_special": "فروش ویژه", "listing_tag_discount": "تخفیف‌دار"}
+    for item in items:
+        tag = active.get(int(item["id"]))
+        item["paid_tag"] = ({**tag, "label": labels.get(tag["type"], "ویژه")} if tag else None)
+    return items
+
+
 @bp.get("/api/categories")
 def categories():
     return jsonify({"items": CATEGORIES})
@@ -42,7 +65,7 @@ def listings():
         now = datetime.now(timezone.utc).isoformat()
         connection.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
         rows = connection.execute(sql, parameters).fetchall()
-    items = [serialize_listing(row) for row in rows]
+    items = _attach_active_tags([serialize_listing(row) for row in rows])
     return jsonify({"items": items, "count": len(items)})
 
 def inspect_image(upload) -> tuple[bytes, str] | None:
@@ -136,7 +159,7 @@ def create_listing():
             "SELECT * FROM listings WHERE id = ?", (listing_id,)
         ).fetchone()
 
-    return jsonify({"item": serialize_listing(row, include_contact=True)}), 201
+    return jsonify({"item": _attach_active_tags([serialize_listing(row, include_contact=True)])[0]}), 201
 
 @bp.route("/api/listings/<int:listing_id>", methods=["PATCH", "DELETE"])
 def manage_listing(listing_id: int):
@@ -186,7 +209,7 @@ def manage_listing(listing_id: int):
             return jsonify({"error": "invalid_seller_phone"}), 400
         connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, listing_id))
         updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
-        return jsonify({"item": serialize_listing(updated, include_contact=True)})
+        return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
 
 @bp.get("/api/listings/<int:listing_id>")
 def listing_detail(listing_id: int):
@@ -196,5 +219,5 @@ def listing_detail(listing_id: int):
         ).fetchone()
     if row is None:
         return jsonify({"error": "listing_not_found"}), 404
-    return jsonify({"item": serialize_listing(row, include_contact=True)})
+    return jsonify({"item": _attach_active_tags([serialize_listing(row, include_contact=True)])[0]})
 

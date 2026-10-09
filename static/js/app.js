@@ -45,6 +45,7 @@
           <div class="listing-image category-art-${escapeHTML(item.category)}">
             ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji) + '</span>'}
             ${item.featured ? '<span class="featured-label">پیشنهاد ویژه</span>' : ""}
+            ${item.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(item.paid_tag.type) + '">' + escapeHTML(item.paid_tag.label) + '</span>' : ""}
             <button class="favorite-button ${savedIds.has(String(item.id)) ? "is-favorite" : ""}" type="button" aria-label="ذخیره کالا" aria-pressed="${savedIds.has(String(item.id))}" data-favorite="${item.id}">${savedIds.has(String(item.id)) ? "♥" : "♡"}</button><button class="listing-share-button" type="button" data-share-url="/product/${item.id}" data-share-title="کالای ${escapeHTML(item.title)}" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button>
           </div>
           <div class="listing-details">
@@ -542,7 +543,7 @@
       activeCategory = "all";
       document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === "all"));
       await loadListings();
-      showToast("کالا به ویترین شما اضافه شد.");
+      showToast("کالا رایگان به ویترین اضافه شد؛ اگر خواستی تگ تبلیغاتی هم می‌توانی بخری.");
       document.querySelector("#listings").scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
       showToast(error.message || "ثبت آگهی انجام نشد؛ دوباره تلاش کنید.");

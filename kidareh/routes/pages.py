@@ -53,6 +53,11 @@ def product_page(product_id: int):
 def seller_dashboard_page():
     return render_marketplace_page("pages/seller/dashboard.html")
 
+@bp.get("/seller/tags")
+def seller_tags_page():
+    from .monetization import TAG_PACKAGES
+    return render_marketplace_page("pages/seller/tags.html", tag_packages=TAG_PACKAGES)
+
 @bp.get("/account")
 def account_page():
     return render_marketplace_page("pages/account/profile.html")
