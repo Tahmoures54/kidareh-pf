@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}مدیریت سامانه | کی‌داره{% endblock %}
+{% block content %}
+<section class="page-heading"><span class="section-kicker">مرکز مدیریت</span><h1>داشبورد مدیریت کی‌داره</h1><p>نمای کلی کاربران، کالاها، درآمد ثبت‌شده در سامانه، فعالیت‌های اخیر و درخواست‌های پشتیبانی.</p></section>
+<div id="adminDashboard" class="admin-dashboard"><p class="muted">در حال دریافت اطلاعات مدیریتی…</p></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
