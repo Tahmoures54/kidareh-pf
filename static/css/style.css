@@ -246,3 +246,43 @@ h1, h2, h3, p { margin-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+.listing-submit-form {
+  width: 100%;
+  max-width: 760px;
+  margin-top: 24px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 20px;
+  background: rgba(255,255,255,.96);
+  color: #183b40;
+  box-shadow: 0 18px 45px rgba(0, 50, 60, .12);
+}
+.listing-submit-form[hidden] { display: none; }
+.listing-submit-form label { display: grid; gap: 7px; font-size: .9rem; font-weight: 700; }
+.listing-submit-form input,
+.listing-submit-form select,
+.listing-submit-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #d8e5e6;
+  border-radius: 10px;
+  background: #fff;
+  color: #183b40;
+  font: inherit;
+}
+.listing-submit-form input:focus,
+.listing-submit-form select:focus,
+.listing-submit-form textarea:focus { outline: 2px solid #58b9bc; outline-offset: 1px; }
+.listing-description-field, .listing-submit-form .button, .listing-submit-form .form-note { grid-column: 1 / -1; }
+.listing-submit-form .form-note { margin: 0; color: #627b7e; font-size: .82rem; line-height: 1.8; }
+.listing-submit-form button:disabled { opacity: .65; cursor: wait; }
+@media (max-width: 600px) {
+  .listing-submit-form { grid-template-columns: 1fr; padding: 16px; }
+  .listing-description-field, .listing-submit-form .button, .listing-submit-form .form-note { grid-column: auto; }
+}
