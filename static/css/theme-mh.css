@@ -1,0 +1,96 @@
+/* =========================================================
+   Kidareh × MaterialHub theme overlay
+   Industrial · Iranian sky turquoise
+   ========================================================= */
+:root {
+  color-scheme: light;
+  --ink: #0F172A !important;
+  --muted: #64748B !important;
+  --teal: #0E7490 !important;
+  --teal-dark: #0C637A !important;
+  --teal-soft: #ECFEFF !important;
+  --sky: #F0F9FF !important;
+  --line: #CBD5E1 !important;
+  --surface: #FFFFFF !important;
+  --page: #F1F5F9 !important;
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+  --radius: 10px !important;
+}
+body {
+  background: var(--page) !important;
+  color: var(--ink) !important;
+  font-family: "Vazirmatn", "Inter", "Segoe UI", Tahoma, system-ui, sans-serif !important;
+}
+.announcement {
+  background: linear-gradient(90deg, #0E7490, #0891B2) !important;
+  color: #F0F9FF !important;
+}
+.brand-mark {
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, #0891B2, #0E7490) !important;
+  box-shadow: 0 4px 16px rgba(14, 116, 144, 0.25) !important;
+}
+.site-header { height: 64px !important; }
+.button { border-radius: 10px !important; }
+.button-primary {
+  background: linear-gradient(180deg, #0891B2, #0E7490) !important;
+  box-shadow: 0 1px 2px rgba(14, 116, 144, 0.25) !important;
+}
+.button-primary:hover { background: #0C637A !important; }
+.button-outline {
+  border-color: #CBD5E1 !important;
+  color: #0E7490 !important;
+}
+.button-outline:hover {
+  background: #ECFEFF !important;
+  border-color: #0E7490 !important;
+}
+.hero {
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 50%, #F1F5F9 100%) !important;
+}
+.search-panel {
+  border-radius: 10px !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+}
+.button-search {
+  background: #0E7490 !important;
+  border-radius: 8px !important;
+}
+.category-tile,
+.listing-card,
+.page-panel,
+.page-listing-card,
+.page-store-card {
+  border-radius: 14px !important;
+  border-color: #CBD5E1 !important;
+}
+.filter-chip.selected {
+  background: #0E7490 !important;
+  border-color: #0E7490 !important;
+}
+.seller-banner {
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #0E7490 0%, #0891B2 55%, #0C637A 100%) !important;
+}
+.toast {
+  background: #0F172A !important;
+  border-radius: 10px !important;
+}
+.trust-strip {
+  border-radius: 14px !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+.results-count {
+  background: #ECFEFF !important;
+  color: #0E7490 !important;
+  border-radius: 8px !important;
+}
+.section-kicker { color: #0E7490 !important; }
+.listing-footer strong,
+.page-listing-footer strong,
+.product-detail-price { color: #0E7490 !important; }
+.desktop-nav a:hover,
+.desktop-nav a.active { color: #0E7490 !important; }
