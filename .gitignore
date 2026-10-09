@@ -6,3 +6,6 @@ venv/
 instance/*.sqlite3
 instance/*.db
 .pytest_cache/
+
+# User-uploaded listing photos are runtime data, not repository content.
+static/uploads/
