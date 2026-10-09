@@ -48,3 +48,23 @@ def test_listing_api_search_is_applied(monkeypatch, tmp_path):
     assert response.status_code == 200
     assert data["count"] == 1
     assert "گوشی" in data["items"][0]["title"]
+
+def test_listing_detail_returns_matching_item(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    listing = client.get("/api/listings").get_json()["items"][0]
+
+    response = client.get(f"/api/listings/{listing['id']}")
+
+    assert response.status_code == 200
+    assert response.get_json()["item"]["id"] == listing["id"]
+    assert response.get_json()["item"]["title"] == listing["title"]
+
+
+def test_listing_detail_returns_json_404_for_missing_item(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+
+    response = client.get("/api/listings/999999")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "listing_not_found"}
+
