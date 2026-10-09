@@ -7,7 +7,8 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
+from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE_DIR = Path(__file__).resolve().parent
 INSTANCE_DIR = BASE_DIR / "instance"
@@ -64,6 +65,7 @@ def initialize_database() -> None:
                 featured INTEGER NOT NULL DEFAULT 0,
                 image_path TEXT NOT NULL DEFAULT '',
                 seller_phone TEXT NOT NULL DEFAULT '',
+                owner_id INTEGER,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -73,6 +75,17 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE listings ADD COLUMN image_path TEXT NOT NULL DEFAULT ''")
         if "seller_phone" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN seller_phone TEXT NOT NULL DEFAULT ''")
+        if "owner_id" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN owner_id INTEGER")
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
         if count == 0:
             connection.executemany(
@@ -88,12 +101,101 @@ def initialize_database() -> None:
 def serialize_listing(row: sqlite3.Row) -> dict[str, Any]:
     item = dict(row)
     item["featured"] = bool(item["featured"])
+    item.pop("password_hash", None)
+    item["can_edit"] = bool(session.get("user_id") and item.get("owner_id") == session.get("user_id"))
     return item
 
 
 @app.get("/")
 def home():
-    return render_template("index.html", categories=CATEGORIES)
+    if not session.get("csrf_token"):
+        session["csrf_token"] = uuid.uuid4().hex
+    return render_template("index.html", categories=CATEGORIES, csrf_token=session["csrf_token"])
+
+
+
+def current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    with get_connection() as connection:
+        row = connection.execute("SELECT id, name, phone FROM users WHERE id = ?", (user_id,)).fetchone()
+    if row is None:
+        session.clear()
+        return None
+    return dict(row)
+
+
+def csrf_valid():
+    expected = session.get("csrf_token", "")
+    supplied = request.headers.get("X-CSRF-Token", "")
+    return bool(expected and supplied and __import__("hmac").compare_digest(expected, supplied))
+
+
+@app.post("/api/auth/signup")
+def auth_signup():
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
+    payload = request.get_json(silent=True) or {}
+    name, phone, password = payload.get("name", ""), payload.get("phone", ""), payload.get("password", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        return jsonify({"error": "invalid_name", "message": "نام را وارد کنید."}), 400
+    if not isinstance(phone, str):
+        return jsonify({"error": "invalid_phone", "message": "شماره همراه معتبر وارد کنید."}), 400
+    phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+    phone = re.sub(r"[\s()\-]", "", phone)
+    if not re.fullmatch(r"09\d{9}", phone):
+        return jsonify({"error": "invalid_phone", "message": "شماره همراه باید مانند 09123456789 باشد."}), 400
+    if not isinstance(password, str) or len(password) < 10 or len(password) > 128:
+        return jsonify({"error": "weak_password", "message": "رمز عبور باید حداقل ۱۰ نویسه باشد."}), 400
+    try:
+        with get_connection() as connection:
+            cursor = connection.execute("INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)", (name.strip(), phone, generate_password_hash(password)))
+            user_id = cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "phone_exists", "message": "این شماره قبلاً ثبت شده است؛ وارد شوید."}), 409
+    session.clear()
+    session["user_id"] = user_id
+    session["csrf_token"] = uuid.uuid4().hex
+    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone}, "csrf_token": session["csrf_token"]}), 201
+
+
+@app.post("/api/auth/login")
+def auth_login():
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
+    payload = request.get_json(silent=True) or {}
+    phone, password = payload.get("phone", ""), payload.get("password", "")
+    if not isinstance(phone, str) or not isinstance(password, str):
+        return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 400
+    phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+    phone = re.sub(r"[\s()\-]", "", phone)
+    with get_connection() as connection:
+        user = connection.execute("SELECT id, name, phone, password_hash FROM users WHERE phone = ?", (phone,)).fetchone()
+    if user is None or not check_password_hash(user["password_hash"], password):
+        return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 401
+    session.clear()
+    session["user_id"] = user["id"]
+    session["csrf_token"] = uuid.uuid4().hex
+    return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"]}, "csrf_token": session["csrf_token"]})
+
+
+@app.get("/api/auth/me")
+def auth_me():
+    user = current_user()
+    if not user:
+        return jsonify({"user": None})
+    if not session.get("csrf_token"):
+        session["csrf_token"] = uuid.uuid4().hex
+    return jsonify({"user": user, "csrf_token": session["csrf_token"]})
+
+
+@app.post("/api/auth/logout")
+def auth_logout():
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    session.clear()
+    return jsonify({"ok": True})
 
 
 @app.get("/api/health")
@@ -150,6 +252,11 @@ def inspect_image(upload) -> tuple[bytes, str] | None:
 
 @app.post("/api/listings")
 def create_listing():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای ثبت آگهی ابتدا وارد حساب شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     is_multipart = bool(request.content_type and request.content_type.startswith("multipart/form-data"))
     payload = request.form if is_multipart else request.get_json(silent=True)
     if payload is None or not hasattr(payload, "get"):
@@ -206,10 +313,10 @@ def create_listing():
     with get_connection() as connection:
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"]),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
