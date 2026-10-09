@@ -39,3 +39,23 @@ Open `http://127.0.0.1:5000`.
 ## Production notes
 
 Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add login rate limiting, phone verification, moderation, account recovery, privacy controls for revealing seller contact, and persistent upload storage before broad public launch. Store browsing is public; following a store requires an account. Product saves currently use browser-local storage for guests. Passwords are hashed and account sessions are CSRF-protected, but this is still an initial implementation and has not undergone a security audit. Uploaded images are stored under `static/uploads` by default; configure `UPLOAD_FOLDER` and durable storage on deployment. The included listings are clearly demo content.
+
+## Backend architecture
+
+The Flask backend is organized as a small application package with domain-focused Blueprints:
+
+```text
+app.py                       # WSGI entry point and compatibility exports
+kidareh/
+  __init__.py                # create_app() and Blueprint registration
+  core.py                    # database initialization, shared helpers, categories
+  routes/
+    __init__.py
+    pages.py                 # HTML page routes
+    auth.py                  # signup, login, session, seller role
+    stores.py                # storefronts, follows, saved-product API
+    listings.py              # catalog, listing CRUD, image validation
+    system.py                # health endpoint
+```
+
+The public URL paths remain unchanged, so existing frontend requests and the Gunicorn `app:app` entry point continue to work. Each Blueprint owns one domain; shared database/session helpers live in `kidareh/core.py`. The application factory `create_app(test_config=None)` makes isolated configuration and testing easier.
