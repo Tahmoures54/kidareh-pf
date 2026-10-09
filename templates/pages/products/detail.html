@@ -1,4 +1,4 @@
 {% extends "base.html" %}
 {% block title %}جزئیات کالا | کی‌داره{% endblock %}
-{% block content %}<section class="page-heading"><a class="back-link" href="/search">← بازگشت به جست‌وجو</a><span class="section-kicker">جزئیات کالا</span><h1 id="productTitle">در حال دریافت کالا…</h1></section><section id="productDetail" class="product-detail-panel"><div class="loading-card">در حال دریافت اطلاعات کالا…</div></section>{% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"product-detail",productId:{{ product_id|tojson }}};</script>{% endblock %}
+{% block content %}<section class="page-heading"><a class="back-link" href="/search">← بازگشت به جست‌وجو</a><span class="section-kicker">جزئیات کالا</span><h1 id="productTitle">در حال دریافت کالا…</h1></section><section id="productDetail" class="product-detail-panel"><div class="loading-card">در حال دریافت اطلاعات کالا…</div></section><div class="page-panel"><p>سؤالی درباره این کالا دارید؟</p><button id="startConversation" class="button button-primary" type="button">گفت‌وگوی مستقیم با فروشنده</button></div>{% endblock %}
+{% block scripts %}<script>window.KIDAREH_PAGE={type:"product-detail",productId:{{ product_id|tojson }}};</script><script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
