@@ -583,7 +583,7 @@
           store_name: authForm.elements.store_name.value.trim(), store_category: authForm.elements.store_category.value.trim(),
           store_city: authForm.elements.store_city.value.trim(), contact_name: authForm.elements.contact_name.value.trim(),
           store_address: authForm.elements.store_address.value.trim(), store_hours: authForm.elements.store_hours.value.trim(),
-          social_url: authForm.elements.social_url.value.trim(), store_description: authForm.elements.store_description.value.trim(),
+          store_description: authForm.elements.store_description.value.trim(),
           in_person: authForm.elements.in_person.checked
         };
       }
