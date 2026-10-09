@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#087f8c">
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
   <title>کی‌داره | بازار خرید حضوری محلی</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,6 +120,23 @@
     <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
   </footer>
 
+
+  <dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
+    <button class="dialog-close" id="closeAuthDialog" type="button" aria-label="بستن">×</button>
+    <div class="auth-content">
+      <span class="section-kicker">حساب کی‌داره</span>
+      <h2 id="authTitle">ورود یا ساخت حساب</h2>
+      <form id="authForm">
+        <label id="authNameWrap">نام<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
+        <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
+        <label>رمز عبور<input name="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" required placeholder="حداقل ۱۰ نویسه"></label>
+        <button class="button button-primary" id="authSubmit" type="submit">ساخت حساب</button>
+      </form>
+      <button class="text-link auth-mode-toggle" id="authModeToggle" type="button">قبلاً حساب ساخته‌ام؛ ورود</button>
+      <button class="button button-quiet" id="logoutButton" type="button" hidden>خروج از حساب</button>
+      <p class="form-note">شماره همراه برای حساب و هماهنگی بازدید حضوری استفاده می‌شود. رمز عبور به‌صورت هش‌شده ذخیره می‌شود.</p>
+    </div>
+  </dialog>
 
   <dialog class="listing-dialog" id="listingDialog" aria-labelledby="dialogTitle">
     <button class="dialog-close" id="closeListingDialog" type="button" aria-label="بستن جزئیات">×</button>
