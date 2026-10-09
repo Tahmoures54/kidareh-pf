@@ -30,6 +30,7 @@ DEMO_LISTINGS = [
     ("هدفون بی‌سیم", "digital", "مشهد", 1750000, "هدفون روزمره با کیفیت صدای مناسب.", "🎧", 0),
     ("کوله‌پشتی روزانه", "fashion", "کرج", 890000, "جادار و مناسب دانشگاه و استفاده روزانه.", "🎒", 0),
 ]
+
 def get_connection() -> sqlite3.Connection:
     database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
     database_path.parent.mkdir(parents=True, exist_ok=True)
@@ -37,7 +38,79 @@ def get_connection() -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 30000")
+    # Read-friendly defaults for multi-worker Gunicorn on a single SQLite file.
+    connection.execute("PRAGMA journal_mode = WAL")
+    connection.execute("PRAGMA synchronous = NORMAL")
+    connection.execute("PRAGMA temp_store = MEMORY")
+    connection.execute("PRAGMA cache_size = -65536")  # ~64 MiB page cache
+    connection.execute("PRAGMA mmap_size = 268435456")  # 256 MiB mmap when OS allows
     return connection
+
+
+def _ensure_performance_indexes(connection: sqlite3.Connection) -> None:
+    """Indexes that keep list/search/geo paths usable as the catalog grows nationwide."""
+    statements = [
+        "CREATE INDEX IF NOT EXISTS idx_listings_category ON listings(category)",
+        "CREATE INDEX IF NOT EXISTS idx_listings_city ON listings(city)",
+        "CREATE INDEX IF NOT EXISTS idx_listings_store_id ON listings(store_id)",
+        "CREATE INDEX IF NOT EXISTS idx_listings_owner_id ON listings(owner_id)",
+        "CREATE INDEX IF NOT EXISTS idx_listings_featured_id ON listings(featured DESC, id DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_listings_geo ON listings(latitude, longitude) WHERE latitude IS NOT NULL AND longitude IS NOT NULL",
+        "CREATE INDEX IF NOT EXISTS idx_stores_city ON stores(city)",
+        "CREATE INDEX IF NOT EXISTS idx_stores_name ON stores(name)",
+        "CREATE INDEX IF NOT EXISTS idx_listing_tags_listing_status ON listing_tags(listing_id, status, ends_at)",
+        "CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)",
+    ]
+    for sql in statements:
+        connection.execute(sql)
+
+
+def _ensure_listings_fts(connection: sqlite3.Connection) -> None:
+    """Full-text index for title/description/city — avoids LIKE '%…%' table scans."""
+    connection.execute(
+        """
+        CREATE VIRTUAL TABLE IF NOT EXISTS listings_fts USING fts5(
+            title,
+            description,
+            city,
+            content='listings',
+            content_rowid='id',
+            tokenize='unicode61'
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TRIGGER IF NOT EXISTS listings_fts_ai AFTER INSERT ON listings BEGIN
+            INSERT INTO listings_fts(rowid, title, description, city)
+            VALUES (new.id, new.title, new.description, new.city);
+        END
+        """
+    )
+    connection.execute(
+        """
+        CREATE TRIGGER IF NOT EXISTS listings_fts_ad AFTER DELETE ON listings BEGIN
+            INSERT INTO listings_fts(listings_fts, rowid, title, description, city)
+            VALUES ('delete', old.id, old.title, old.description, old.city);
+        END
+        """
+    )
+    connection.execute(
+        """
+        CREATE TRIGGER IF NOT EXISTS listings_fts_au AFTER UPDATE OF title, description, city ON listings BEGIN
+            INSERT INTO listings_fts(listings_fts, rowid, title, description, city)
+            VALUES ('delete', old.id, old.title, old.description, old.city);
+            INSERT INTO listings_fts(rowid, title, description, city)
+            VALUES (new.id, new.title, new.description, new.city);
+        END
+        """
+    )
+    # Rebuild once if the FTS table is empty while listings already exist (upgrade path).
+    fts_count = connection.execute("SELECT COUNT(*) FROM listings_fts").fetchone()[0]
+    listing_count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
+    if listing_count and fts_count == 0:
+        connection.execute("INSERT INTO listings_fts(listings_fts) VALUES('rebuild')")
+
 
 def initialize_database() -> None:
     with get_connection() as connection:
@@ -90,6 +163,8 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE listings ADD COLUMN latitude REAL")
         if "longitude" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN longitude REAL")
+        if "featured_until" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN featured_until TEXT NOT NULL DEFAULT ''")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,6 +266,9 @@ def initialize_database() -> None:
             )
             WHERE store_id IS NULL
         """)
+        _ensure_performance_indexes(connection)
+        _ensure_listings_fts(connection)
+
 
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
