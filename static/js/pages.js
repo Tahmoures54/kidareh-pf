@@ -57,6 +57,14 @@
       document.querySelector("#storeTitle").textContent=s.name;
       document.querySelector("#storeDescription").textContent=s.description||"به ویترین این فروشگاه خوش آمدید.";
       document.querySelector("#storeMeta").textContent=s.city+" · "+fmt.format(s.product_count||0)+" کالا · "+fmt.format(s.follower_count||0)+" دنبال‌کننده";
+      const contact = document.querySelector("#storeContactDetails");
+      const details = [];
+      if (s.category) details.push("<p><strong>حوزه فعالیت:</strong> "+escapeHTML(s.category)+"</p>");
+      if (s.in_person && s.address) details.push("<p><strong>نشانی مراجعه حضوری:</strong> "+escapeHTML(s.address)+"</p>");
+      if (s.hours) details.push("<p><strong>ساعات کاری:</strong> "+escapeHTML(s.hours)+"</p>");
+      if (s.contact_name) details.push("<p><strong>مسئول پاسخ‌گو:</strong> "+escapeHTML(s.contact_name)+"</p>");
+      if (s.social_url) details.push("<p><strong>راه ارتباطی:</strong> "+(s.social_url.startsWith("http") ? '<a href="'+escapeHTML(s.social_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(s.social_url)+'</a>' : escapeHTML(s.social_url))+"</p>");
+      if (contact) contact.innerHTML = details.join("");
       const follow=document.querySelector("#followStore");follow.textContent=data.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";
       follow.addEventListener("click",async()=>{try{const me=await api("/api/auth/me");if(!me.user){notify("برای دنبال‌کردن فروشگاه ابتدا وارد حساب شو.");location.href="/account";return;}const result=await api("/api/stores/"+page.storeId+"/follow",{method:"POST"});follow.textContent=result.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";document.querySelector("#storeMeta").textContent=s.city+" · "+fmt.format(s.product_count||0)+" کالا · "+fmt.format(result.follower_count||0)+" دنبال‌کننده";notify(result.following?"فروشگاه به دنبال‌شده‌ها اضافه شد.":"فروشگاه از دنبال‌شده‌ها برداشته شد.");}catch(e){notify(e.message)}});
       const target=document.querySelector("#pageListings");target.innerHTML=(data.items||[]).length?data.items.map(productCard).join(""):'<div class="empty-page-state">این ویترین هنوز کالایی ندارد.</div>';
