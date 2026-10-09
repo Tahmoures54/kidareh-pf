@@ -18,10 +18,10 @@
   function productCard(item){
     const price = Number(item.price)>0 ? fmt.format(item.price)+" تومان" : "قیمت توافقی";
     const art = item.image_path ? '<img src="'+escapeHTML(item.image_path)+'" alt="'+escapeHTML(item.title)+'" loading="lazy">' : '<span>'+escapeHTML(item.emoji||"🛍️")+'</span>';
-    return '<article class="page-listing-card"><a class="page-listing-art" href="/product/'+item.id+'" aria-label="'+escapeHTML(item.title)+'">'+art+'</a><div class="page-listing-body"><div class="page-listing-meta"><span>'+escapeHTML(item.city)+'</span><span>·</span><span>'+escapeHTML(categoryNames[item.category]||"کالا")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"برای اطلاعات بیشتر، جزئیات کالا را ببین.")+'</p><div class="page-listing-footer"><strong>'+price+'</strong><a href="/product/'+item.id+'">جزئیات ←</a><button type="button" data-save="'+item.id+'">♡ ذخیره</button></div></div></article>';
+    return '<article class="page-listing-card"><a class="page-listing-art" href="/product/'+item.id+'" aria-label="'+escapeHTML(item.title)+'">'+art+'</a><div class="page-listing-body"><div class="page-listing-meta"><span>'+escapeHTML(item.city)+'</span><span>·</span><span>'+escapeHTML(categoryNames[item.category]||"کالا")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"برای اطلاعات بیشتر، جزئیات کالا را ببین.")+'</p><div class="page-listing-footer"><strong>'+price+'</strong><a href="/product/'+item.id+'">جزئیات ←</a><button type="button" data-save="'+item.id+'">♡ ذخیره</button><button class="share-button" type="button" data-share-url="/product/'+item.id+'" data-share-title="کالای '+escapeHTML(item.title)+'" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button></div></div></article>';
   }
   function storeCard(store){
-    return '<a class="page-store-card" href="/store/'+store.id+'"><span class="page-store-mark">⌂</span><span class="page-store-copy"><strong>'+escapeHTML(store.name)+'</strong><small>'+escapeHTML(store.city)+' · '+fmt.format(store.product_count||0)+' کالا · '+fmt.format(store.follower_count||0)+' دنبال‌کننده</small><p>'+escapeHTML(store.description||"برای دیدن کالاهای این فروشگاه وارد ویترین شو.")+'</p></span></a>';
+    return '<article class="page-store-card"><a class="page-store-card-link" href="/store/'+store.id+'"><span class="page-store-mark">⌂</span><span class="page-store-copy"><strong>'+escapeHTML(store.name)+'</strong><small>'+escapeHTML(store.city)+' · '+fmt.format(store.product_count||0)+' کالا · '+fmt.format(store.follower_count||0)+' دنبال‌کننده</small><p>'+escapeHTML(store.description||"برای دیدن کالاهای این فروشگاه وارد ویترین شو.")+'</p></span></a><button class="share-button" type="button" data-share-url="/store/'+store.id+'" data-share-title="ویترین '+escapeHTML(store.name)+'" aria-label="اشتراک‌گذاری ویترین" title="اشتراک‌گذاری ویترین">↗ معرفی ویترین</button></article>';
   }
   async function loadListings(container, params={}) {
     const target=document.querySelector(container); if(!target)return;
@@ -63,7 +63,6 @@
       if (s.in_person && s.address) details.push("<p><strong>نشانی مراجعه حضوری:</strong> "+escapeHTML(s.address)+"</p>");
       if (s.hours) details.push("<p><strong>ساعات کاری:</strong> "+escapeHTML(s.hours)+"</p>");
       if (s.contact_name) details.push("<p><strong>مسئول پاسخ‌گو:</strong> "+escapeHTML(s.contact_name)+"</p>");
-      if (s.social_url) details.push("<p><strong>راه ارتباطی:</strong> "+(s.social_url.startsWith("http") ? '<a href="'+escapeHTML(s.social_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(s.social_url)+'</a>' : escapeHTML(s.social_url))+"</p>");
       if (contact) contact.innerHTML = details.join("");
       const follow=document.querySelector("#followStore");follow.textContent=data.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";
       follow.addEventListener("click",async()=>{try{const me=await api("/api/auth/me");if(!me.user){notify("برای دنبال‌کردن فروشگاه ابتدا وارد حساب شو.");location.href="/account";return;}const result=await api("/api/stores/"+page.storeId+"/follow",{method:"POST"});follow.textContent=result.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";document.querySelector("#storeMeta").textContent=s.city+" · "+fmt.format(s.product_count||0)+" کالا · "+fmt.format(result.follower_count||0)+" دنبال‌کننده";notify(result.following?"فروشگاه به دنبال‌شده‌ها اضافه شد.":"فروشگاه از دنبال‌شده‌ها برداشته شد.");}catch(e){notify(e.message)}});
@@ -76,7 +75,7 @@
       document.querySelector("#productTitle").textContent=p.title;
       const price=Number(p.price)>0?fmt.format(p.price)+" تومان":"قیمت توافقی";
       const art=p.image_path?'<img src="'+escapeHTML(p.image_path)+'" alt="'+escapeHTML(p.title)+'">':escapeHTML(p.emoji||"🛍️");
-      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(categoryNames[p.category]||"کالا")+'</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<p><a class="button button-outline" href="tel:'+escapeHTML(p.seller_phone)+'">تماس با فروشنده</a></p>':'')+'</div>';
+      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(categoryNames[p.category]||"کالا")+'</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button><button class="share-button" type="button" data-share-url="/product/'+p.id+'" data-share-title="کالای '+escapeHTML(p.title)+'">↗ اشتراک‌گذاری کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<p><a class="button button-outline" href="tel:'+escapeHTML(p.seller_phone)+'">تماس با فروشنده</a></p>':'')+'</div>';
       document.querySelector("#productSave").addEventListener("click",()=>saveProduct(p.id));
     }catch(e){document.querySelector("#productDetail").innerHTML='<div class="empty-page-state">این کالا پیدا نشد یا حذف شده است.</div>';}
   }
@@ -143,6 +142,16 @@
       target.addEventListener("submit",async e=>{const form=e.target.closest("[data-edit-form]");if(!form)return;e.preventDefault();const id=form.dataset.editForm,submit=form.querySelector('[type="submit"]');submit.disabled=true;try{const body=Object.fromEntries(new FormData(form));body.price=Number(body.price);await api("/api/listings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});notify("محصول به‌روزرسانی شد.");const data=await api("/api/listings");renderProducts((data.items||[]).filter(p=>Number(p.store_id)===Number(store.id)));}catch(err){notify(err.message);submit.disabled=false;}});
     }catch(e){status.textContent="برای بارگذاری پنل، صفحه را تازه‌سازی کن.";}
   }
-  document.addEventListener("click",async e=>{const b=e.target.closest("[data-save]");if(b){e.preventDefault();b.disabled=true;try{const saved=await saveProduct(b.dataset.save);b.textContent=saved?"♥ ذخیره شد":"♡ ذخیره";}finally{b.disabled=false;}}});
+  async function shareContent(url,title){
+    const absolute=new URL(url,location.origin).href;
+    const message=(title||"این صفحه")+" در کی‌داره";
+    try {
+      if(navigator.share){await navigator.share({title:title||"کی‌داره",text:message,url:absolute});return;}
+      const wa="https://wa.me/?text="+encodeURIComponent(message+"\\n"+absolute);
+      const popup=window.open(wa,"_blank","noopener,noreferrer");
+      if(!popup){try{await navigator.clipboard.writeText(absolute);notify("پیوند کپی شد؛ آن را در شبکه اجتماعی دلخواه بفرست.");}catch{notify("پیوند صفحه: "+absolute);}}
+    } catch(error){if(error.name!=="AbortError")notify("اشتراک‌گذاری انجام نشد.");}
+  }
+  document.addEventListener("click",async e=>{const share=e.target.closest("[data-share-url]");if(share){e.preventDefault();e.stopPropagation();await shareContent(share.dataset.shareUrl,share.dataset.shareTitle||"");return;}const b=e.target.closest("[data-save]");if(b){e.preventDefault();b.disabled=true;try{const saved=await saveProduct(b.dataset.save);b.textContent=saved?"♥ ذخیره شد":"♡ ذخیره";}finally{b.disabled=false;}}});
   switch(page.type){case"search":initSearch();break;case"stores":initStores();break;case"store-detail":initStoreDetail();break;case"product-detail":initProductDetail();break;case"saved":initSaved();break;case"following":initFollowing();break;case"account":initAccount();break;case"seller":initSeller();break;}
 })();
