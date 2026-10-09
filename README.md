@@ -11,7 +11,7 @@ A lightweight storefront-first local marketplace built with Flask, server-render
 - Sellers create one storefront per account and add products to their own storefront
 - Search and category filters for products
 - Optional listing photos (JPG, PNG, WebP; maximum 4 MiB) with server-side signature and size checks
-- Account signup and login with hashed passwords and CSRF-protected write requests
+- Phone-first signup/login with Kavenegar OTP, arithmetic CAPTCHA, and recorded terms acceptance
 - Owner-only listing edit and delete operations
 - Optional seller mobile number for coordinating an in-person visit, validated and normalized to Iranian mobile format; excluded from public search results
 - Flask JSON endpoints for public stores, store details, follows, saved products, categories, and product browsing
@@ -38,7 +38,7 @@ Open `http://127.0.0.1:5000`.
 
 ## Production notes
 
-Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add login rate limiting, phone verification, moderation, account recovery, privacy controls for revealing seller contact, and persistent upload storage before broad public launch. Store browsing is public; following a store requires an account. Product saves currently use browser-local storage for guests. Passwords are hashed and account sessions are CSRF-protected, but this is still an initial implementation and has not undergone a security audit. Uploaded images are stored under `static/uploads` by default; configure `UPLOAD_FOLDER` and durable storage on deployment. The included listings are clearly demo content.
+Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add persistent rate limiting, moderation, account recovery, and privacy controls for revealing seller contact before broad public launch. This repository currently writes SQLite data to `instance/` and uploads to `static/uploads`; these paths are not durable storage on Vercel Functions. Do not treat a Vercel deployment as production-ready for user-generated data until the database and images are moved to persistent services. Store browsing is public; following a store requires an account. Product saves use browser-local storage for guests. The project has not undergone a security audit. The included listings are demo content. Store browsing is public; following a store requires an account. Product saves currently use browser-local storage for guests. Passwords are hashed and account sessions are CSRF-protected, but this is still an initial implementation and has not undergone a security audit. Uploaded images are stored under `static/uploads` by default; configure `UPLOAD_FOLDER` and durable storage on deployment. The included listings are clearly demo content.
 
 ## Backend architecture
 
