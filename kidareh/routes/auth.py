@@ -154,11 +154,9 @@ def complete_profile():
             return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
         if not isinstance(values["city"], str) or not values["city"].strip() or len(values["city"].strip()) > 60:
             return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را وارد کنید."}), 400
-        for key, limit in (("category", 80), ("contact_name", 80), ("address", 300), ("hours", 120), ("social_url", 200), ("description", 500)):
+        for key, limit in (("category", 80), ("contact_name", 80), ("address", 300), ("hours", 120), ("description", 500)):
             if not isinstance(values[key], str) or len(values[key].strip()) > limit:
                 return jsonify({"error": "invalid_store_details", "message": "اطلاعات فروشگاه معتبر نیست."}), 400
-        if values["social_url"].strip() and not re.match(r"^(https?://|@)[^\s]+$", values["social_url"].strip(), re.I):
-            return jsonify({"error": "invalid_social_url", "message": "نشانی شبکه اجتماعی معتبر نیست."}), 400
     try:
         with get_connection() as connection:
             cursor = connection.execute(
@@ -168,10 +166,10 @@ def complete_profile():
             user_id = cursor.lastrowid
             if role == "seller":
                 store_cursor = connection.execute(
-                    """INSERT INTO stores (owner_id, name, city, description, category, contact_name, address, hours, social_url, in_person)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    """INSERT INTO stores (owner_id, name, city, description, category, contact_name, address, hours, in_person)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (user_id, values["name"].strip(), values["city"].strip(), values["description"].strip(), values["category"].strip(),
-                     values["contact_name"].strip(), values["address"].strip(), values["hours"].strip(), values["social_url"].strip(), values["in_person"]),
+                     values["contact_name"].strip(), values["address"].strip(), values["hours"].strip(), values["in_person"]),
                 )
                 store = dict(connection.execute("SELECT * FROM stores WHERE id = ?", (store_cursor.lastrowid,)).fetchone())
     except sqlite3.IntegrityError:
