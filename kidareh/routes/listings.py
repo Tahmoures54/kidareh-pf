@@ -2,6 +2,7 @@ import os
 import re
 import sqlite3
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
@@ -35,6 +36,8 @@ def listings():
     sql += " ORDER BY featured DESC, id DESC LIMIT 100"
 
     with get_connection() as connection:
+        now = datetime.now(timezone.utc).isoformat()
+        connection.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
         rows = connection.execute(sql, parameters).fetchall()
     items = [serialize_listing(row) for row in rows]
     return jsonify({"items": items, "count": len(items)})

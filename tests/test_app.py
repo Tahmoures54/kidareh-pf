@@ -502,3 +502,41 @@ def test_otp_verification_rejects_wrong_code(monkeypatch, tmp_path):
     wrong_code = "000000" if valid_code != "000000" else "000001"
     response = client.post("/api/auth/verify-otp", headers={"X-CSRF-Token": "test-token"}, json={"code": wrong_code})
     assert response.status_code == 400 and response.get_json()["error"] == "otp_invalid"
+
+
+
+def test_monetization_catalog_is_public_and_has_expected_packages():
+    response = app_module.app.test_client().get("/api/monetization/packages")
+    assert response.status_code == 200
+    data = response.get_json()
+    ids = {item["id"] for item in data["items"]}
+    assert "blue_tick_30d" in ids
+    assert "visibility_bundle_7d" in ids
+    assert all(item["price"] > 0 for item in data["items"])
+
+
+def test_monetization_requires_login_for_orders(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    response = client.post(
+        "/api/monetization/orders",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"package_id": "blue_tick_30d"},
+    )
+    assert response.status_code == 401
+
+
+def test_monetization_order_does_not_activate_without_gateway(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    monkeypatch.delenv("PAYPING_TOKEN", raising=False)
+    response = client.post(
+        "/api/monetization/orders",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"package_id": "blue_tick_30d"},
+    )
+    assert response.status_code == 503
+    assert response.get_json()["error"] == "payment_unavailable"
+    with app_module.get_connection() as connection:
+        order = connection.execute("SELECT status FROM monetization_orders ORDER BY id DESC LIMIT 1").fetchone()
+    assert order["status"] == "failed"
