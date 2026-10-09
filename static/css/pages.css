@@ -18,3 +18,7 @@
 .store-growth-prompt strong{color:#155b58}
 .store-growth-prompt p{margin:0;color:#506e6d;line-height:1.9}
 @media(max-width:560px){.seller-promotion{flex-direction:column}.page-listing-footer .share-button{width:100%}}
+
+
+/* Paid storefront badge: explicitly a time-limited promotional label. */
+.store-paid-badge{display:inline-flex;align-items:center;gap:4px;margin-inline-start:7px;padding:3px 8px;border-radius:999px;background:#e4f2ff;color:#1266b1;font-size:.72rem;font-weight:800;vertical-align:middle;border:1px solid #b9dcff;white-space:nowrap}

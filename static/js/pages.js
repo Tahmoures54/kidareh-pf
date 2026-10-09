@@ -21,7 +21,8 @@
     return '<article class="page-listing-card"><a class="page-listing-art" href="/product/'+item.id+'" aria-label="'+escapeHTML(item.title)+'">'+art+'</a><div class="page-listing-body"><div class="page-listing-meta"><span>'+escapeHTML(item.city)+'</span><span>·</span><span>'+escapeHTML(categoryNames[item.category]||"کالا")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"برای اطلاعات بیشتر، جزئیات کالا را ببین.")+'</p><div class="page-listing-footer"><strong>'+price+'</strong><a href="/product/'+item.id+'">جزئیات ←</a><button type="button" data-save="'+item.id+'">♡ ذخیره</button><button class="share-button" type="button" data-share-url="/product/'+item.id+'" data-share-title="کالای '+escapeHTML(item.title)+'" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button></div></div></article>';
   }
   function storeCard(store){
-    return '<article class="page-store-card"><a class="page-store-card-link" href="/store/'+store.id+'"><span class="page-store-mark">⌂</span><span class="page-store-copy"><strong>'+escapeHTML(store.name)+'</strong><small>'+escapeHTML(store.city)+' · '+fmt.format(store.product_count||0)+' کالا · '+fmt.format(store.follower_count||0)+' دنبال‌کننده</small><p>'+escapeHTML(store.description||"برای دیدن کالاهای این فروشگاه وارد ویترین شو.")+'</p></span></a><button class="share-button" type="button" data-share-url="/store/'+store.id+'" data-share-title="ویترین '+escapeHTML(store.name)+'" aria-label="اشتراک‌گذاری ویترین" title="اشتراک‌گذاری ویترین">↗ معرفی ویترین</button></article>';
+    const badge = store.blue_tick_active ? '<span class="store-paid-badge" title="نشان تبلیغاتی زمان‌دار؛ نه تأیید هویت">✓ تیک آبی</span>' : '';
+    return '<article class="page-store-card"><a class="page-store-card-link" href="/store/'+store.id+'"><span class="page-store-mark">⌂</span><span class="page-store-copy"><strong>'+escapeHTML(store.name)+' '+badge+'</strong><small>'+escapeHTML(store.city)+' · '+fmt.format(store.product_count||0)+' کالا · '+fmt.format(store.follower_count||0)+' دنبال‌کننده</small><p>'+escapeHTML(store.description||"برای دیدن کالاهای این فروشگاه وارد ویترین شو.")+'</p></span></a><button class="share-button" type="button" data-share-url="/store/'+store.id+'" data-share-title="ویترین '+escapeHTML(store.name)+'" aria-label="اشتراک‌گذاری ویترین" title="اشتراک‌گذاری ویترین">↗ معرفی ویترین</button></article>';
   }
   async function loadListings(container, params={}) {
     const target=document.querySelector(container); if(!target)return;
@@ -54,7 +55,7 @@
   async function initStoreDetail(){
     try{
       const data=await api("/api/stores/"+page.storeId);const s=data.store;
-      document.querySelector("#storeTitle").textContent=s.name;
+      document.querySelector("#storeTitle").innerHTML=escapeHTML(s.name)+(s.blue_tick_active?' <span class="store-paid-badge" title="نشان تبلیغاتی زمان‌دار؛ نه تأیید هویت">✓ تیک آبی</span>':'');
       document.querySelector("#storeDescription").textContent=s.description||"به ویترین این فروشگاه خوش آمدید.";
       document.querySelector("#storeMeta").textContent=s.city+" · "+fmt.format(s.product_count||0)+" کالا · "+fmt.format(s.follower_count||0)+" دنبال‌کننده";
       const contact = document.querySelector("#storeContactDetails");

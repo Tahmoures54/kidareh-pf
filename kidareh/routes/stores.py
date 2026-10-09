@@ -13,6 +13,8 @@ def _store_payload(row):
         return None
     result = dict(row)
     result.pop("social_url", None)
+    badge_until = str(result.get("badge_until") or "")
+    result["blue_tick_active"] = bool(badge_until and badge_until > __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat())
     return result
 
 

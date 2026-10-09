@@ -39,6 +39,12 @@ def ensure_tables():
         columns = {r["name"] for r in db.execute("PRAGMA table_info(stores)")}
         if "badge_until" not in columns:
             db.execute("ALTER TABLE stores ADD COLUMN badge_until TEXT NOT NULL DEFAULT ''")
+        listing_columns = {r["name"] for r in db.execute("PRAGMA table_info(listings)")}
+        if "featured_until" not in listing_columns:
+            db.execute("ALTER TABLE listings ADD COLUMN featured_until TEXT NOT NULL DEFAULT ''")
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
+        db.execute("UPDATE store_promotions SET status='expired' WHERE status='active' AND ends_at<?", (now,))
 
 def gateway_request(path: str, payload: dict):
     token = os.environ.get("PAYPING_TOKEN", "").strip()
@@ -148,7 +154,7 @@ def payment_callback():
         if package["id"] == "blue_tick_30d":
             db.execute("UPDATE stores SET badge_until=? WHERE id=?", (ends, order["store_id"]))
         if package["id"] in ("trial_boost_3d", "search_boost_7d", "search_boost_30d", "visibility_bundle_7d"):
-            db.execute("UPDATE listings SET featured=1 WHERE store_id=?", (order["store_id"],))
+            db.execute("UPDATE listings SET featured=1, featured_until=? WHERE store_id=?", (ends, order["store_id"]))
     return redirect(url_for("monetization.monetization_page", payment="success"))
 
 @bp.get("/api/monetization/status")
