@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}پشتیبانی | کی‌داره{% endblock %}
+{% block content %}
+<section class="page-heading"><span class="section-kicker">کنارت هستیم</span><h1>پشتیبانی کی‌داره</h1><p>درخواستت را ثبت کن و پاسخ مدیر را در همان تیکت دنبال کن.</p></section>
+<div class="community-layout support-layout">
+<section class="page-panel"><h2>ثبت درخواست جدید</h2><form id="ticketCreateForm" class="stack-form"><label for="ticketTitle">موضوع</label><input id="ticketTitle" required minlength="3" maxlength="120" placeholder="مثلاً مشکل در ثبت کالا"><label for="ticketCategory">دسته‌بندی</label><select id="ticketCategory"><option value="general">عمومی</option><option value="account">حساب کاربری</option><option value="listing">کالا و ویترین</option><option value="payment">پرداخت</option><option value="technical">مشکل فنی</option><option value="other">سایر</option></select><label for="ticketBody">شرح درخواست</label><textarea id="ticketBody" rows="5" minlength="10" maxlength="4000" required placeholder="موضوع را با جزئیات توضیح بده…"></textarea><button class="button button-primary" type="submit">ثبت تیکت</button></form></section>
+<section class="page-panel"><h2>درخواست‌های من</h2><div id="ticketList" class="community-list"><p class="muted">در حال بارگذاری…</p></div><div id="ticketDetail" class="ticket-detail"></div></section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
