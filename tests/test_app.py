@@ -344,3 +344,29 @@ def test_buyer_can_switch_to_seller_when_ready_to_open_storefront(monkeypatch, t
     response = client.post("/api/auth/become-seller", headers={"X-CSRF-Token": "test-token"})
     assert response.status_code == 200
     assert response.get_json()["user"]["role"] == "seller"
+
+
+def test_store_owner_can_update_store_details(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.patch("/api/stores/1", headers={"X-CSRF-Token": "test-token"}, json={"name": "ویترین تازه", "city": "تهران", "description": "توضیح جدید"})
+    assert response.status_code == 200
+    assert response.get_json()["item"]["name"] == "ویترین تازه"
+    assert response.get_json()["item"]["city"] == "تهران"
+
+
+def test_non_owner_cannot_update_store_details(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with app_module.get_connection() as connection:
+        connection.execute("INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)", ("کاربر دیگر", "09120000002", "test-hash", "seller"))
+    with client.session_transaction() as browser_session:
+        browser_session["user_id"] = 2
+    response = client.patch("/api/stores/1", headers={"X-CSRF-Token": "test-token"}, json={"name": "تغییر غیرمجاز"})
+    assert response.status_code == 403
+    assert response.get_json()["error"] == "store_forbidden"
+
+
+def test_store_update_rejects_invalid_name(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.patch("/api/stores/1", headers={"X-CSRF-Token": "test-token"}, json={"name": " "})
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "invalid_store_name"

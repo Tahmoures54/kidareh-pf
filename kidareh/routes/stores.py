@@ -68,6 +68,36 @@ def create_store():
         return jsonify({"error": "store_exists", "message": "برای این حساب قبلاً ویترین ساخته شده است."}), 409
     return jsonify({"item": dict(row)}), 201
 
+@bp.patch("/api/stores/<int:store_id>")
+def update_store(store_id: int):
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای ویرایش فروشگاه وارد شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    payload = request.get_json(silent=True) or {}
+    allowed = {"name", "city", "description"}
+    if not payload or set(payload) - allowed:
+        return jsonify({"error": "invalid_payload"}), 400
+    with get_connection() as connection:
+        store = connection.execute("SELECT * FROM stores WHERE id = ?", (store_id,)).fetchone()
+        if store is None:
+            return jsonify({"error": "store_not_found"}), 404
+        if store["owner_id"] != user["id"]:
+            return jsonify({"error": "store_forbidden", "message": "فقط صاحب فروشگاه می‌تواند اطلاعات آن را تغییر دهد."}), 403
+        name = payload.get("name", store["name"])
+        city = payload.get("city", store["city"])
+        description = payload.get("description", store["description"])
+        if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+            return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه باید حداکثر ۸۰ نویسه باشد."}), 400
+        if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+            return jsonify({"error": "invalid_store_city", "message": "شهر را درست وارد کنید."}), 400
+        if not isinstance(description, str) or len(description.strip()) > 500:
+            return jsonify({"error": "invalid_store_description", "message": "توضیحات حداکثر ۵۰۰ نویسه باشد."}), 400
+        connection.execute("UPDATE stores SET name = ?, city = ?, description = ? WHERE id = ?", (name.strip(), city.strip(), description.strip(), store_id))
+        updated = connection.execute("SELECT * FROM stores WHERE id = ?", (store_id,)).fetchone()
+    return jsonify({"item": dict(updated)})
+
 @bp.get("/api/stores/<int:store_id>")
 def store_detail(store_id: int):
     with get_connection() as connection:
