@@ -371,3 +371,31 @@ h1, h2, h3, p { margin-top: 0; }
   .listing-submit-form .form-note#sellerPhoneHelp { grid-column: auto; }
   .seller-call-link { width: 100%; justify-content: center; }
 }
+
+
+/* Account dialog and private listing controls. */
+.auth-dialog {
+  width: min(92vw, 460px);
+  max-height: min(88vh, 720px);
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  color: #18343a;
+  background: #fff;
+  box-shadow: 0 28px 90px rgba(8, 44, 50, .28);
+}
+.auth-dialog::backdrop { background: rgba(10, 38, 43, .58); backdrop-filter: blur(4px); }
+.auth-content { padding: 30px; }
+.auth-content h2 { margin: 8px 0 20px; font-size: 23px; }
+.auth-content form { display: grid; gap: 14px; }
+.auth-content label { display: grid; gap: 7px; font-size: 13px; font-weight: 700; }
+.auth-content input { width: 100%; min-width: 0; padding: 12px; border: 1px solid #d8e5e6; border-radius: 10px; font: inherit; }
+.auth-content input:focus { outline: 2px solid #58b9bc; outline-offset: 1px; }
+.auth-mode-toggle { margin-top: 16px; }
+.auth-content .form-note { margin-top: 15px; line-height: 1.9; }
+.owner-actions { margin-top: 18px; padding: 15px; border: 1px solid #e4d9ba; border-radius: 14px; background: #fffaf0; }
+.owner-actions[hidden] { display: none; }
+.owner-actions > strong { color: #76561a; }
+.owner-actions > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.button-danger { color: #a52b2b; border: 1px solid #efc9c9; background: #fff; }
+@media (max-width: 600px) { .auth-content { padding: 22px; } .owner-actions > div > button { flex: 1; } }
