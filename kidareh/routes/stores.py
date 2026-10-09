@@ -23,6 +23,9 @@ def _store_payload(row):
 def list_stores():
     query = request.args.get("q", "").strip()[:100]
     city = request.args.get("city", "").strip()[:60]
+    page_size = min(100, max(1, request.args.get("limit", default=50, type=int) or 50))
+    before_id = request.args.get("before_id", type=int)
+
     sql = """
         SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
                COUNT(DISTINCT f.user_id) AS follower_count
@@ -39,10 +42,25 @@ def list_stores():
     if city:
         sql += " AND s.city = ?"
         params.append(city)
-    sql += " GROUP BY s.id ORDER BY s.id DESC LIMIT 100"
+    if before_id is not None and before_id > 0:
+        sql += " AND s.id < ?"
+        params.append(before_id)
+    sql += " GROUP BY s.id ORDER BY s.id DESC LIMIT ?"
+    params.append(page_size + 1)
+
     with get_connection() as connection:
         rows = connection.execute(sql, params).fetchall()
-    return jsonify({"items": [_store_payload(row) for row in rows], "count": len(rows)})
+
+    has_more = len(rows) > page_size
+    page = rows[:page_size]
+    items = [_store_payload(row) for row in page]
+    next_before_id = items[-1]["id"] if has_more and items else None
+    return jsonify({
+        "items": items,
+        "count": len(items),
+        "has_more": has_more,
+        "next_before_id": next_before_id,
+    })
 
 @bp.get("/api/my/store")
 def my_store():
