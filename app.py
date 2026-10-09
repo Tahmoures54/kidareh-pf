@@ -86,9 +86,13 @@ def initialize_database() -> None:
                 name TEXT NOT NULL,
                 phone TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'buyer',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        user_columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+        if "role" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'buyer'")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS stores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -176,7 +180,7 @@ def current_user():
     if not user_id:
         return None
     with get_connection() as connection:
-        row = connection.execute("SELECT id, name, phone FROM users WHERE id = ?", (user_id,)).fetchone()
+        row = connection.execute("SELECT id, name, phone, role FROM users WHERE id = ?", (user_id,)).fetchone()
     if row is None:
         session.clear()
         return None
@@ -195,6 +199,9 @@ def auth_signup():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     payload = request.get_json(silent=True) or {}
     name, phone, password = payload.get("name", ""), payload.get("phone", ""), payload.get("password", "")
+    role = payload.get("role", "buyer")
+    if role not in {"buyer", "seller"}:
+        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
     if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
         return jsonify({"error": "invalid_name", "message": "نام را وارد کنید."}), 400
     if not isinstance(phone, str):
@@ -207,14 +214,14 @@ def auth_signup():
         return jsonify({"error": "weak_password", "message": "رمز عبور باید حداقل ۱۰ نویسه باشد."}), 400
     try:
         with get_connection() as connection:
-            cursor = connection.execute("INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)", (name.strip(), phone, generate_password_hash(password)))
+            cursor = connection.execute("INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)", (name.strip(), phone, generate_password_hash(password), role))
             user_id = cursor.lastrowid
     except sqlite3.IntegrityError:
         return jsonify({"error": "phone_exists", "message": "این شماره قبلاً ثبت شده است؛ وارد شوید."}), 409
     session.clear()
     session["user_id"] = user_id
     session["csrf_token"] = uuid.uuid4().hex
-    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone}, "csrf_token": session["csrf_token"]}), 201
+    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role}, "csrf_token": session["csrf_token"]}), 201
 
 
 @app.post("/api/auth/login")
@@ -228,13 +235,13 @@ def auth_login():
     phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
     phone = re.sub(r"[\s()\-]", "", phone)
     with get_connection() as connection:
-        user = connection.execute("SELECT id, name, phone, password_hash FROM users WHERE phone = ?", (phone,)).fetchone()
+        user = connection.execute("SELECT id, name, phone, password_hash, role FROM users WHERE phone = ?", (phone,)).fetchone()
     if user is None or not check_password_hash(user["password_hash"], password):
         return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 401
     session.clear()
     session["user_id"] = user["id"]
     session["csrf_token"] = uuid.uuid4().hex
-    return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"]}, "csrf_token": session["csrf_token"]})
+    return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
 
 
 @app.get("/api/auth/me")
@@ -303,6 +310,8 @@ def create_store():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required", "message": "برای ساخت ویترین وارد حساب شوید."}), 401
+    if user.get("role") != "seller":
+        return jsonify({"error": "seller_account_required", "message": "برای ساخت ویترین با نوع حساب فروشنده وارد شوید."}), 403
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
     payload = request.get_json(silent=True) or {}
