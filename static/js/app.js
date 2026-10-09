@@ -144,11 +144,11 @@
       return;
     }
     storeGrid.innerHTML = items.map((store) =>
-      '<button class="store-card" type="button" data-store-id="' + store.id + '">' +
+      '<div class="store-card-wrap"><button class="store-card" type="button" data-store-id="' + store.id + '">' +
       '<span class="store-card-mark">⌂</span><span class="store-card-copy"><strong>' + escapeHTML(store.name) +
       '</strong><small>' + escapeHTML(store.city) + ' · ' + numberFormat.format(store.product_count || 0) +
       ' کالا</small><span>' + escapeHTML(store.description || "برای دیدن کالاهای این فروشگاه وارد ویترین شو.") +
-      '</span></span><span class="store-card-arrow">←</span></button>'
+      '</span></span><span class="store-card-arrow">←</span></button><button class="share-button" type="button" data-share-url="/store/' + store.id + '" data-share-title="ویترین ' + escapeHTML(store.name) + '">↗ معرفی ویترین</button></div>'
     ).join("");
   }
 
@@ -178,17 +178,20 @@
       document.querySelector("#storeDialogTitle").textContent = store.name;
       document.querySelector("#storeDialogMeta").textContent = store.city + " · " + numberFormat.format(store.product_count || 0) + " کالا";
       document.querySelector("#storeDialogDescription").textContent = store.description || "به ویترین این فروشگاه خوش آمدید.";
+      const shareStore = document.querySelector("#shareStoreDialog");
+      shareStore.dataset.shareUrl = "/store/" + store.id;
+      shareStore.dataset.shareTitle = "ویترین " + store.name;
       document.querySelector("#storeFollowersCount").textContent = numberFormat.format(store.follower_count || 0) + " دنبال‌کننده";
       const followButton = document.querySelector("#followStoreButton");
       followButton.textContent = data.following ? "✓ دنبال می‌کنی" : "♡ دنبال‌کردن فروشگاه";
       followButton.classList.toggle("is-following", Boolean(data.following));
       const products = data.items || [];
       document.querySelector("#storeProductsGrid").innerHTML = products.length ? products.map((item) =>
-        '<button class="store-product-card" type="button" data-detail="' + item.id + '">' +
+        '<article class="store-product-card"><button class="store-product-open" type="button" data-detail="' + item.id + '">' +
         (item.image_path ? '<img src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' :
           '<span class="store-product-emoji">' + escapeHTML(item.emoji || "🛍️") + '</span>') +
         '<strong>' + escapeHTML(item.title) + '</strong><small>' +
-        (item.price > 0 ? numberFormat.format(item.price) + " تومان" : "قیمت توافقی") + '</small></button>'
+        (item.price > 0 ? numberFormat.format(item.price) + " تومان" : "قیمت توافقی") + '</small></button><button class="share-button" type="button" data-share-url="/product/' + item.id + '" data-share-title="کالای ' + escapeHTML(item.title) + '">↗ اشتراک‌گذاری</button></article>'
       ).join("") : '<p class="store-empty">این ویترین هنوز کالایی ندارد.</p>';
       storeDialog.showModal();
     } catch (error) {
@@ -196,6 +199,19 @@
     }
   }
 
+  async function shareContent(url, title) {
+    const absolute = new URL(url, location.origin).href;
+    const message = (title || "این صفحه") + " در کی‌داره";
+    try {
+      if (navigator.share) { await navigator.share({ title: title || "کی‌داره", text: message, url: absolute }); return; }
+      const popup = window.open("https://wa.me/?text=" + encodeURIComponent(message + "\\n" + absolute), "_blank", "noopener,noreferrer");
+      if (!popup) { try { await navigator.clipboard.writeText(absolute); showToast("پیوند کپی شد؛ آن را در شبکه اجتماعی دلخواه بفرست."); } catch { showToast("پیوند صفحه: " + absolute); } }
+    } catch (error) { if (error.name !== "AbortError") showToast("اشتراک‌گذاری انجام نشد."); }
+  }
+  document.addEventListener("click", async (event) => {
+    const share = event.target.closest("[data-share-url]");
+    if (share) { event.preventDefault(); event.stopPropagation(); await shareContent(share.dataset.shareUrl, share.dataset.shareTitle || ""); }
+  });
   storeGrid.addEventListener("click", (event) => {
     const card = event.target.closest("[data-store-id]");
     if (card) openStoreDetails(card.dataset.storeId);
