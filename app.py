@@ -119,6 +119,45 @@ def listings():
     return jsonify({"items": items, "count": len(items)})
 
 
+@app.post("/api/listings")
+def create_listing():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid_json"}), 400
+
+    title = payload.get("title")
+    category = payload.get("category")
+    city = payload.get("city")
+    description = payload.get("description", "")
+    price = payload.get("price", 0)
+
+    if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
+        return jsonify({"error": "invalid_title", "message": "عنوان باید بین ۱ تا ۱۰۰ نویسه باشد."}), 400
+    if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+        return jsonify({"error": "invalid_category"}), 400
+    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+        return jsonify({"error": "invalid_city"}), 400
+    if not isinstance(description, str) or len(description.strip()) > 1000:
+        return jsonify({"error": "invalid_description"}), 400
+    if isinstance(price, bool) or not isinstance(price, int) or price < 0 or price > 10**12:
+        return jsonify({"error": "invalid_price"}), 400
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO listings (title, category, city, price, description, emoji, featured)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+            """,
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️"),
+        )
+        listing_id = cursor.lastrowid
+        row = connection.execute(
+            "SELECT * FROM listings WHERE id = ?", (listing_id,)
+        ).fetchone()
+
+    return jsonify({"item": serialize_listing(row)}), 201
+
+
 @app.get("/api/listings/<int:listing_id>")
 def listing_detail(listing_id: int):
     with get_connection() as connection:
