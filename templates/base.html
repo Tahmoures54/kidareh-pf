@@ -6,7 +6,17 @@
   <meta name="csrf-token" content="{{ csrf_token }}">
   <meta name="theme-color" content="#087f8c">
   <title>{% block title %}کی‌داره | بازار فروشگاه‌ها و کالاها{% endblock %}</title>
-  <meta name="description" content="{% block description %}در کی‌داره آزادانه کالاها را ببینید، فروشگاه‌ها را کشف کنید و ویترین خود را بسازید.{% endblock %}">
+  <meta name="description" content="{{ meta_description or 'در کی‌داره آزادانه کالاها را ببینید، فروشگاه‌ها را کشف کنید و ویترین خود را بسازید.' }}">
+  <meta property="og:site_name" content="کی‌داره">
+  <meta property="og:locale" content="fa_IR">
+  <meta property="og:type" content="{{ 'product' if meta_type == 'product' else 'website' }}">
+  <meta property="og:title" content="{{ meta_title or 'کی‌داره | بازار فروشگاه‌ها و کالاها' }}">
+  <meta property="og:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببینید و برای دوستانتان بفرستید.' }}">
+  <meta property="og:url" content="{{ request.url }}">
+  {% if meta_image %}<meta property="og:image" content="{{ meta_image }}">{% endif %}
+  <meta name="twitter:card" content="{{ 'summary_large_image' if meta_image else 'summary' }}">
+  <meta name="twitter:title" content="{{ meta_title or 'کی‌داره | بازار فروشگاه‌ها و کالاها' }}">
+  <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببینید و برای دوستانتان بفرستید.' }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
   {% block head %}{% endblock %}
