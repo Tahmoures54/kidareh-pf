@@ -6,10 +6,24 @@ from flask import Flask, jsonify, render_template, request
 
 from .core import BASE_DIR, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
 
+_DEFAULT_SECRET = "dev-only-change-this-key"
+
+
 def create_app(test_config=None):
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
+    secret_key = os.environ.get("SECRET_KEY", _DEFAULT_SECRET)
+    is_production = (
+        os.environ.get("FLASK_ENV", "").lower() == "production"
+        or os.environ.get("ENV", "").lower() == "production"
+        or os.environ.get("LIARA_APP_ID")  # Liara sets this in production
+    )
+    if test_config is None and is_production and secret_key == _DEFAULT_SECRET:
+        raise RuntimeError(
+            "SECRET_KEY must be set to a strong random value in production. "
+            "Do not use the development default."
+        )
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-this-key"),
+        SECRET_KEY=secret_key,
         JSON_AS_ASCII=False,
         MAX_CONTENT_LENGTH=MAX_IMAGE_BYTES + 256 * 1024,
         DATABASE_PATH=str(DATABASE_PATH),
