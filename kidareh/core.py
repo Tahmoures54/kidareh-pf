@@ -5,7 +5,7 @@ import sqlite3
 import uuid
 from pathlib import Path
 from typing import Any
-from flask import current_app, session
+from flask import current_app, has_app_context, session
 from werkzeug.security import check_password_hash, generate_password_hash
 BASE_DIR = Path(__file__).resolve().parent
 INSTANCE_DIR = BASE_DIR / "instance"
@@ -31,7 +31,7 @@ DEMO_LISTINGS = [
     ("کوله‌پشتی روزانه", "fashion", "کرج", 890000, "جادار و مناسب دانشگاه و استفاده روزانه.", "🎒", 0),
 ]
 def get_connection() -> sqlite3.Connection:
-    database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if current_app else DATABASE_PATH
+    database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
     database_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row

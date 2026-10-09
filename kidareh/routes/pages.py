@@ -5,6 +5,7 @@ from ..core import CATEGORIES
 bp = Blueprint("pages", __name__)
 
 
+@bp.get("/")
 def home():
     if not session.get("csrf_token"):
         session["csrf_token"] = uuid.uuid4().hex
@@ -16,6 +17,7 @@ def render_marketplace_page(template: str, **context):
         session["csrf_token"] = uuid.uuid4().hex
     return render_template(template, csrf_token=session["csrf_token"], **context)
 
+@bp.get("/search")
 def search_page():
     return render_marketplace_page(
         "pages/catalog/search.html",
@@ -25,24 +27,31 @@ def search_page():
         categories=CATEGORIES,
     )
 
+@bp.get("/stores")
 def stores_page():
     return render_marketplace_page("pages/stores/list.html", query=request.args.get("q", "").strip())
 
+@bp.get("/store/<int:store_id>")
 def store_page(store_id: int):
     return render_marketplace_page("pages/stores/detail.html", store_id=store_id)
 
+@bp.get("/product/<int:product_id>")
 def product_page(product_id: int):
     return render_marketplace_page("pages/products/detail.html", product_id=product_id)
 
+@bp.get("/seller")
 def seller_dashboard_page():
     return render_marketplace_page("pages/seller/dashboard.html")
 
+@bp.get("/account")
 def account_page():
     return render_marketplace_page("pages/account/profile.html")
 
+@bp.get("/saved")
 def saved_products_page():
     return render_marketplace_page("pages/account/saved.html")
 
+@bp.get("/following")
 def following_stores_page():
     return render_marketplace_page("pages/account/following.html")
 

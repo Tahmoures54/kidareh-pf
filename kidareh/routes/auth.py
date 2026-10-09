@@ -8,6 +8,7 @@ from ..core import current_user, csrf_valid, get_connection
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
+@bp.post("/signup")
 def auth_signup():
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
@@ -37,6 +38,7 @@ def auth_signup():
     session["csrf_token"] = uuid.uuid4().hex
     return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role}, "csrf_token": session["csrf_token"]}), 201
 
+@bp.post("/login")
 def auth_login():
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
@@ -55,6 +57,7 @@ def auth_login():
     session["csrf_token"] = uuid.uuid4().hex
     return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
 
+@bp.post("/become-seller")
 def become_seller():
     user = current_user()
     if not user:
@@ -66,6 +69,7 @@ def become_seller():
     user["role"] = "seller"
     return jsonify({"user": user})
 
+@bp.get("/me")
 def auth_me():
     user = current_user()
     if not user:
@@ -74,6 +78,7 @@ def auth_me():
         session["csrf_token"] = uuid.uuid4().hex
     return jsonify({"user": user, "csrf_token": session["csrf_token"]})
 
+@bp.post("/logout")
 def auth_logout():
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400

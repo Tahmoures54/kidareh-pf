@@ -7,12 +7,14 @@ from typing import Any
 from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
 
-bp = Blueprint("listings", __name__, url_prefix="/api")
+bp = Blueprint("listings", __name__)
 
 
+@bp.get("/api/categories")
 def categories():
     return jsonify({"items": CATEGORIES})
 
+@bp.get("/api/listings")
 def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
@@ -52,6 +54,7 @@ def inspect_image(upload) -> tuple[bytes, str] | None:
         return content, ".webp"
     raise ValueError("invalid_image")
 
+@bp.post("/api/listings")
 def create_listing():
     user = current_user()
     if not user:
@@ -106,7 +109,7 @@ def create_listing():
     if image_content:
         binary, extension = image_content
         filename = f"{uuid.uuid4().hex}{extension}"
-        target_folder = Path(app.config["UPLOAD_FOLDER"])
+        target_folder = Path(current_app.config["UPLOAD_FOLDER"])
         target_folder.mkdir(parents=True, exist_ok=True)
         (target_folder / filename).write_bytes(binary)
         image_path = f"/static/uploads/{filename}"
@@ -129,6 +132,7 @@ def create_listing():
 
     return jsonify({"item": serialize_listing(row, include_contact=True)}), 201
 
+@bp.route("/api/listings/<int:listing_id>", methods=["PATCH", "DELETE"])
 def manage_listing(listing_id: int):
     user = current_user()
     if not user:
@@ -178,6 +182,7 @@ def manage_listing(listing_id: int):
         updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
         return jsonify({"item": serialize_listing(updated, include_contact=True)})
 
+@bp.get("/api/listings/<int:listing_id>")
 def listing_detail(listing_id: int):
     with get_connection() as connection:
         row = connection.execute(

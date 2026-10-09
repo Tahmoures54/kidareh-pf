@@ -3,9 +3,10 @@ from typing import Any
 from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection, serialize_listing
 
-bp = Blueprint("stores", __name__, url_prefix="/api")
+bp = Blueprint("stores", __name__)
 
 
+@bp.get("/api/stores")
 def list_stores():
     query = request.args.get("q", "").strip()[:100]
     city = request.args.get("city", "").strip()[:60]
@@ -30,6 +31,7 @@ def list_stores():
         rows = connection.execute(sql, params).fetchall()
     return jsonify({"items": [dict(row) for row in rows], "count": len(rows)})
 
+@bp.get("/api/my/store")
 def my_store():
     user = current_user()
     if not user:
@@ -38,6 +40,7 @@ def my_store():
         row = connection.execute("SELECT * FROM stores WHERE owner_id = ?", (user["id"],)).fetchone()
     return jsonify({"item": dict(row) if row else None})
 
+@bp.post("/api/stores")
 def create_store():
     user = current_user()
     if not user:
@@ -65,6 +68,7 @@ def create_store():
         return jsonify({"error": "store_exists", "message": "برای این حساب قبلاً ویترین ساخته شده است."}), 409
     return jsonify({"item": dict(row)}), 201
 
+@bp.get("/api/stores/<int:store_id>")
 def store_detail(store_id: int):
     with get_connection() as connection:
         store = connection.execute("""
@@ -89,6 +93,7 @@ def store_detail(store_id: int):
             ).fetchone() is not None
     return jsonify({"store": dict(store), "items": [serialize_listing(row) for row in products], "following": following})
 
+@bp.post("/api/stores/<int:store_id>/follow")
 def toggle_store_follow(store_id: int):
     user = current_user()
     if not user:
@@ -110,6 +115,7 @@ def toggle_store_follow(store_id: int):
         count = connection.execute("SELECT COUNT(*) FROM store_follows WHERE store_id = ?", (store_id,)).fetchone()[0]
     return jsonify({"following": following, "follower_count": count})
 
+@bp.get("/api/stores/following")
 def followed_stores():
     user = current_user()
     if not user:
@@ -126,6 +132,7 @@ def followed_stores():
         """, (user["id"],)).fetchall()
     return jsonify({"items": [dict(row) for row in rows]})
 
+@bp.post("/api/listings/<int:listing_id>/save")
 def toggle_saved_listing(listing_id: int):
     user = current_user()
     if not user:
@@ -146,6 +153,7 @@ def toggle_saved_listing(listing_id: int):
             saved = True
     return jsonify({"saved": saved})
 
+@bp.get("/api/products/saved")
 def saved_listings():
     user = current_user()
     if not user:
