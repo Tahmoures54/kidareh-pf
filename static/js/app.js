@@ -45,7 +45,7 @@
           <div class="listing-image category-art-${escapeHTML(item.category)}">
             ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji) + '</span>'}
             ${item.featured ? '<span class="featured-label">پیشنهاد ویژه</span>' : ""}
-            <button class="favorite-button ${savedIds.has(String(item.id)) ? "is-favorite" : ""}" type="button" aria-label="ذخیره کالا" aria-pressed="${savedIds.has(String(item.id))}" data-favorite="${item.id}">${savedIds.has(String(item.id)) ? "♥" : "♡"}</button>
+            <button class="favorite-button ${savedIds.has(String(item.id)) ? "is-favorite" : ""}" type="button" aria-label="ذخیره کالا" aria-pressed="${savedIds.has(String(item.id))}" data-favorite="${item.id}">${savedIds.has(String(item.id)) ? "♥" : "♡"}</button><button class="listing-share-button" type="button" data-share-url="/product/${item.id}" data-share-title="کالای ${escapeHTML(item.title)}" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button>
           </div>
           <div class="listing-details">
             <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span></div>
