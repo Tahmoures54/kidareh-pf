@@ -200,7 +200,7 @@ def current_user():
     if not user_id:
         return None
     with get_connection() as connection:
-        row = connection.execute("SELECT id, name, phone, role FROM users WHERE id = ?", (user_id,)).fetchone()
+        row = connection.execute("SELECT id, name, phone, role, phone_verified_at FROM users WHERE id = ?", (user_id,)).fetchone()
     if row is None:
         session.clear()
         return None
