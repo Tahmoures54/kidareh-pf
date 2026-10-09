@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}گفت‌وگوها | کی‌داره{% endblock %}
+{% block content %}
+<section class="page-heading"><span class="section-kicker">ارتباط مستقیم</span><h1>گفت‌وگوهای من</h1><p>برای هر کالا، گفت‌وگو با خریدار یا فروشنده را در همین‌جا ادامه بده.</p></section>
+<section class="community-layout">
+  <aside class="page-panel community-sidebar"><h2>گفت‌وگوها</h2><div id="conversationList" class="community-list"><p class="muted">در حال بارگذاری…</p></div></aside>
+  <section class="page-panel community-main"><div id="conversationHeading"><h2>یک گفت‌وگو انتخاب کن</h2><p class="muted">پیام‌ها فقط برای خریدار و فروشنده همان گفت‌وگو قابل مشاهده‌اند.</p></div><div id="conversationMessages" class="chat-messages" aria-live="polite"></div><form id="messageForm" class="stack-form" hidden><label for="messageBody">پیام شما</label><textarea id="messageBody" rows="3" maxlength="2000" required placeholder="پیامت را بنویس…"></textarea><button class="button button-primary" type="submit">ارسال پیام</button></form></section>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
