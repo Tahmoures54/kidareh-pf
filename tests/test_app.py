@@ -127,7 +127,7 @@ def test_create_listing_with_valid_png_upload(monkeypatch, tmp_path):
     upload_folder = tmp_path / "uploads"
     monkeypatch.setattr(app_module, "UPLOAD_FOLDER", upload_folder)
     app_module.app.config["UPLOAD_FOLDER"] = str(upload_folder)
-    png = b"\\x89PNG\\r\\n\\x1a\\n" + b"test-image-data"
+    png = b"\x89PNG\r\n\x1a\n" + b"test-image-data"
     response = client.post("/api/listings", data={"title": "صندلی سالم", "category": "home", "city": "تبریز", "price": "850000", "description": "بازدید حضوری", "image": (BytesIO(png), "my-photo.png")}, content_type="multipart/form-data")
     assert response.status_code == 201
     item = response.get_json()["item"]
