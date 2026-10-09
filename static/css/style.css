@@ -447,3 +447,48 @@ h1, h2, h3, p { margin-top: 0; }
   .seller-actions { width: 100%; }
   .seller-actions .button { flex: 1; }
 }
+
+
+/* Social sharing: bring customers from social profiles into Kidareh */
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #b9e5df;
+  border-radius: 12px;
+  background: #effbf8;
+  color: #087f79;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, transform .18s;
+}
+.share-button:hover { background: #dff7f0; border-color: #75cfc2; transform: translateY(-1px); }
+.share-button:focus-visible { outline: 3px solid rgba(8,127,121,.25); outline-offset: 2px; }
+.store-card-wrap { display: grid; gap: 8px; min-width: 0; }
+.store-card-wrap .store-card { width: 100%; }
+.store-card-wrap > .share-button { justify-self: start; margin-inline-start: 8px; }
+.page-store-card { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.page-store-card-link { display: flex; align-items: flex-start; gap: 13px; color: inherit; text-decoration: none; }
+.page-store-card-link:hover .page-store-copy strong { color: #087f79; }
+.page-store-card > .share-button { align-self: flex-start; }
+.store-product-card { display: grid; gap: 8px; }
+.store-product-open { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; padding: 0; border: 0; background: transparent; text-align: right; cursor: pointer; }
+.store-product-card > .share-button { width: 100%; }
+.seller-promotion { display: flex; align-items: flex-start; gap: 16px; margin-block: 18px; border: 1px solid #bce7df; background: linear-gradient(135deg, #f0fcf8, #ffffff); }
+.seller-promotion-icon { display: grid; place-items: center; flex: 0 0 44px; height: 44px; border-radius: 14px; background: #d9f5ed; color: #087f79; font-size: 25px; font-weight: 900; }
+.seller-promotion h2 { margin: 0 0 8px; color: #155b58; }
+.seller-promotion p { margin: 0 0 14px; color: #506e6d; line-height: 1.9; }
+.store-growth-prompt { display: grid; gap: 8px; max-width: 680px; margin: 14px 0; padding: 16px; border: 1px solid #bce7df; border-radius: 16px; background: #f0fcf8; }
+.store-growth-prompt strong { color: #155b58; }
+.store-growth-prompt p { margin: 0; color: #506e6d; line-height: 1.9; }
+.page-listing-footer .share-button { padding: 6px 9px; min-height: 32px; }
+@media (max-width: 560px) {
+  .seller-promotion { flex-direction: column; }
+  .page-listing-footer .share-button { width: 100%; }
+}
