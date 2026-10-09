@@ -161,18 +161,43 @@
   <dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
     <button class="dialog-close" id="closeAuthDialog" type="button" aria-label="بستن">×</button>
     <div class="auth-content">
-      <span class="section-kicker">حساب کی‌داره</span>
+      <span class="section-kicker">ورود امن با شماره همراه</span>
       <h2 id="authTitle">ورود یا ساخت حساب</h2>
       <form id="authForm">
-        <label id="authNameWrap">نام<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
-        <label id="authRoleWrap">نوع حساب<select name="role"><option value="buyer">خریدار — فقط گشت‌وگذار و ذخیره کالا</option><option value="seller">فروشنده — ساخت ویترین و چیدن کالاها</option></select></label>
-        <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
-        <label>رمز عبور<input name="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" required placeholder="حداقل ۱۰ نویسه"></label>
-        <button class="button button-primary" id="authSubmit" type="submit">ساخت حساب</button>
+        <section id="authPhoneStep">
+          <p class="form-note">ابتدا شماره همراه خود را وارد کنید؛ کد تأیید پیامکی برایتان ارسال می‌شود.</p>
+          <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
+          <label class="captcha-label"><span id="captchaQuestion">محاسبه امنیتی…</span><input name="captcha" inputmode="numeric" pattern="[0-9۰-۹٠-٩]+" required placeholder="پاسخ عددی"></label>
+          <button class="button button-primary" id="requestOtpButton" type="submit">ارسال کد تأیید</button>
+          <p class="form-note">با وارد کردن شماره و ادامه، <a href="/terms" target="_blank" rel="noopener">قوانین و مقررات کی‌داره</a> را می‌پذیرید.</p>
+        </section>
+        <section id="authCodeStep" hidden>
+          <p class="form-note">کد ارسال‌شده به <strong id="otpPhoneLabel"></strong> را وارد کنید.</p>
+          <label>کد تأیید پیامکی<input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد ۶ رقمی"></label>
+          <button class="button button-primary" id="verifyOtpButton" type="submit">تأیید شماره</button>
+          <button class="text-link" id="backToPhoneButton" type="button">اصلاح شماره همراه</button>
+        </section>
+        <section id="authProfileStep" hidden>
+          <p class="form-note">شماره تأیید شد. اطلاعات حساب خود را تکمیل کنید.</p>
+          <label>نام و نام خانوادگی<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
+          <label>نوع حساب<select name="role"><option value="buyer">خریدار — گشت‌وگذار و ذخیره کالا</option><option value="seller">فروشنده — ساخت ویترین</option></select></label>
+          <div id="sellerDetails" hidden>
+            <h3>اطلاعات فروشگاه</h3>
+            <label>نام فروشگاه<input name="store_name" maxlength="80" placeholder="نامی که مشتری می‌بیند"></label>
+            <label>حوزه فعالیت<input name="store_category" maxlength="80" placeholder="مثلاً لوازم خانگی، پوشاک، دیجیتال"></label>
+            <label>شهر فروشگاه<input name="store_city" maxlength="60" placeholder="شهر"></label>
+            <label>نام مسئول فروشگاه<input name="contact_name" maxlength="80" placeholder="نام پاسخ‌گو"></label>
+            <label>نشانی فروشگاه حضوری<textarea name="store_address" maxlength="300" rows="2" placeholder="نشانی برای مراجعه حضوری (در صورت وجود)"></textarea></label>
+            <label>ساعات کاری<input name="store_hours" maxlength="120" placeholder="مثلاً شنبه تا پنجشنبه، ۹ تا ۱۸"></label>
+            <label>صفحه اجتماعی / راه ارتباطی<input name="social_url" maxlength="200" placeholder="https://... یا @شناسه"></label>
+            <label>توضیح کوتاه فروشگاه<textarea name="store_description" maxlength="500" rows="2" placeholder="چه کالاهایی عرضه می‌کنید؟"></textarea></label>
+            <label class="checkbox-line"><input name="in_person" type="checkbox" checked> امکان مراجعه و خرید حضوری وجود دارد</label>
+          </div>
+          <button class="button button-primary" id="completeProfileButton" type="submit">تکمیل و ورود</button>
+        </section>
       </form>
-      <button class="text-link auth-mode-toggle" id="authModeToggle" type="button">قبلاً حساب ساخته‌ام؛ ورود</button>
       <button class="button button-quiet" id="logoutButton" type="button" hidden>خروج از حساب</button>
-      <p class="form-note">شماره همراه برای حساب و هماهنگی بازدید حضوری استفاده می‌شود. رمز عبور به‌صورت هش‌شده ذخیره می‌شود.</p>
+      <p class="form-note">خریداران برای دیدن کالاها و فروشگاه‌ها نیازی به ثبت‌نام ندارند.</p>
     </div>
   </dialog>
 
