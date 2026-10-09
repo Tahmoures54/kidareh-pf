@@ -342,3 +342,14 @@ h1, h2, h3, p { margin-top: 0; }
   .dialog-content h2 { font-size: 20px; }
   .dialog-art { min-height: 125px; font-size: 60px; }
 }
+
+
+/* Listing photos for better in-person purchase decisions. */
+.listing-photo { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; }
+.dialog-art.has-photo { min-height: 280px; background-position: center; background-repeat: no-repeat; background-size: contain; font-size: 0; }
+.listing-image-field { grid-column: 1 / -1; }
+.listing-image-field input { padding: 10px; background: #f7fbfb; }
+.image-preview-wrap { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.image-preview-wrap[hidden] { display: none; }
+.image-preview-wrap img { display: block; width: min(100%, 220px); height: 150px; object-fit: cover; border: 1px solid #d8e5e6; border-radius: 12px; background: #f4f8f8; }
+@media (max-width: 600px) { .listing-image-field, .image-preview-wrap { grid-column: auto; } .dialog-art.has-photo { min-height: 220px; } }
