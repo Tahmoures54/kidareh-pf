@@ -11,7 +11,12 @@
   let activeCategory = "all";
   let toastTimeout;
   let currentUser = null;
+  let currentStore = null;
   let csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  let storeSearchTimeout;
+  const storeGrid = document.querySelector("#storeGrid");
+  const storeSearchInput = document.querySelector("#storeSearchInput");
+  const savedIds = new Set(JSON.parse(localStorage.getItem("kidareh-saved-products") || "[]").map(String));
 
   const numberFormat = new Intl.NumberFormat("fa-IR");
   const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -26,7 +31,7 @@
   }
 
   function renderListings(items) {
-    count.textContent = `${numberFormat.format(items.length)} آگهی`;
+    count.textContent = `${numberFormat.format(items.length)} کالا`;
     empty.hidden = items.length !== 0;
     grid.hidden = items.length === 0;
     if (!items.length) {
@@ -40,7 +45,7 @@
           <div class="listing-image category-art-${escapeHTML(item.category)}">
             ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji) + '</span>'}
             ${item.featured ? '<span class="featured-label">پیشنهاد ویژه</span>' : ""}
-            <button class="favorite-button" type="button" aria-label="ذخیره آگهی" data-favorite="${item.id}">♡</button>
+            <button class="favorite-button ${savedIds.has(String(item.id)) ? "is-favorite" : ""}" type="button" aria-label="ذخیره کالا" aria-pressed="${savedIds.has(String(item.id))}" data-favorite="${item.id}">${savedIds.has(String(item.id)) ? "♥" : "♡"}</button>
           </div>
           <div class="listing-details">
             <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span></div>
@@ -115,9 +120,13 @@
   grid.addEventListener("click", (event) => {
     const favorite = event.target.closest("[data-favorite]");
     if (favorite) {
-      favorite.classList.toggle("is-favorite");
-      favorite.textContent = favorite.classList.contains("is-favorite") ? "♥" : "♡";
-      showToast(favorite.classList.contains("is-favorite") ? "این آگهی در این نسخه به‌صورت موقت نشان شد." : "از فهرست نشان‌شده‌های موقت برداشته شد.");
+      const id = String(favorite.dataset.favorite);
+      if (savedIds.has(id)) savedIds.delete(id); else savedIds.add(id);
+      localStorage.setItem("kidareh-saved-products", JSON.stringify([...savedIds]));
+      favorite.classList.toggle("is-favorite", savedIds.has(id));
+      favorite.setAttribute("aria-pressed", String(savedIds.has(id)));
+      favorite.textContent = savedIds.has(id) ? "♥" : "♡";
+      showToast(savedIds.has(id) ? "کالا در ذخیره‌های این دستگاه قرار گرفت." : "کالا از ذخیره‌ها برداشته شد.");
       return;
     }
     const detailButton = event.target.closest("[data-detail]");
@@ -126,6 +135,163 @@
     }
   });
 
+
+
+  function renderStores(items) {
+    document.querySelector("#storesCount").textContent = numberFormat.format(items.length) + " فروشگاه";
+    if (!items.length) {
+      storeGrid.innerHTML = '<div class="loading-card">فروشگاهی با این مشخصات پیدا نشد.</div>';
+      return;
+    }
+    storeGrid.innerHTML = items.map((store) =>
+      '<button class="store-card" type="button" data-store-id="' + store.id + '">' +
+      '<span class="store-card-mark">⌂</span><span class="store-card-copy"><strong>' + escapeHTML(store.name) +
+      '</strong><small>' + escapeHTML(store.city) + ' · ' + numberFormat.format(store.product_count || 0) +
+      ' کالا</small><span>' + escapeHTML(store.description || "برای دیدن کالاهای این فروشگاه وارد ویترین شو.") +
+      '</span></span><span class="store-card-arrow">←</span></button>'
+    ).join("");
+  }
+
+  async function loadStores(query = "") {
+    storeGrid.innerHTML = '<div class="loading-card">ویترین‌ها در حال بارگذاری‌اند…</div>';
+    try {
+      const params = new URLSearchParams();
+      if (query.trim()) params.set("q", query.trim());
+      const response = await fetch("/api/stores?" + params.toString(), { headers: { Accept: "application/json" } });
+      const data = await response.json();
+      if (!response.ok) throw new Error("بارگذاری فروشگاه‌ها ناموفق بود.");
+      renderStores(data.items || []);
+    } catch (_error) {
+      storeGrid.innerHTML = '<div class="loading-card error-card">دریافت فروشگاه‌ها انجام نشد. دوباره تلاش کن.</div>';
+    }
+  }
+
+  const storeDialog = document.querySelector("#storeDialog");
+  let activeStoreId = null;
+  async function openStoreDetails(id) {
+    activeStoreId = Number(id);
+    try {
+      const response = await fetch("/api/stores/" + encodeURIComponent(id), { headers: { Accept: "application/json" } });
+      const data = await response.json();
+      if (!response.ok) throw new Error("ویترین فروشگاه باز نشد.");
+      const store = data.store;
+      document.querySelector("#storeDialogTitle").textContent = store.name;
+      document.querySelector("#storeDialogMeta").textContent = store.city + " · " + numberFormat.format(store.product_count || 0) + " کالا";
+      document.querySelector("#storeDialogDescription").textContent = store.description || "به ویترین این فروشگاه خوش آمدید.";
+      document.querySelector("#storeFollowersCount").textContent = numberFormat.format(store.follower_count || 0) + " دنبال‌کننده";
+      const followButton = document.querySelector("#followStoreButton");
+      followButton.textContent = data.following ? "✓ دنبال می‌کنی" : "♡ دنبال‌کردن فروشگاه";
+      followButton.classList.toggle("is-following", Boolean(data.following));
+      const products = data.items || [];
+      document.querySelector("#storeProductsGrid").innerHTML = products.length ? products.map((item) =>
+        '<button class="store-product-card" type="button" data-detail="' + item.id + '">' +
+        (item.image_path ? '<img src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' :
+          '<span class="store-product-emoji">' + escapeHTML(item.emoji || "🛍️") + '</span>') +
+        '<strong>' + escapeHTML(item.title) + '</strong><small>' +
+        (item.price > 0 ? numberFormat.format(item.price) + " تومان" : "قیمت توافقی") + '</small></button>'
+      ).join("") : '<p class="store-empty">این ویترین هنوز کالایی ندارد.</p>';
+      storeDialog.showModal();
+    } catch (error) {
+      showToast(error.message || "خطا در بازکردن ویترین.");
+    }
+  }
+
+  storeGrid.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-store-id]");
+    if (card) openStoreDetails(card.dataset.storeId);
+  });
+  storeSearchInput.addEventListener("input", () => {
+    window.clearTimeout(storeSearchTimeout);
+    storeSearchTimeout = window.setTimeout(() => loadStores(storeSearchInput.value), 280);
+  });
+  document.querySelector("#showAllStores").addEventListener("click", () => {
+    storeSearchInput.value = "";
+    loadStores();
+  });
+  document.querySelector("#followStoreButton").addEventListener("click", async () => {
+    if (!activeStoreId) return;
+    if (!currentUser) {
+      storeDialog.close();
+      setAuthMode("signup");
+      authDialog.showModal();
+      showToast("برای دنبال‌کردن فروشگاه یک حساب ساده بساز یا وارد شو.");
+      return;
+    }
+    const button = document.querySelector("#followStoreButton");
+    button.disabled = true;
+    try {
+      const response = await fetch("/api/stores/" + activeStoreId + "/follow", {
+        method: "POST",
+        headers: { Accept: "application/json", "X-CSRF-Token": csrfToken }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "تغییر دنبال‌کردن انجام نشد.");
+      button.textContent = data.following ? "✓ دنبال می‌کنی" : "♡ دنبال‌کردن فروشگاه";
+      button.classList.toggle("is-following", data.following);
+      document.querySelector("#storeFollowersCount").textContent = numberFormat.format(data.follower_count || 0) + " دنبال‌کننده";
+      showToast(data.following ? "فروشگاه به دنبال‌شده‌ها اضافه شد." : "فروشگاه از دنبال‌شده‌ها برداشته شد.");
+      loadStores(storeSearchInput.value);
+    } catch (error) {
+      showToast(error.message || "خطا در دنبال‌کردن فروشگاه.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+  document.querySelector("#closeStoreDialog").addEventListener("click", () => storeDialog.close());
+  storeDialog.addEventListener("click", (event) => { if (event.target === storeDialog) storeDialog.close(); });
+
+  const storeCreateDialog = document.querySelector("#storeCreateDialog");
+  const storeCreateForm = document.querySelector("#storeCreateForm");
+  document.querySelector("#openStoreForm").addEventListener("click", async () => {
+    if (!currentUser) {
+      setAuthMode("signup");
+      authDialog.showModal();
+      showToast("برای ساخت ویترین، ابتدا وارد حساب شو.");
+      return;
+    }
+    try {
+      const response = await fetch("/api/my/store", { headers: { Accept: "application/json" } });
+      const data = await response.json();
+      currentStore = data.item || null;
+      if (currentStore) {
+        showToast("ویترین شما از قبل ساخته شده است؛ می‌توانید کالا اضافه کنید.");
+        listingSubmitForm.hidden = false;
+        listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        storeCreateDialog.showModal();
+      }
+    } catch (_error) {
+      showToast("وضعیت ویترین دریافت نشد؛ دوباره تلاش کن.");
+    }
+  });
+  document.querySelector("#closeStoreCreateDialog").addEventListener("click", () => storeCreateDialog.close());
+  storeCreateDialog.addEventListener("click", (event) => { if (event.target === storeCreateDialog) storeCreateDialog.close(); });
+  storeCreateForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = storeCreateForm.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    try {
+      const payload = Object.fromEntries(new FormData(storeCreateForm).entries());
+      const response = await fetch("/api/stores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "ساخت ویترین انجام نشد.");
+      currentStore = data.item;
+      storeCreateDialog.close();
+      storeCreateForm.reset();
+      await loadStores();
+      showToast("ویترین ساخته شد؛ حالا کالاهایت را اضافه کن.");
+      listingSubmitForm.hidden = false;
+      listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (error) {
+      showToast(error.message || "ساخت ویترین انجام نشد.");
+    } finally {
+      submit.disabled = false;
+    }
+  });
 
   const listingDialog = document.querySelector("#listingDialog");
   const dialogEmoji = document.querySelector("#dialogEmoji");
@@ -288,9 +454,14 @@
       const data = await response.json();
       if (response.status === 401) {
         authDialog.showModal();
-        throw new Error(data.message || "برای ثبت آگهی وارد حساب شوید.");
+        throw new Error(data.message || "برای افزودن کالا وارد حساب شوید.");
       }
-      if (!response.ok) throw new Error(data.message || "اطلاعات آگهی را بررسی کنید.");
+      if (response.status === 409 && data.error === "store_required") {
+        showToast(data.message);
+        storeCreateDialog.showModal();
+        throw new Error(data.message);
+      }
+      if (!response.ok) throw new Error(data.message || "اطلاعات کالا را بررسی کنید.");
       listingSubmitForm.reset();
       clearImagePreview();
       listingSubmitForm.hidden = true;
@@ -299,13 +470,13 @@
       activeCategory = "all";
       document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === "all"));
       await loadListings();
-      showToast("آگهی ثبت شد و در فهرست نمایش داده می‌شود.");
+      showToast("کالا به ویترین شما اضافه شد.");
       document.querySelector("#listings").scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
       showToast(error.message || "ثبت آگهی انجام نشد؛ دوباره تلاش کنید.");
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "ثبت آگهی آزمایشی";
+      submitButton.textContent = "افزودن کالا به ویترین";
     }
   });
 
@@ -391,12 +562,18 @@
       const data = await response.json();
       if (data.csrf_token) csrfToken = data.csrf_token;
       updateAuthUI(data.user);
+      if (data.user) {
+        const storeResponse = await fetch("/api/my/store", { headers: { Accept: "application/json" } });
+        const storeData = await storeResponse.json();
+        currentStore = storeData.item || null;
+      }
     } catch (_error) {
       updateAuthUI(null);
     }
   }
   setAuthMode("signup");
   restoreSession();
+  loadStores();
 
   showAllButton.addEventListener("click", () => {
     searchInput.value = "";
