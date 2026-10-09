@@ -118,9 +118,50 @@
       showToast(favorite.classList.contains("is-favorite") ? "این آگهی در این نسخه به‌صورت موقت نشان شد." : "از فهرست نشان‌شده‌های موقت برداشته شد.");
       return;
     }
-    if (event.target.closest("[data-detail]")) {
-      showToast("نمایش جزئیات و ارتباط با آگهی‌دهنده در مرحله بعدی پیاده‌سازی می‌شود.");
+    const detailButton = event.target.closest("[data-detail]");
+    if (detailButton) {
+      openListingDetails(detailButton.dataset.detail);
     }
+  });
+
+
+  const listingDialog = document.querySelector("#listingDialog");
+  const dialogEmoji = document.querySelector("#dialogEmoji");
+  const dialogMeta = document.querySelector("#dialogMeta");
+  const dialogTitle = document.querySelector("#dialogTitle");
+  const dialogPrice = document.querySelector("#dialogPrice");
+  const dialogDescription = document.querySelector("#dialogDescription");
+
+  async function openListingDetails(id) {
+    try {
+      const response = await fetch(`/api/listings/${encodeURIComponent(id)}`, {
+        headers: { Accept: "application/json" }
+      });
+      const data = await response.json();
+      if (!response.ok || !data.item) throw new Error("آگهی پیدا نشد.");
+      const item = data.item;
+      dialogEmoji.textContent = item.emoji || "🛍️";
+      dialogMeta.textContent = `${item.city} · ${categoryName(item.category)}`;
+      dialogTitle.textContent = item.title;
+      dialogPrice.textContent = Number(item.price) > 0
+        ? `${numberFormat.format(item.price)} تومان`
+        : "قیمت توافقی";
+      dialogDescription.textContent = item.description || "توضیحی برای این آگهی ثبت نشده است.";
+      if (typeof listingDialog.showModal === "function") listingDialog.showModal();
+      else showToast("برای مشاهده جزئیات، مرورگر را به‌روز کنید.");
+    } catch (error) {
+      showToast(error.message || "دریافت جزئیات آگهی ناموفق بود.");
+    }
+  }
+
+  function closeListingDetails() {
+    if (listingDialog.open) listingDialog.close();
+  }
+
+  document.querySelector("#closeListingDialog").addEventListener("click", closeListingDetails);
+  document.querySelector("#dialogDone").addEventListener("click", closeListingDetails);
+  listingDialog.addEventListener("click", (event) => {
+    if (event.target === listingDialog) closeListingDetails();
   });
 
   const listingSubmitForm = document.querySelector("#listingSubmitForm");
