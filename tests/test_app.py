@@ -12,6 +12,10 @@ def setup_test_database(monkeypatch, tmp_path):
             "INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)",
             ("آزمایش", "09120000000", "test-hash"),
         )
+        connection.execute(
+            "INSERT INTO stores (owner_id, name, city, description) VALUES (?, ?, ?, ?)",
+            (1, "ویترین آزمایش", "تبریز", "فروشگاه تست"),
+        )
     with client.session_transaction() as browser_session:
         browser_session["user_id"] = 1
         browser_session["csrf_token"] = "test-token"
@@ -276,3 +280,45 @@ def test_only_owner_can_edit_or_delete_listing(monkeypatch, tmp_path):
     assert updated.get_json()["item"]["title"] == "میز ویرایش‌شده"
     deleted = client.delete(f"/api/listings/{listing_id}")
     assert deleted.status_code == 200
+
+
+def test_guest_can_browse_storefronts_and_store_products(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    stores = client.get("/api/stores")
+    assert stores.status_code == 200
+    assert stores.get_json()["items"]
+    store_id = stores.get_json()["items"][0]["id"]
+    detail = client.get(f"/api/stores/{store_id}")
+    assert detail.status_code == 200
+    assert "store" in detail.get_json()
+    assert "items" in detail.get_json()
+
+
+def test_following_store_requires_login_and_csrf(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    store_id = client.get("/api/stores").get_json()["items"][0]["id"]
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    denied = client.post(f"/api/stores/{store_id}/follow")
+    assert denied.status_code == 401
+
+    with client.session_transaction() as browser_session:
+        browser_session["user_id"] = 1
+        browser_session["csrf_token"] = "test-token"
+    followed = client.post(f"/api/stores/{store_id}/follow", headers={"X-CSRF-Token": "test-token"})
+    assert followed.status_code == 200
+    assert followed.get_json()["following"] is True
+    unfollowed = client.post(f"/api/stores/{store_id}/follow", headers={"X-CSRF-Token": "test-token"})
+    assert unfollowed.status_code == 200
+    assert unfollowed.get_json()["following"] is False
+
+
+def test_saved_product_requires_login(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    product_id = client.get("/api/listings").get_json()["items"][0]["id"]
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    response = client.post(f"/api/listings/{product_id}/save")
+    assert response.status_code == 401
