@@ -593,3 +593,28 @@ def test_pwa_assets_are_served():
     client = app_module.app.test_client()
     assert client.get("/static/manifest.webmanifest").status_code == 200
     assert client.get("/static/sw.js").status_code == 200
+
+
+def test_otp_rate_limit_is_shared_across_browser_sessions(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    _request_test_otp(client, "09129998877", monkeypatch)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+        browser_session["csrf_token"] = "test-token"
+    challenge = client.get("/api/auth/challenge").get_json()["question"]
+    left, right = [int(value.strip()) for value in challenge.replace("= ؟", "").strip().split("+")]
+    response = client.post("/api/auth/request-otp", headers={"X-CSRF-Token":"test-token"},
+        json={"phone":"09129998877","captcha_answer":str(left+right),"terms_accepted":True})
+    assert response.status_code == 429
+    assert response.get_json()["error"] == "otp_cooldown"
+
+
+def test_otp_fails_closed_when_kavenegar_is_not_configured(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    monkeypatch.delenv("KAVENEGAR_API_KEY", raising=False)
+    challenge = client.get("/api/auth/challenge").get_json()["question"]
+    left, right = [int(value.strip()) for value in challenge.replace("= ؟", "").strip().split("+")]
+    response = client.post("/api/auth/request-otp", headers={"X-CSRF-Token":"test-token"},
+        json={"phone":"09128887766","captcha_answer":str(left+right),"terms_accepted":True})
+    assert response.status_code == 503
+    assert response.get_json()["error"] == "sms_unavailable"
