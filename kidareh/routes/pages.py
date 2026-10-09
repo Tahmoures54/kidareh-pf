@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, session
 import uuid
-from ..core import CATEGORIES
+from ..core import CATEGORIES, get_connection
 
 bp = Blueprint("pages", __name__)
 
@@ -33,11 +33,20 @@ def stores_page():
 
 @bp.get("/store/<int:store_id>")
 def store_page(store_id: int):
-    return render_marketplace_page("pages/stores/detail.html", store_id=store_id)
+    with get_connection() as connection:
+        store = connection.execute("SELECT name, city, description FROM stores WHERE id = ?", (store_id,)).fetchone()
+    meta_title = f"{store['name']} | ویترین کی‌داره" if store else "ویترین فروشگاه | کی‌داره"
+    meta_description = f"ویترین {store['name']} در {store['city']}؛ {store['description']}".strip("؛ ") if store else "کالاهای فروشگاه‌ها را در کی‌داره ببینید."
+    return render_marketplace_page("pages/stores/detail.html", store_id=store_id, meta_title=meta_title, meta_description=meta_description)
 
 @bp.get("/product/<int:product_id>")
 def product_page(product_id: int):
-    return render_marketplace_page("pages/products/detail.html", product_id=product_id)
+    with get_connection() as connection:
+        product = connection.execute("SELECT title, description, city, image_path FROM listings WHERE id = ?", (product_id,)).fetchone()
+    meta_title = f"{product['title']} | کی‌داره" if product else "جزئیات کالا | کی‌داره"
+    meta_description = f"{product['title']} در {product['city']}؛ {product['description']}".strip("؛ ") if product else "کالاهای متنوع را در کی‌داره ببینید."
+    meta_image = request.url_root.rstrip("/") + product["image_path"] if product and product["image_path"] and product["image_path"].startswith("/") else None
+    return render_marketplace_page("pages/products/detail.html", product_id=product_id, meta_title=meta_title, meta_description=meta_description, meta_type="product", meta_image=meta_image)
 
 @bp.get("/seller")
 def seller_dashboard_page():
