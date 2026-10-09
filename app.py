@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 import uuid
 from pathlib import Path
@@ -62,6 +63,7 @@ def initialize_database() -> None:
                 emoji TEXT NOT NULL DEFAULT '🛍️',
                 featured INTEGER NOT NULL DEFAULT 0,
                 image_path TEXT NOT NULL DEFAULT '',
+                seller_phone TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -69,6 +71,8 @@ def initialize_database() -> None:
         columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
         if "image_path" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN image_path TEXT NOT NULL DEFAULT ''")
+        if "seller_phone" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN seller_phone TEXT NOT NULL DEFAULT ''")
         count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
         if count == 0:
             connection.executemany(
@@ -155,6 +159,7 @@ def create_listing():
     category = payload.get("category")
     city = payload.get("city")
     description = payload.get("description", "")
+    seller_phone = payload.get("seller_phone", "")
     raw_price = payload.get("price", 0)
     try:
         price = int(raw_price) if not isinstance(raw_price, bool) else -1
@@ -169,6 +174,13 @@ def create_listing():
         return jsonify({"error": "invalid_city"}), 400
     if not isinstance(description, str) or len(description.strip()) > 1000:
         return jsonify({"error": "invalid_description"}), 400
+    if not isinstance(seller_phone, str):
+        return jsonify({"error": "invalid_seller_phone", "message": "شماره تماس معتبر وارد کنید."}), 400
+    digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+    seller_phone = seller_phone.translate(digit_map)
+    seller_phone = re.sub(r"[\s()\-]", "", seller_phone)
+    if seller_phone and not re.fullmatch(r"09\d{9}", seller_phone):
+        return jsonify({"error": "invalid_seller_phone", "message": "شماره همراه باید مانند 09123456789 باشد."}), 400
     if price < 0 or price > 10**12:
         return jsonify({"error": "invalid_price"}), 400
 
@@ -194,10 +206,10 @@ def create_listing():
     with get_connection() as connection:
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
