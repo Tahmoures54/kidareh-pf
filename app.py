@@ -119,6 +119,17 @@ def listings():
     return jsonify({"items": items, "count": len(items)})
 
 
+@app.get("/api/listings/<int:listing_id>")
+def listing_detail(listing_id: int):
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT * FROM listings WHERE id = ?", (listing_id,)
+        ).fetchone()
+    if row is None:
+        return jsonify({"error": "listing_not_found"}), 404
+    return jsonify({"item": serialize_listing(row)})
+
+
 @app.errorhandler(404)
 def not_found(_error):
     if request.path.startswith("/api/"):
