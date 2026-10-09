@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}ویترین فروشگاه | کی‌داره{% endblock %}
+{% block content %}<section class="page-heading"><a class="back-link" href="/stores">← بازگشت به فروشگاه‌ها</a><span class="section-kicker">ویترین فروشنده</span><h1 id="storeTitle">در حال دریافت ویترین…</h1><p id="storeDescription">محصولات و اطلاعات این فروشگاه</p><div class="store-detail-meta" id="storeMeta"></div><button id="followStore" class="button button-primary" type="button">♡ دنبال‌کردن فروشگاه</button></section><section class="page-panel"><div class="page-results-head"><h2>کالاهای این ویترین</h2><span id="pageResultsCount"></span></div><div id="pageListings" class="page-card-grid"></div></section>{% endblock %}
+{% block scripts %}<script>window.KIDAREH_PAGE={type:"store-detail",storeId:{{ store_id|tojson }}};</script>{% endblock %}
