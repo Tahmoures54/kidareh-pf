@@ -43,6 +43,9 @@ def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
     city = request.args.get("city", "").strip()[:60]
+    near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
+    radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
+    use_nearby = near_lat is not None and near_lon is not None and -90 <= near_lat <= 90 and -180 <= near_lon <= 180
 
     sql = "SELECT * FROM listings WHERE 1=1"
     parameters: list[Any] = []
@@ -56,7 +59,7 @@ def listings():
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
-    sql += " ORDER BY featured DESC, id DESC LIMIT 100"
+    sql += " ORDER BY featured DESC, id DESC LIMIT 300"
 
     with get_connection() as connection:
         listing_columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
@@ -66,7 +69,18 @@ def listings():
         connection.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
         rows = connection.execute(sql, parameters).fetchall()
     items = _attach_active_tags([serialize_listing(row) for row in rows])
-    return jsonify({"items": items, "count": len(items)})
+    if use_nearby:
+        import math
+        for item in items:
+            lat, lon = item.get("latitude"), item.get("longitude")
+            item["distance_km"] = None
+            if lat is not None and lon is not None:
+                dlat, dlon = math.radians(float(lat)-near_lat), math.radians(float(lon)-near_lon)
+                a = math.sin(dlat/2)**2 + math.cos(math.radians(near_lat))*math.cos(math.radians(float(lat)))*math.sin(dlon/2)**2
+                item["distance_km"] = round(6371*2*math.asin(min(1, math.sqrt(a))), 2)
+        items = [item for item in items if item["distance_km"] is not None and item["distance_km"] <= radius_km]
+        items.sort(key=lambda item: item["distance_km"])
+    return jsonify({"items": items[:100], "count": len(items), "nearby": use_nearby, "radius_km": radius_km if use_nearby else None})
 
 def inspect_image(upload) -> tuple[bytes, str] | None:
     """Identify raster image data from its signature, not the supplied filename."""
@@ -100,6 +114,13 @@ def create_listing():
     city = payload.get("city")
     description = payload.get("description", "")
     seller_phone = payload.get("seller_phone", "")
+    try:
+        latitude = float(payload.get("latitude")) if payload.get("latitude") not in (None, "") else None
+        longitude = float(payload.get("longitude")) if payload.get("longitude") not in (None, "") else None
+    except (TypeError, ValueError):
+        return jsonify({"error":"invalid_coordinates"}), 400
+    if (latitude is None) != (longitude is None) or (latitude is not None and not (-90 <= latitude <= 90 and -180 <= longitude <= 180)):
+        return jsonify({"error":"invalid_coordinates"}), 400
     raw_price = payload.get("price", 0)
     try:
         price = int(raw_price) if not isinstance(raw_price, bool) else -1
@@ -149,10 +170,10 @@ def create_listing():
             return jsonify({"error": "store_required", "message": "برای افزودن کالا، ابتدا ویترین فروشگاه خود را بسازید."}), 409
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id, store_id)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id, store_id, latitude, longitude)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"], store["id"]),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"], store["id"], latitude, longitude),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
@@ -178,7 +199,7 @@ def manage_listing(listing_id: int):
             connection.execute("DELETE FROM listings WHERE id = ?", (listing_id,))
             return jsonify({"ok": True})
         payload = request.get_json(silent=True) or {}
-        allowed = {"title", "category", "city", "price", "description", "seller_phone"}
+        allowed = {"title", "category", "city", "price", "description", "seller_phone", "latitude", "longitude"}
         if not payload or set(payload) - allowed:
             return jsonify({"error": "invalid_payload"}), 400
         title = payload.get("title", row["title"])
@@ -187,6 +208,12 @@ def manage_listing(listing_id: int):
         description = payload.get("description", row["description"])
         price = payload.get("price", row["price"])
         phone = payload.get("seller_phone", row["seller_phone"])
+        try:
+            latitude = float(payload.get("latitude", row["latitude"])) if payload.get("latitude", row["latitude"]) not in (None, "") else None
+            longitude = float(payload.get("longitude", row["longitude"])) if payload.get("longitude", row["longitude"]) not in (None, "") else None
+        except (TypeError, ValueError): return jsonify({"error":"invalid_coordinates"}), 400
+        if (latitude is None) != (longitude is None) or (latitude is not None and not (-90 <= latitude <= 90 and -180 <= longitude <= 180)):
+            return jsonify({"error":"invalid_coordinates"}), 400
         if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
             return jsonify({"error": "invalid_title"}), 400
         if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
@@ -207,7 +234,7 @@ def manage_listing(listing_id: int):
         phone = re.sub(r"[\s()\-]", "", phone)
         if phone and not re.fullmatch(r"09\d{9}", phone):
             return jsonify({"error": "invalid_seller_phone"}), 400
-        connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, listing_id))
+        connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=?, latitude=?, longitude=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, latitude, longitude, listing_id))
         updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
         return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
 
