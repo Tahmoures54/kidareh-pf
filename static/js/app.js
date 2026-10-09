@@ -465,6 +465,16 @@
   });
 
   const listingSubmitForm = document.querySelector("#listingSubmitForm");
+  if (listingSubmitForm && !listingSubmitForm.querySelector('[name="latitude"]')) {
+    const locationFieldset = document.createElement("fieldset");
+    locationFieldset.className = "stack-form";
+    locationFieldset.innerHTML = '<legend>موقعیت تقریبی کالا (اختیاری)</legend><p class="muted-copy">برای نمایش در جست‌وجوی نزدیک، موقعیت کالا را ثبت کن. نشانی دقیق خانه را ثبت نکن.</p><label>عرض جغرافیایی<input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892"></label><label>طول جغرافیایی<input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890"></label><button class="button button-outline" type="button" id="captureListingLocation">استفاده از موقعیت فعلی</button>';
+    listingSubmitForm.appendChild(locationFieldset);
+    locationFieldset.querySelector("#captureListingLocation").addEventListener("click", () => {
+      if (!navigator.geolocation) { showToast("موقعیت‌یابی پشتیبانی نمی‌شود."); return; }
+      navigator.geolocation.getCurrentPosition(pos => { locationFieldset.querySelector('[name="latitude"]').value=pos.coords.latitude.toFixed(6); locationFieldset.querySelector('[name="longitude"]').value=pos.coords.longitude.toFixed(6); showToast("موقعیت برای این کالا ثبت شد."); }, () => showToast("اجازه موقعیت داده نشد."), {timeout:8000,maximumAge:300000});
+    });
+  }
   document.querySelector("#openListingForm").addEventListener("click", async () => {
     if (!currentUser) {
       setAuthStage("phone");
