@@ -9,3 +9,7 @@ instance/*.db
 
 # User-uploaded listing photos are runtime data, not repository content.
 static/uploads/
+
+backups/
+*.sqlite3-wal
+*.sqlite3-shm
