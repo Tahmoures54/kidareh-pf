@@ -5,9 +5,9 @@ import sqlite3
 import uuid
 from pathlib import Path
 from typing import Any
-from flask import current_app, has_app_context, session
+from flask import current_app, has_app_context, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 INSTANCE_DIR = BASE_DIR / "instance"
 DATABASE_PATH = Path(os.environ.get("DATABASE_PATH", str(INSTANCE_DIR / "kidareh.sqlite3")))
 UPLOAD_FOLDER = Path(os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "static" / "uploads")))
