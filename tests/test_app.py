@@ -348,7 +348,8 @@ def test_buyer_can_switch_to_seller_when_ready_to_open_storefront(monkeypatch, t
 
 def test_store_owner_can_update_store_details(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
-    response = client.patch("/api/stores/1", headers={"X-CSRF-Token": "test-token"}, json={"name": "ویترین تازه", "city": "تهران", "description": "توضیح جدید"})
+    store_id = client.get("/api/my/store").get_json()["item"]["id"]
+    response = client.patch(f"/api/stores/{store_id}", headers={"X-CSRF-Token": "test-token"}, json={"name": "ویترین تازه", "city": "تهران", "description": "توضیح جدید"})
     assert response.status_code == 200
     assert response.get_json()["item"]["name"] == "ویترین تازه"
     assert response.get_json()["item"]["city"] == "تهران"
@@ -367,6 +368,7 @@ def test_non_owner_cannot_update_store_details(monkeypatch, tmp_path):
 
 def test_store_update_rejects_invalid_name(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
-    response = client.patch("/api/stores/1", headers={"X-CSRF-Token": "test-token"}, json={"name": " "})
+    store_id = client.get("/api/my/store").get_json()["item"]["id"]
+    response = client.patch(f"/api/stores/{store_id}", headers={"X-CSRF-Token": "test-token"}, json={"name": " "})
     assert response.status_code == 400
     assert response.get_json()["error"] == "invalid_store_name"
