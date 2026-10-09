@@ -618,3 +618,16 @@ def test_otp_fails_closed_when_kavenegar_is_not_configured(monkeypatch, tmp_path
         json={"phone":"09128887766","captcha_answer":str(left+right),"terms_accepted":True})
     assert response.status_code == 503
     assert response.get_json()["error"] == "sms_unavailable"
+
+
+def test_password_login_is_disabled_in_favor_of_sms(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session["csrf_token"] = "test-token"
+    response = client.post(
+        "/api/auth/login",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"phone": "09120000000", "password": "anything"},
+    )
+    assert response.status_code == 410
+    assert response.get_json()["error"] == "sms_login_only"
