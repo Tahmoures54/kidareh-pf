@@ -232,7 +232,7 @@ def test_listing_creation_requires_login_and_csrf(monkeypatch, tmp_path):
     assert response.get_json()["error"] == "authentication_required"
 
 
-def test_signup_creates_account_and_hashes_password(monkeypatch, tmp_path):
+def test_legacy_signup_cannot_bypass_phone_verification(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
     with client.session_transaction() as browser_session:
         browser_session.clear()
@@ -242,11 +242,11 @@ def test_signup_creates_account_and_hashes_password(monkeypatch, tmp_path):
         headers={"X-CSRF-Token": "test-token"},
         json={"name": "کاربر جدید", "phone": "۰۹۱۲۳۴۵۶۷۸۹", "password": "secure-pass-123"},
     )
-    assert response.status_code == 201
-    assert response.get_json()["user"]["phone"] == "09123456789"
+    assert response.status_code == 410
+    assert response.get_json()["error"] == "otp_required"
     with app_module.get_connection() as connection:
-        row = connection.execute("SELECT password_hash FROM users WHERE phone = ?", ("09123456789",)).fetchone()
-    assert row["password_hash"] != "secure-pass-123"
+        row = connection.execute("SELECT id FROM users WHERE phone = ?", ("09123456789",)).fetchone()
+    assert row is None
 
 
 def test_only_owner_can_edit_or_delete_listing(monkeypatch, tmp_path):
