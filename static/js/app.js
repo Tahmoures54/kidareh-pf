@@ -131,6 +131,8 @@
   const dialogTitle = document.querySelector("#dialogTitle");
   const dialogPrice = document.querySelector("#dialogPrice");
   const dialogDescription = document.querySelector("#dialogDescription");
+  const sellerContact = document.querySelector("#sellerContact");
+  const sellerCallLink = document.querySelector("#sellerCallLink");
 
   async function openListingDetails(id) {
     try {
@@ -149,6 +151,14 @@
         ? `${numberFormat.format(item.price)} تومان`
         : "قیمت توافقی";
       dialogDescription.textContent = item.description || "توضیحی برای این آگهی ثبت نشده است.";
+      if (item.seller_phone) {
+        sellerCallLink.href = "tel:" + item.seller_phone;
+        sellerCallLink.textContent = "تماس با فروشنده · " + item.seller_phone;
+        sellerContact.hidden = false;
+      } else {
+        sellerCallLink.removeAttribute("href");
+        sellerContact.hidden = true;
+      }
       if (typeof listingDialog.showModal === "function") listingDialog.showModal();
       else showToast("برای مشاهده جزئیات، مرورگر را به‌روز کنید.");
     } catch (error) {
