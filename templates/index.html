@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#087f8c">
+  <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
+  <title>کی‌داره | بازار محلی شما</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> بازار شهر شما، همین‌جا نزدیک‌تر است</div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
+      <span class="brand-mark">ک</span>
+      <span class="brand-copy"><strong>کی‌داره</strong><small>بازار محلی تو</small></span>
+    </a>
+    <nav class="desktop-nav" aria-label="ناوبری اصلی">
+      <a class="active" href="#listings">آگهی‌ها</a>
+      <a href="#categories">دسته‌بندی‌ها</a>
+      <a href="#how-it-works">راهنما</a>
+    </nav>
+    <div class="header-actions">
+      <button class="button button-quiet" id="loginButton" type="button">ورود / ثبت‌نام</button>
+      <a class="button button-primary" href="#listings"><span aria-hidden="true">＋</span> ثبت آگهی</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow"><span class="eyebrow-icon">✦</span> انتخاب‌های خوب، نزدیک شما</div>
+        <h1>دنبال چیزی هستی؟<br><span>شاید همین نزدیکی باشه.</span></h1>
+        <p class="hero-description">از خریدوفروش وسایل تا پیدا کردن خدمات خوب؛ محلی بگرد، هوشمندانه انتخاب کن.</p>
+        <form class="search-panel" id="searchForm" role="search">
+          <label class="search-field">
+            <span class="field-icon" aria-hidden="true">⌕</span>
+            <input id="searchInput" name="q" type="search" placeholder="چی لازم داری؟ مثلاً گوشی، میز، تعمیرکار..." autocomplete="off">
+          </label>
+          <span class="search-divider" aria-hidden="true"></span>
+          <label class="city-field">
+            <span class="field-icon" aria-hidden="true">⌖</span>
+            <select id="citySelect" aria-label="انتخاب شهر">
+              <option value="">همه شهرها</option>
+              <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
+            </select>
+          </label>
+          <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
+        </form>
+        <div class="popular-searches"><span>جست‌وجوهای محبوب:</span><button type="button" data-search="گوشی">گوشی</button><button type="button" data-search="میز">میز</button><button type="button" data-search="خدمات">خدمات</button></div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-glow"></div>
+        <div class="art-card art-card-main"><div class="art-top"><span class="art-badge">پیشنهادهای نزدیک</span><span class="art-heart">♡</span></div><div class="art-illustration">🪴</div><div class="art-lines"><i></i><i></i></div><div class="art-bottom"><span>وسایل دوست‌داشتنی</span><b>از ۳۵۰ هزار تومان</b></div></div>
+        <div class="floating-chip chip-one"><span>📍</span><span><b>نزدیک خودت</b><small>محلی و در دسترس</small></span></div>
+        <div class="floating-chip chip-two"><span class="chip-check">✓</span><span><b>انتخاب راحت‌تر</b><small>جست‌وجو در یک جا</small></span></div>
+        <span class="decor decor-one">✳</span><span class="decor decor-two">✦</span>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="مزیت‌های کی‌داره">
+      <div><span class="trust-icon">⌖</span><span><b>محلی پیدا کن</b><small>آگهی‌های شهرهای مختلف</small></span></div>
+      <div><span class="trust-icon">⌕</span><span><b>سریع جست‌وجو کن</b><small>رسیدن به گزینه‌های مرتبط</small></span></div>
+      <div><span class="trust-icon">♡</span><span><b>با خیال راحت انتخاب کن</b><small>قبل از خرید بررسی کن</small></span></div>
+    </section>
+
+    <section class="section categories-section" id="categories">
+      <div class="section-heading"><div><span class="section-kicker">از کجا شروع کنیم؟</span><h2>دنبال چه چیزی هستی؟</h2></div><a class="text-link" href="#listings">همه آگهی‌ها <span>←</span></a></div>
+      <div class="category-grid">
+        {% for category in categories %}
+        <button class="category-tile" type="button" data-category="{{ category.id }}">
+          <span class="category-symbol symbol-{{ loop.index }}">{{ category.icon }}</span><span>{{ category.name }}</span><span class="category-arrow">↙</span>
+        </button>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section listings-section" id="listings">
+      <div class="section-heading"><div><span class="section-kicker">چیزهای خوب پیدا می‌شن</span><h2>آگهی‌های پیشنهادی</h2><p class="section-subtitle">چند انتخاب برای شروع گشت‌وگذار</p></div><span class="results-count" id="resultsCount">در حال بارگذاری…</span></div>
+      <div class="filter-row" aria-label="فیلتر آگهی‌ها">
+        <button class="filter-chip selected" type="button" data-filter="all">همه</button>
+        <button class="filter-chip" type="button" data-filter="home">خانه و زندگی</button>
+        <button class="filter-chip" type="button" data-filter="digital">دیجیتال</button>
+        <button class="filter-chip" type="button" data-filter="fashion">پوشاک</button>
+        <button class="filter-chip" type="button" data-filter="vehicle">خودرو و حمل‌ونقل</button>
+        <button class="filter-chip" type="button" data-filter="services">خدمات</button>
+      </div>
+      <div class="listing-grid" id="listingGrid" aria-live="polite"><div class="loading-card">داریم آگهی‌ها رو آماده می‌کنیم…</div></div>
+      <div class="empty-state" id="emptyState" hidden><span>⌕</span><h3>چیزی پیدا نشد</h3><p>عبارت جست‌وجو یا فیلترها را تغییر بده و دوباره امتحان کن.</p><button class="button button-primary" id="clearFilters" type="button">نمایش همه آگهی‌ها</button></div>
+      <div class="center-action"><button class="button button-outline" id="showAllButton" type="button">نمایش آگهی‌ها <span>←</span></button></div>
+    </section>
+
+    <section class="seller-banner" id="how-it-works">
+      <div class="seller-art" aria-hidden="true"><div class="seller-circle">＋</div><span class="seller-emoji">📦</span><span class="seller-spark">✦</span></div>
+      <div class="seller-copy"><span class="section-kicker">یه چیز برای فروش داری؟</span><h2>جای خوبش، کی‌داره‌ست.</h2><p>محصول یا خدماتت رو به آدم‌های شهر خودت معرفی کن. شروعش ساده‌ست.</p></div>
+      <a class="button button-light" href="#listings">به‌زودی: ثبت آگهی <span>←</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار محلی تو</small></span></a>
+    <p>خریدوفروش محلی، ساده‌تر از همیشه.</p>
+    <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
