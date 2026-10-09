@@ -272,7 +272,8 @@ def admin_dashboard():
              UNION ALL SELECT 'user' AS type, name AS label, created_at FROM users
              UNION ALL SELECT 'ticket' AS type, title AS label, created_at FROM support_tickets
              ORDER BY created_at DESC LIMIT 12""").fetchall()
-        tickets = db.execute("""SELECT t.id,t.title,t.status,t.priority,t.updated_at,u.name AS user_name,u.phone
+        tickets = db.execute("""SELECT t.id,t.title,t.status,t.priority,t.updated_at,u.name AS user_name,u.phone,
+            (SELECT body FROM support_messages m WHERE m.ticket_id=t.id ORDER BY m.id DESC LIMIT 1) AS last_message
             FROM support_tickets t JOIN users u ON u.id=t.user_id
             ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END, t.updated_at DESC LIMIT 50""").fetchall()
     return jsonify({"counts": counts, "revenue_toman": int(revenue or 0), "users": [dict(row) for row in users], "activity": [dict(row) for row in activity], "tickets": [dict(row) for row in tickets]})
