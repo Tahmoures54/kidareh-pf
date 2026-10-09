@@ -33,7 +33,7 @@ DEMO_LISTINGS = [
 def get_connection() -> sqlite3.Connection:
     database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
     database_path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(database_path)
+    connection = sqlite3.connect(database_path, timeout=30)
     connection.row_factory = sqlite3.Row
     return connection
 
