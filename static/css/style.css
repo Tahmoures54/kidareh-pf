@@ -353,3 +353,21 @@ h1, h2, h3, p { margin-top: 0; }
 .image-preview-wrap[hidden] { display: none; }
 .image-preview-wrap img { display: block; width: min(100%, 220px); height: 150px; object-fit: cover; border: 1px solid #d8e5e6; border-radius: 12px; background: #f4f8f8; }
 @media (max-width: 600px) { .listing-image-field, .image-preview-wrap { grid-column: auto; } .dialog-art.has-photo { min-height: 220px; } }
+
+
+/* Seller contact stays focused on arranging an in-person visit. */
+.seller-contact {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #d5e7f5;
+  border-radius: 15px;
+  background: #f2f8fd;
+}
+.seller-contact > strong { color: #205a83; }
+.seller-contact p { margin: 6px 0 12px; color: #567487; font-size: 13px; line-height: 1.9; }
+.seller-call-link { display: inline-flex; text-decoration: none; }
+.listing-submit-form .form-note#sellerPhoneHelp { grid-column: 1 / -1; margin-top: -8px; }
+@media (max-width: 600px) {
+  .listing-submit-form .form-note#sellerPhoneHelp { grid-column: auto; }
+  .seller-call-link { width: 100%; justify-content: center; }
+}
