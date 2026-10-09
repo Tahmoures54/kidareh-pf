@@ -484,7 +484,9 @@
       });
       const data = await response.json();
       if (response.status === 401) {
+        setAuthStage("phone");
         authDialog.showModal();
+        loadCaptcha();
         throw new Error(data.message || "برای افزودن کالا وارد حساب شوید.");
       }
       if (response.status === 409 && data.error === "store_required") {
