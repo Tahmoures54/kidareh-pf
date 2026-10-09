@@ -135,6 +135,8 @@
   const dialogDescription = document.querySelector("#dialogDescription");
   const sellerContact = document.querySelector("#sellerContact");
   const sellerCallLink = document.querySelector("#sellerCallLink");
+  const ownerActions = document.querySelector("#ownerActions");
+  let activeListing = null;
 
   async function openListingDetails(id) {
     try {
@@ -144,6 +146,8 @@
       const data = await response.json();
       if (!response.ok || !data.item) throw new Error("آگهی پیدا نشد.");
       const item = data.item;
+      activeListing = item;
+      ownerActions.hidden = !item.can_edit;
       dialogEmoji.textContent = item.emoji || "🛍️";
       dialogEmoji.style.backgroundImage = item.image_path ? 'url("' + item.image_path + '")' : "";
       dialogEmoji.classList.toggle("has-photo", Boolean(item.image_path));
@@ -167,6 +171,50 @@
       showToast(error.message || "دریافت جزئیات آگهی ناموفق بود.");
     }
   }
+
+
+  document.querySelector("#editOwnListing").addEventListener("click", async () => {
+    if (!activeListing) return;
+    const title = window.prompt("عنوان آگهی", activeListing.title);
+    if (title === null) return;
+    const priceText = window.prompt("قیمت به تومان (برای توافقی عدد ۰)", String(activeListing.price));
+    if (priceText === null) return;
+    const description = window.prompt("توضیحات", activeListing.description || "");
+    if (description === null) return;
+    const city = window.prompt("شهر", activeListing.city);
+    if (city === null) return;
+    try {
+      const response = await fetch("/api/listings/" + encodeURIComponent(activeListing.id), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify({ title, price: Number(priceText), description, city })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "ویرایش آگهی انجام نشد.");
+      listingDialog.close();
+      await loadListings();
+      showToast("آگهی به‌روزرسانی شد.");
+    } catch (error) {
+      showToast(error.message || "ویرایش آگهی انجام نشد.");
+    }
+  });
+
+  document.querySelector("#deleteOwnListing").addEventListener("click", async () => {
+    if (!activeListing || !window.confirm("این آگهی برای همیشه حذف شود؟")) return;
+    try {
+      const response = await fetch("/api/listings/" + encodeURIComponent(activeListing.id), {
+        method: "DELETE",
+        headers: { Accept: "application/json", "X-CSRF-Token": csrfToken }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "حذف آگهی انجام نشد.");
+      listingDialog.close();
+      await loadListings();
+      showToast("آگهی حذف شد.");
+    } catch (error) {
+      showToast(error.message || "حذف آگهی انجام نشد.");
+    }
+  });
 
   function closeListingDetails() {
     if (listingDialog.open) listingDialog.close();
