@@ -531,7 +531,7 @@
     currentUser = user || null;
     document.querySelector("#loginButton").textContent = currentUser ? currentUser.name : "ورود / ثبت‌نام";
     logoutButton.hidden = !currentUser;
-    document.querySelector("#openListingForm").textContent = currentUser ? "ثبت آگهی جدید ←" : "برای ثبت آگهی وارد شوید ←";
+    document.querySelector("#openListingForm").textContent = currentUser ? "افزودن کالا به ویترین ←" : "برای ساخت ویترین وارد شوید ←";
   }
 
   document.querySelector("#loginButton").addEventListener("click", () => {
