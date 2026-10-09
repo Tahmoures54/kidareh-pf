@@ -326,6 +326,58 @@ def create_listing():
     return jsonify({"item": serialize_listing(row)}), 201
 
 
+
+@app.route("/api/listings/<int:listing_id>", methods=["PATCH", "DELETE"])
+def manage_listing(listing_id: int):
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای مدیریت آگهی وارد شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    with get_connection() as connection:
+        row = connection.execute("SELECT * FROM listings WHERE id = ?", (listing_id,)).fetchone()
+        if row is None:
+            return jsonify({"error": "listing_not_found"}), 404
+        if row["owner_id"] != user["id"]:
+            return jsonify({"error": "listing_forbidden", "message": "فقط صاحب آگهی می‌تواند آن را تغییر دهد."}), 403
+        if request.method == "DELETE":
+            connection.execute("DELETE FROM listings WHERE id = ?", (listing_id,))
+            return jsonify({"ok": True})
+        payload = request.get_json(silent=True) or {}
+        allowed = {"title", "category", "city", "price", "description", "seller_phone"}
+        if not payload or set(payload) - allowed:
+            return jsonify({"error": "invalid_payload"}), 400
+        title = payload.get("title", row["title"])
+        category = payload.get("category", row["category"])
+        city = payload.get("city", row["city"])
+        description = payload.get("description", row["description"])
+        price = payload.get("price", row["price"])
+        phone = payload.get("seller_phone", row["seller_phone"])
+        if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
+            return jsonify({"error": "invalid_title"}), 400
+        if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+            return jsonify({"error": "invalid_category"}), 400
+        if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+            return jsonify({"error": "invalid_city"}), 400
+        if not isinstance(description, str) or len(description) > 1000:
+            return jsonify({"error": "invalid_description"}), 400
+        try:
+            price = int(price)
+        except (TypeError, ValueError):
+            return jsonify({"error": "invalid_price"}), 400
+        if price < 0 or price > 10**12:
+            return jsonify({"error": "invalid_price"}), 400
+        if not isinstance(phone, str):
+            return jsonify({"error": "invalid_seller_phone"}), 400
+        phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+        phone = re.sub(r"[\s()\-]", "", phone)
+        if phone and not re.fullmatch(r"09\d{9}", phone):
+            return jsonify({"error": "invalid_seller_phone"}), 400
+        connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, listing_id))
+        updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
+        return jsonify({"item": serialize_listing(updated)})
+
+
 @app.errorhandler(413)
 def request_too_large(_error):
     return jsonify({"error": "request_too_large", "message": "حجم درخواست بیش از حد مجاز است."}), 413
