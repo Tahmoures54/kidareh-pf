@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -10,10 +11,14 @@ from flask import Flask, jsonify, render_template, request
 BASE_DIR = Path(__file__).resolve().parent
 INSTANCE_DIR = BASE_DIR / "instance"
 DATABASE_PATH = Path(os.environ.get("DATABASE_PATH", str(INSTANCE_DIR / "kidareh.sqlite3")))
+UPLOAD_FOLDER = Path(os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "static" / "uploads")))
+MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-change-this-key")
 app.config["JSON_AS_ASCII"] = False
+app.config["MAX_CONTENT_LENGTH"] = MAX_IMAGE_BYTES + 256 * 1024
+app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
 
 CATEGORIES = [
     {"id": "home", "name": "خانه و زندگی", "icon": "⌂"},
@@ -56,10 +61,14 @@ def initialize_database() -> None:
                 description TEXT NOT NULL DEFAULT '',
                 emoji TEXT NOT NULL DEFAULT '🛍️',
                 featured INTEGER NOT NULL DEFAULT 0,
+                image_path TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
+        if "image_path" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN image_path TEXT NOT NULL DEFAULT ''")
         count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
         if count == 0:
             connection.executemany(
@@ -119,17 +128,38 @@ def listings():
     return jsonify({"items": items, "count": len(items)})
 
 
+def inspect_image(upload) -> tuple[bytes, str] | None:
+    """Identify raster image data from its signature, not the supplied filename."""
+    if upload is None or not upload.filename:
+        return None
+    content = upload.stream.read(MAX_IMAGE_BYTES + 1)
+    if len(content) > MAX_IMAGE_BYTES:
+        raise ValueError("image_too_large")
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return content, ".png"
+    if content.startswith(b"\xff\xd8\xff"):
+        return content, ".jpg"
+    if len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP":
+        return content, ".webp"
+    raise ValueError("invalid_image")
+
+
 @app.post("/api/listings")
 def create_listing():
-    payload = request.get_json(silent=True)
-    if not isinstance(payload, dict):
-        return jsonify({"error": "invalid_json"}), 400
+    is_multipart = bool(request.content_type and request.content_type.startswith("multipart/form-data"))
+    payload = request.form if is_multipart else request.get_json(silent=True)
+    if payload is None or not hasattr(payload, "get"):
+        return jsonify({"error": "invalid_payload"}), 400
 
     title = payload.get("title")
     category = payload.get("category")
     city = payload.get("city")
     description = payload.get("description", "")
-    price = payload.get("price", 0)
+    raw_price = payload.get("price", 0)
+    try:
+        price = int(raw_price) if not isinstance(raw_price, bool) else -1
+    except (TypeError, ValueError):
+        price = -1
 
     if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
         return jsonify({"error": "invalid_title", "message": "عنوان باید بین ۱ تا ۱۰۰ نویسه باشد."}), 400
@@ -139,16 +169,35 @@ def create_listing():
         return jsonify({"error": "invalid_city"}), 400
     if not isinstance(description, str) or len(description.strip()) > 1000:
         return jsonify({"error": "invalid_description"}), 400
-    if isinstance(price, bool) or not isinstance(price, int) or price < 0 or price > 10**12:
+    if price < 0 or price > 10**12:
         return jsonify({"error": "invalid_price"}), 400
+
+    image_content = None
+    upload = request.files.get("image") if is_multipart else None
+    if upload and upload.filename:
+        try:
+            image_content = inspect_image(upload)
+        except ValueError as error:
+            reason = str(error)
+            status = 413 if reason == "image_too_large" else 400
+            return jsonify({"error": reason, "message": "تصویر باید JPG، PNG یا WebP و حداکثر ۴ مگابایت باشد."}), status
+
+    image_path = ""
+    if image_content:
+        binary, extension = image_content
+        filename = f"{uuid.uuid4().hex}{extension}"
+        target_folder = Path(app.config["UPLOAD_FOLDER"])
+        target_folder.mkdir(parents=True, exist_ok=True)
+        (target_folder / filename).write_bytes(binary)
+        image_path = f"/static/uploads/{filename}"
 
     with get_connection() as connection:
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️"),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
@@ -157,6 +206,10 @@ def create_listing():
 
     return jsonify({"item": serialize_listing(row)}), 201
 
+
+@app.errorhandler(413)
+def request_too_large(_error):
+    return jsonify({"error": "request_too_large", "message": "حجم درخواست بیش از حد مجاز است."}), 413
 
 @app.get("/api/listings/<int:listing_id>")
 def listing_detail(listing_id: int):
