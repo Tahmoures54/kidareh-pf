@@ -10,6 +10,8 @@
   const clearFilters = document.querySelector("#clearFilters");
   let activeCategory = "all";
   let toastTimeout;
+  let currentUser = null;
+  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   const numberFormat = new Intl.NumberFormat("fa-IR");
   const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -226,10 +228,14 @@
     try {
       const response = await fetch("/api/listings", {
         method: "POST",
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json", "X-CSRF-Token": csrfToken },
         body: formData
       });
       const data = await response.json();
+      if (response.status === 401) {
+        authDialog.showModal();
+        throw new Error(data.message || "برای ثبت آگهی وارد حساب شوید.");
+      }
       if (!response.ok) throw new Error(data.message || "اطلاعات آگهی را بررسی کنید.");
       listingSubmitForm.reset();
       clearImagePreview();
@@ -239,7 +245,7 @@
       activeCategory = "all";
       document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === "all"));
       await loadListings();
-      showToast("آگهی آزمایشی ثبت شد و در فهرست نمایش داده می‌شود.");
+      showToast("آگهی ثبت شد و در فهرست نمایش داده می‌شود.");
       document.querySelector("#listings").scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
       showToast(error.message || "ثبت آگهی انجام نشد؛ دوباره تلاش کنید.");
@@ -249,9 +255,94 @@
     }
   });
 
+  const authDialog = document.querySelector("#authDialog");
+  const authForm = document.querySelector("#authForm");
+  const authNameWrap = document.querySelector("#authNameWrap");
+  const authModeToggle = document.querySelector("#authModeToggle");
+  const authSubmit = document.querySelector("#authSubmit");
+  const logoutButton = document.querySelector("#logoutButton");
+  let authMode = "signup";
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    authNameWrap.hidden = mode !== "signup";
+    authForm.elements.name.required = mode === "signup";
+    authSubmit.textContent = mode === "signup" ? "ساخت حساب" : "ورود";
+    authModeToggle.textContent = mode === "signup" ? "قبلاً حساب ساخته‌ام؛ ورود" : "حساب ندارم؛ ثبت‌نام";
+    document.querySelector("#authTitle").textContent = mode === "signup" ? "ساخت حساب کی‌داره" : "ورود به کی‌داره";
+  }
+
+  function updateAuthUI(user) {
+    currentUser = user || null;
+    document.querySelector("#loginButton").textContent = currentUser ? currentUser.name : "ورود / ثبت‌نام";
+    logoutButton.hidden = !currentUser;
+    document.querySelector("#openListingForm").textContent = currentUser ? "ثبت آگهی جدید ←" : "برای ثبت آگهی وارد شوید ←";
+  }
+
   document.querySelector("#loginButton").addEventListener("click", () => {
-    showToast("ورود و ثبت‌نام هنوز فعال نشده است؛ این نسخه فعلاً نمایشی است.");
+    setAuthMode("signup");
+    authDialog.showModal();
   });
+  document.querySelector("#closeAuthDialog").addEventListener("click", () => authDialog.close());
+  authDialog.addEventListener("click", (event) => {
+    if (event.target === authDialog) authDialog.close();
+  });
+  authModeToggle.addEventListener("click", () => setAuthMode(authMode === "signup" ? "login" : "signup"));
+
+  authForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = {
+      name: authForm.elements.name.value.trim(),
+      phone: authForm.elements.phone.value.trim(),
+      password: authForm.elements.password.value
+    };
+    authSubmit.disabled = true;
+    try {
+      const response = await fetch(authMode === "signup" ? "/api/auth/signup" : "/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "ورود یا ثبت‌نام انجام نشد.");
+      csrfToken = data.csrf_token || csrfToken;
+      updateAuthUI(data.user);
+      authDialog.close();
+      authForm.reset();
+      setAuthMode("signup");
+      showToast("با موفقیت وارد حساب شدید.");
+    } catch (error) {
+      showToast(error.message || "ارتباط برقرار نشد.");
+    } finally {
+      authSubmit.disabled = false;
+    }
+  });
+
+  logoutButton.addEventListener("click", async () => {
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken, Accept: "application/json" } });
+      if (!response.ok) throw new Error("خروج انجام نشد.");
+      updateAuthUI(null);
+      csrfToken = "";
+      authDialog.close();
+      showToast("از حساب خارج شدید.");
+    } catch (error) {
+      showToast(error.message);
+    }
+  });
+
+  async function restoreSession() {
+    try {
+      const response = await fetch("/api/auth/me", { headers: { Accept: "application/json" } });
+      const data = await response.json();
+      if (data.csrf_token) csrfToken = data.csrf_token;
+      updateAuthUI(data.user);
+    } catch (_error) {
+      updateAuthUI(null);
+    }
+  }
+  setAuthMode("signup");
+  restoreSession();
 
   showAllButton.addEventListener("click", () => {
     searchInput.value = "";
