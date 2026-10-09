@@ -55,3 +55,8 @@ def saved_products_page():
 def following_stores_page():
     return render_marketplace_page("pages/account/following.html")
 
+
+
+@bp.get("/terms")
+def terms_page():
+    return render_marketplace_page("pages/terms.html")
