@@ -1,66 +1,299 @@
-# Kidareh PF
+# کی‌داره | بازارچه ساده برای خرید حضوری
 
-A lightweight storefront-first local marketplace built with Flask, server-rendered HTML, CSS, and vanilla JavaScript. Shoppers can browse products and store windows without an account; sellers sign in to create a storefront and add products.
+<div align="center">
 
-## Features
+**ببین چه کسی چه کالایی دارد؛ با فروشنده آشنا شو و برای خرید حضوری هماهنگ کن.**
 
-- Responsive Persian RTL storefront-first homepage
-- Public storefront directory with search and individual storefront pages
-- Guest product browsing and device-local saved products
-- Signed-in shoppers can follow/unfollow storefronts; followed stores are persisted
-- Sellers create one storefront per account and add products to their own storefront
-- Search and category filters for products
-- Optional listing photos (JPG, PNG, WebP; maximum 4 MiB) with server-side signature and size checks
-- Phone-first signup/login with Kavenegar OTP, arithmetic CAPTCHA, and recorded terms acceptance
-- Owner-only listing edit and delete operations
-- Optional seller mobile number for coordinating an in-person visit, validated and normalized to Iranian mobile format; excluded from public search results
-- Flask JSON endpoints for public stores, store details, follows, saved products, categories, and product browsing
-- Local SQLite database with safe first-run initialization and demo listings
-- No React, Node.js build step, or external runtime dependency beyond Flask
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Tests](https://github.com/Tahmoures54/kidareh-pf/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Tahmoures54/kidareh-pf/actions/workflows/tests.yml)
+[![Language](https://img.shields.io/badge/زبان-فارسی-23966F)](#)
 
-## Run locally
+</div>
+
+---
+
+## فهرست مطالب
+
+- [درباره کی‌داره](#-درباره-کی‌داره)
+- [هدف و شیوه کار](#-هدف-و-شیوه-کار)
+- [قابلیت‌ها](#-قابلیت‌ها)
+- [راه‌اندازی در رایانه شخصی](#-راه‌اندازی-در-رایانه-شخصی)
+- [تنظیمات محیطی](#-تنظیمات-محیطی)
+- [ساختار پروژه](#-ساختار-پروژه)
+- [مسیرهای اصلی](#-مسیرهای-اصلی)
+- [پیامک و ورود با شماره موبایل](#-پیامک-و-ورود-با-شماره-موبایل)
+- [آزمون‌ها](#-آزمون‌ها)
+- [استقرار و نگهداری](#-استقرار-و-نگهداری)
+- [امنیت و حریم خصوصی](#-امنیت-و-حریم-خصوصی)
+- [وضعیت پروژه و مشارکت](#-وضعیت-پروژه-و-مشارکت)
+
+---
+
+## 🎯 درباره کی‌داره
+
+**کی‌داره** یک بازارچه سبک و فارسی برای معرفی ویترین فروشگاه‌ها و کالاهاست. خریدار می‌تواند بدون ساخت حساب، کالاها و فروشگاه‌ها را ببیند؛ فروشنده هم ویترین خود را ایجاد می‌کند و محصولاتش را در آن قرار می‌دهد.
+
+ایده اصلی ساده است: **کی‌داره قرار نیست خرید را پیچیده کند؛ کمک می‌کند کالا و فروشنده را پیدا کنید و برای خرید حضوری هماهنگ شوید.**
+
+این مخزن نسخه مستقل و سبک پروژه کی‌داره است و با هدف حفظ مسیر ساده و کم‌هزینه توسعه داده می‌شود.
+
+## 🧭 هدف و شیوه کار
+
+### برای خریدار
+1. کالاها را جست‌وجو و دسته‌بندی‌ها را بررسی کن.
+2. وارد صفحه کالا یا ویترین فروشگاه شو.
+3. کالاهای موردعلاقه را ذخیره کن یا فروشگاه را دنبال کن.
+4. پیوند کالا یا ویترین را با دیگران به اشتراک بگذار و برای خرید حضوری هماهنگ شو.
+
+### برای فروشنده
+1. با شماره موبایل ثبت‌نام کن و مراحل تأیید را انجام بده.
+2. ویترین فروشگاهت را بساز.
+3. کالاها، توضیحات و در صورت نیاز تصویر آن‌ها را اضافه کن.
+4. ویترین و کالاها را در واتساپ و شبکه‌های اجتماعی معرفی کن تا مشتری‌ها از آنجا وارد کی‌داره شوند.
+
+> تمرکز نسخه فعلی روی معرفی کالا و هماهنگی برای خرید حضوری است؛ این پروژه فروشگاه اینترنتی دارای سبد خرید، پرداخت آنلاین یا ارسال سفارش نیست.
+
+## ⭐ قابلیت‌ها
+
+### 🛍️ تجربه خریدار
+- مشاهده عمومی کالاها و ویترین‌ها بدون نیاز به حساب کاربری.
+- جست‌وجوی کالا و فیلتر بر اساس دسته‌بندی و شهر.
+- صفحه مستقل برای هر کالا و هر ویترین.
+- ذخیره کالاها؛ برای کاربران مهمان، ذخیره‌سازی در مرورگر انجام می‌شود.
+- دنبال‌کردن و لغو دنبال‌کردن ویترین‌ها برای کاربران واردشده.
+- اشتراک‌گذاری پیوند کالا و ویترین برای جذب بازدیدکننده از شبکه‌های اجتماعی.
+
+### 🏪 ابزارهای فروشنده
+- ساخت یک ویترین برای هر حساب فروشنده.
+- افزودن کالا به ویترین و ویرایش یا حذف کالاهای متعلق به خود فروشنده.
+- بارگذاری اختیاری تصویر کالا با پشتیبانی از JPG، PNG و WebP؛ حداکثر حجم هر تصویر ۴ مگابایت.
+- دکمه اشتراک‌گذاری ویترین و کالاها.
+- متن آماده معرفی ویترین و امکان کپی آن برای انتشار در واتساپ، وضعیت، استوری یا پروفایل کسب‌وکار.
+- امکان ثبت شماره موبایل فروشنده برای هماهنگی خرید حضوری؛ این شماره در نتایج جست‌وجوی عمومی نمایش داده نمی‌شود.
+
+### 🔐 ورود و حفاظت پایه
+- ثبت‌نام و ورود با شماره موبایل.
+- امکان تأیید شماره با رمز یک‌بارمصرف پیامکی (در صورت تنظیم سرویس کاوه‌نگار).
+- کپچای محاسباتی ساده و ثبت پذیرش قوانین.
+- هش‌کردن گذرواژه‌ها و محافظت CSRF برای درخواست‌های تغییردهنده اطلاعات.
+- اعتبارسنجی سمت سرور برای اطلاعات و فایل‌های تصویری.
+
+## 🚀 راه‌اندازی در رایانه شخصی
+
+### پیش‌نیازها
+- Python نسخه ۳.۱۰ یا جدیدتر
+- pip
+- دسترسی به ترمینال یا خط فرمان
+
+### ۱. دریافت پروژه
 
 ```bash
+git clone https://github.com/Tahmoures54/kidareh-pf.git
+cd kidareh-pf
+```
+
+### ۲. ساخت محیط مجازی
+
+**ویندوز:**
+
+```powershell
 python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
+.venv\Scripts\Activate.ps1
+```
+
+اگر PowerShell اجازه فعال‌سازی نداد، می‌توانی از Command Prompt استفاده کنی:
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+**لینوکس یا macOS:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### ۳. نصب وابستگی‌ها
+
+```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+### ۴. اجرای برنامه
+
+```bash
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`.
+سپس در مرورگر باز کن:
 
-## Configuration
+**http://127.0.0.1:5000**
 
-- `SECRET_KEY`: set a strong, random secret in production; do not use the development fallback on a public deployment.
-- `DATABASE_PATH`: optional path to a persistent SQLite file. Defaults to `instance/kidareh.sqlite3`.
-- `PORT`: optional server port, defaults to `5000`.
+در اجرای نخست، برنامه پایگاه داده SQLite را مقداردهی اولیه می‌کند. برای توقف سرور، در ترمینال کلیدهای `Ctrl+C` را بزن.
 
-## Production notes
+## ⚙️ تنظیمات محیطی
 
-Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add persistent rate limiting, moderation, account recovery, and privacy controls for revealing seller contact before broad public launch. This repository currently writes SQLite data to `instance/` and uploads to `static/uploads`; these paths are not durable storage on Vercel Functions. Do not treat a Vercel deployment as production-ready for user-generated data until the database and images are moved to persistent services. Store browsing is public; following a store requires an account. Product saves use browser-local storage for guests. The project has not undergone a security audit. The included listings are demo content. Store browsing is public; following a store requires an account. Product saves currently use browser-local storage for guests. Passwords are hashed and account sessions are CSRF-protected, but this is still an initial implementation and has not undergone a security audit. Uploaded images are stored under `static/uploads` by default; configure `UPLOAD_FOLDER` and durable storage on deployment. The included listings are clearly demo content.
+تنظیمات زیر از طریق متغیرهای محیطی قابل تعیین هستند:
 
-## Backend architecture
+| متغیر | کاربرد | مقدار پیش‌فرض |
+|---|---|---|
+| `SECRET_KEY` | کلید امضای نشست‌های Flask | مقدار توسعه؛ در استقرار عمومی حتماً تغییر کند |
+| `DATABASE_PATH` | مسیر فایل پایگاه داده SQLite | `instance/kidareh.sqlite3` |
+| `PORT` | درگاه اجرای وب‌سرور | `5000` |
+| `KAVENEGAR_API_KEY` | کلید سرویس پیامک کاوه‌نگار | تنظیم‌نشده |
+| `KAVENEGAR_VERIFY_TEMPLATE` | نام الگوی تأیید پیامکی | تنظیم‌نشده |
+| `UPLOAD_FOLDER` | مسیر ذخیره تصاویر بارگذاری‌شده | `static/uploads` |
 
-The Flask backend is organized as a small application package with domain-focused Blueprints:
+برای نمونه در لینوکس یا macOS:
 
-```text
-app.py                       # WSGI entry point and compatibility exports
-kidareh/
-  __init__.py                # create_app() and Blueprint registration
-  core.py                    # database initialization, shared helpers, categories
-  routes/
-    __init__.py
-    pages.py                 # HTML page routes
-    auth.py                  # signup, login, session, seller role
-    stores.py                # storefronts, follows, saved-product API
-    listings.py              # catalog, listing CRUD, image validation
-    system.py                # health endpoint
+```bash
+export SECRET_KEY="یک-کلید-تصادفی-طولانی-و-منحصر-به-فرد"
+export DATABASE_PATH="/مسیر/پایدار/kidareh.sqlite3"
+python app.py
 ```
 
-The public URL paths remain unchanged, so existing frontend requests and the Gunicorn `app:app` entry point continue to work. Each Blueprint owns one domain; shared database/session helpers live in `kidareh/core.py`. The application factory `create_app(test_config=None)` makes isolated configuration and testing easier.
+در ویندوز PowerShell:
 
+```powershell
+$env:SECRET_KEY = "یک-کلید-تصادفی-طولانی-و-منحصر-به-فرد"
+python app.py
+```
 
-## Phone OTP configuration
+**نکته امنیتی:** کلیدهای واقعی سرویس‌ها و مقدار محرمانه `SECRET_KEY` را در کد، README یا مخزن عمومی قرار نده.
 
-Set `KAVENEGAR_API_KEY` and `KAVENEGAR_VERIFY_TEMPLATE` to enable live SMS verification. OTP codes expire after five minutes, with a per-session 45-second resend cooldown and five failed attempts allowed. Production deployment still needs persistent cross-worker rate limiting.
+## 🗂️ ساختار پروژه
+
+```text
+kidareh-pf/
+├── app.py                       # نقطه ورود WSGI و اجرای محلی
+├── kidareh/
+│   ├── __init__.py              # ساخت برنامه و ثبت Blueprintها
+│   ├── core.py                  # پایگاه داده و توابع مشترک
+│   └── routes/
+│       ├── __init__.py
+│       ├── pages.py             # صفحات HTML
+│       ├── auth.py              # ثبت‌نام، ورود و نشست کاربر
+│       ├── stores.py            # ویترین‌ها و دنبال‌کردن فروشگاه
+│       ├── listings.py          # فهرست کالاها و مدیریت آن‌ها
+│       └── system.py            # سلامت سرویس
+├── templates/                   # قالب‌های HTML و صفحات فارسی
+├── static/
+│   ├── css/                     # شیوه‌نامه‌ها
+│   ├── js/                      # JavaScript سمت مرورگر
+│   └── uploads/                 # تصاویر بارگذاری‌شده
+├── tests/                       # آزمون‌های خودکار
+├── instance/                    # داده محلی SQLite
+├── requirements.txt             # وابستگی‌های پایتون
+└── README.md                    # راهنمای پروژه
+```
+
+## 🌐 مسیرهای اصلی
+
+| مسیر | کاربرد |
+|---|---|
+| `/` | صفحه اصلی |
+| `/search` | جست‌وجوی کالا |
+| `/stores` | فهرست ویترین‌ها |
+| `/store/<شناسه>` | صفحه ویترین فروشگاه |
+| `/product/<شناسه>` | جزئیات کالا |
+| `/seller` | پنل فروشنده |
+| `/account` | حساب کاربری |
+| `/saved` | کالاهای ذخیره‌شده |
+| `/following` | ویترین‌های دنبال‌شده |
+| `/terms` | قوانین و شرایط استفاده |
+
+شناسه داخل مسیرها باید با شناسه واقعی همان کالا یا ویترین جایگزین شود.
+
+## 📲 پیامک و ورود با شماره موبایل
+
+برای فعال‌کردن تأیید پیامکی با کاوه‌نگار، این دو متغیر را در محیط اجرا تنظیم کن:
+
+- `KAVENEGAR_API_KEY`
+- `KAVENEGAR_VERIFY_TEMPLATE`
+
+کد تأیید پنج دقیقه اعتبار دارد؛ ارسال مجدد دارای فاصله زمانی است و تعداد تلاش‌های ناموفق محدود شده است. این محدودیت‌ها در سطح نشست پیاده‌سازی شده‌اند؛ برای استفاده عمومی و چندنمونه‌ای، محدودسازی پایدار و مشترک میان همه پردازه‌ها نیز لازم است.
+
+بدون تنظیم معتبر سرویس پیامک، نباید فرض کرد ارسال واقعی پیامک در محیط تولید فعال است.
+
+## 🧪 آزمون‌ها
+
+برای اجرای آزمون‌ها، ابتدا وابستگی‌ها را نصب و سپس اجرا کن:
+
+```bash
+python -m pytest -q
+```
+
+بررسی نحوی فایل‌های JavaScript:
+
+```bash
+node --check static/js/app.js
+node --check static/js/pages.js
+```
+
+گردش‌کار GitHub Actions این بررسی‌ها را به‌صورت خودکار اجرا می‌کند. وضعیت اجرای آخر و جزئیات تست‌ها در صفحه زیر قابل مشاهده است:
+
+[مشاهده آزمون‌های GitHub Actions](https://github.com/Tahmoures54/kidareh-pf/actions/workflows/tests.yml)
+
+سبز بودن آزمون‌های خودکار به‌تنهایی به معنی آزمایش کامل در مرورگر یا تأیید پایداری سرویس مستقرشده نیست.
+
+## 🚢 استقرار و نگهداری
+
+برای اجرای برنامه با یک WSGI server مانند Gunicorn:
+
+```bash
+gunicorn app:app
+```
+
+در محیط تولید:
+
+1. یک `SECRET_KEY` قوی و اختصاصی تنظیم کن.
+2. از دیسک پایدار برای پایگاه داده و تصاویر استفاده کن.
+3. مطمئن شو فایل SQLite و پوشه تصاویر پس از راه‌اندازی مجدد یا استقرار مجدد حذف نمی‌شوند.
+4. نسخه پشتیبان منظم از پایگاه داده بگیر و بازیابی آن را آزمایش کن.
+5. برای پیامک، ورود و بارگذاری فایل محدودیت نرخ پایدار اعمال کن.
+6. ثبت‌نام، ایجاد ویترین، افزودن و ویرایش کالا، ذخیره کالا و دنبال‌کردن ویترین را در محیط استقرار آزمایش کن.
+
+**هشدار استقرار:** ذخیره‌کردن پایگاه داده و تصاویر روی فایل‌سیستم موقت یک پلتفرم میزبانی ممکن است به از دست‌رفتن اطلاعات منجر شود. پیش از استفاده واقعی، فضای ذخیره‌سازی پایدار را تنظیم کن. SQLite برای شروع سبک است؛ در صورت رشد هم‌زمانی و ترافیک، مهاجرت به PostgreSQL را بررسی کن.
+
+## 🛡️ امنیت و حریم خصوصی
+
+- گذرواژه‌ها به‌صورت هش ذخیره می‌شوند.
+- درخواست‌های تغییردهنده اطلاعات از بررسی CSRF استفاده می‌کنند.
+- مالکیت کالا در عملیات ویرایش و حذف بررسی می‌شود.
+- نوع و اندازه تصاویر بارگذاری‌شده کنترل می‌شود.
+- اطلاعات تماس فروشنده نباید بدون نیاز در خروجی عمومی یا نتایج جست‌وجو افشا شود.
+
+این پروژه هنوز ممیزی امنیتی مستقل نشده است. پیش از عرضه گسترده، محدودسازی نرخ، مدیریت گزارش تخلف، بازیابی حساب، سیاست حریم خصوصی، نظارت بر محتوای فروشندگان و بررسی امنیت استقرار را تکمیل کن.
+
+## 🗺️ مسیر توسعه پیشنهادی
+
+- [ ] آزمایش کامل ثبت‌نام و ورود پیامکی در محیط واقعی.
+- [ ] بررسی مسیر کامل ساخت ویترین و مدیریت کالا در موبایل و دسکتاپ.
+- [ ] آزمایش ماندگاری پایگاه داده و تصاویر پس از استقرار مجدد.
+- [ ] بهبود مدیریت گزارش کالا یا فروشگاه نامناسب.
+- [ ] افزودن محدودسازی نرخ پایدار برای درخواست‌های حساس.
+- [ ] بررسی نیاز به PostgreSQL و فضای ذخیره‌سازی پایدار با افزایش کاربران.
+
+این موارد پیشنهادهای توسعه‌اند و به معنی پیاده‌سازی کامل آن‌ها در نسخه فعلی نیستند.
+
+## 🤝 مشارکت و گزارش مشکل
+
+برای پیشنهاد یا گزارش اشکال، از بخش Issues مخزن استفاده کن:
+
+[ثبت یا مشاهده مسئله‌ها در GitHub](https://github.com/Tahmoures54/kidareh-pf/issues)
+
+برای تغییر کد، یک شاخه جداگانه بساز، آزمون‌ها را اجرا کن و شرح روشن تغییرات را در درخواست ادغام بنویس.
+
+---
+
+<div align="center">
+
+**کی‌داره — ویترینت را بساز، کالاهایت را معرفی کن، مشتری را به خودت برسان.**
+
+ساخته‌شده با تمرکز بر سادگی، خرید حضوری و تجربه فارسی 🇮🇷
+
+</div>
