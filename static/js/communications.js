@@ -65,5 +65,19 @@
       root.querySelectorAll("[data-close-ticket]").forEach(b=>b.addEventListener("click",async()=>{try{await api("/api/admin/tickets/"+b.dataset.closeTicket,{method:"PATCH",body:JSON.stringify({status:"closed"})});toast("تیکت بسته شد.");await initAdmin();}catch(e){toast(e.message);}}));
     }catch(e){root.innerHTML='<div class="page-panel"><h2>دسترسی یا دریافت اطلاعات ممکن نشد</h2><p class="error-text">'+esc(e.message)+'</p><p class="muted">برای ورود به داشبورد، شماره مدیر باید در متغیر ADMIN_PHONE سرور تنظیم و با پیامک تأیید شده باشد.</p></div>';}
   }
-  document.addEventListener("DOMContentLoaded",()=>{initMessages();initSupport();initAdmin();});
+  async function initStartConversation(){
+    const button=document.querySelector("#startConversation");
+    if(!button)return;
+    button.addEventListener("click",async()=>{
+      const page=window.KIDAREH_PAGE||{};
+      if(!page.productId)return;
+      try{
+        const me=await api("/api/auth/me");
+        if(!me.user){toast("برای گفت‌وگو ابتدا وارد حساب شوید.");return;}
+        const thread=await api("/api/conversations",{method:"POST",body:JSON.stringify({listing_id:Number(page.productId)})});
+        window.location.href="/messages?thread="+thread.id;
+      }catch(e){toast(e.message);}
+    });
+  }
+  document.addEventListener("DOMContentLoaded",()=>{initMessages();initSupport();initAdmin();initStartConversation();});
 })();
