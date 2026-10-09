@@ -260,7 +260,7 @@ def payment_callback():
             db.execute("UPDATE stores SET badge_until=? WHERE id=?", (ends, order["store_id"]))
         if package["id"] in ("trial_boost_3d", "search_boost_7d", "search_boost_30d", "visibility_bundle_7d"):
             db.execute("UPDATE listings SET featured=1, featured_until=? WHERE store_id=?", (ends, order["store_id"]))
-    return redirect(url_for("monetization.monetization_page", payment="success"))
+    return redirect(url_for("pages.seller_tags_page", payment="success") if package["id"] in TAG_LABELS else url_for("monetization.monetization_page", payment="success"))
 
 @bp.get("/api/monetization/status")
 def monetization_status():
