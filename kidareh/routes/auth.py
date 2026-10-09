@@ -1,16 +1,14 @@
-import json
 import os
 import re
 import secrets
 import sqlite3
 import time
-import urllib.parse
-import urllib.request
 import uuid
 from datetime import datetime, timezone
 from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..core import current_user, csrf_valid, get_connection
+from ..services.sms import SMSDeliveryError, send_otp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -25,20 +23,49 @@ def _normalize_phone(value):
 
 
 def _send_kavenegar_otp(phone, code):
-    api_key = os.environ.get("KAVENEGAR_API_KEY", "").strip()
-    template = os.environ.get("KAVENEGAR_VERIFY_TEMPLATE", "").strip()
-    if not api_key or not template:
-        if current_app.testing and current_app.config.get("TESTING_OTP_CODE"):
-            return True
-        raise RuntimeError("Kavenegar settings are missing")
-    url = f"https://api.kavenegar.com/v1/{urllib.parse.quote(api_key, safe='')}/verify/lookup.json"
-    body = urllib.parse.urlencode({"receptor": phone, "token": code, "template": template}).encode("utf-8")
-    req = urllib.request.Request(url, data=body, method="POST")
-    with urllib.request.urlopen(req, timeout=10) as response:
-        result = json.loads(response.read().decode("utf-8"))
-    if result.get("return", {}).get("status") != 200:
-        raise RuntimeError("Kavenegar rejected the verification SMS")
-    return True
+    """Compatibility wrapper for tests and the existing OTP route."""
+    return send_otp(phone, code)
+
+
+def _check_otp_rate_limit(phone):
+    """Enforce shared SQLite rate limits across sessions and app workers."""
+    import hashlib
+    now = time.time()
+    ip = request.remote_addr or "unknown"
+    keys = {
+        "phone": hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+        "ip": hashlib.sha256(ip.encode("utf-8")).hexdigest(),
+    }
+    with get_connection() as connection:
+        connection.execute("""CREATE TABLE IF NOT EXISTS otp_rate_limits (
+            scope TEXT NOT NULL, key_hash TEXT NOT NULL, last_sent_at REAL NOT NULL DEFAULT 0,
+            window_started_at REAL NOT NULL DEFAULT 0, request_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(scope, key_hash)
+        )""")
+        connection.execute("BEGIN IMMEDIATE")
+        rows = {}
+        for scope, key_hash in keys.items():
+            row = connection.execute("SELECT last_sent_at, window_started_at, request_count FROM otp_rate_limits WHERE scope=? AND key_hash=?", (scope, key_hash)).fetchone()
+            rows[scope] = dict(row) if row else {"last_sent_at": 0, "window_started_at": now, "request_count": 0}
+        phone_row, ip_row = rows["phone"], rows["ip"]
+        if now - phone_row["last_sent_at"] < 45:
+            return False, "otp_cooldown", max(1, int(45 - (now - phone_row["last_sent_at"])))
+        if now - phone_row["window_started_at"] >= 3600:
+            phone_row.update(window_started_at=now, request_count=0)
+        if now - ip_row["window_started_at"] >= 3600:
+            ip_row.update(window_started_at=now, request_count=0)
+        if phone_row["request_count"] >= 5:
+            return False, "otp_hourly_limit", max(1, int(3600 - (now - phone_row["window_started_at"])))
+        if ip_row["request_count"] >= 20:
+            return False, "otp_ip_limit", max(1, int(3600 - (now - ip_row["window_started_at"])))
+        for scope, key_hash in keys.items():
+            row = rows[scope]
+            connection.execute("""INSERT INTO otp_rate_limits(scope,key_hash,last_sent_at,window_started_at,request_count)
+                VALUES(?,?,?,?,?) ON CONFLICT(scope,key_hash) DO UPDATE SET
+                last_sent_at=excluded.last_sent_at, window_started_at=excluded.window_started_at,
+                request_count=excluded.request_count""",
+                (scope, key_hash, now, row["window_started_at"], row["request_count"] + 1))
+    return True, "", 0
 
 
 @bp.get("/challenge")
@@ -65,15 +92,18 @@ def request_otp():
     session.pop("math_challenge_at", None)
     if payload.get("terms_accepted") is not True:
         return jsonify({"error": "terms_required", "message": "برای ادامه باید پذیرش قوانین را تأیید کنید."}), 400
-    if time.time() - session.get("otp_last_sent_at", 0) < 45:
-        return jsonify({"error": "otp_cooldown", "message": "برای ارسال دوباره کد کمی صبر کنید."}), 429
+    allowed, limit_error, retry_after = _check_otp_rate_limit(phone)
+    if not allowed:
+        message = "برای ارسال دوباره کد کمی صبر کنید." if limit_error == "otp_cooldown" else "سقف درخواست پیامک موقتاً پر شده است؛ بعداً دوباره تلاش کنید."
+        return jsonify({"error": limit_error, "message": message, "retry_after": retry_after}), 429
     with get_connection() as connection:
         exists = connection.execute("SELECT 1 FROM users WHERE phone = ?", (phone,)).fetchone() is not None
     code = f"{secrets.randbelow(1_000_000):06d}"
     try:
         _send_kavenegar_otp(phone, code)
-    except Exception:
-        current_app.logger.exception("Kavenegar OTP delivery failed")
+    except Exception as exc:
+        # Do not log exception text: HTTP client errors may contain the API-key URL.
+        current_app.logger.error("Kavenegar OTP delivery failed (%s)", type(exc).__name__)
         return jsonify({"error": "sms_unavailable", "message": "ارسال پیامک ممکن نشد. تنظیمات یا سرویس پیامک را بررسی کنید."}), 503
     session["otp_phone"] = phone
     session["otp_hash"] = generate_password_hash(code)
