@@ -7,6 +7,15 @@ from ..core import current_user, csrf_valid, get_connection, serialize_listing
 bp = Blueprint("stores", __name__)
 
 
+def _store_payload(row):
+    """Serialize a store without legacy social-link fields."""
+    if row is None:
+        return None
+    result = dict(row)
+    result.pop("social_url", None)
+    return result
+
+
 @bp.get("/api/stores")
 def list_stores():
     query = request.args.get("q", "").strip()[:100]
@@ -30,7 +39,7 @@ def list_stores():
     sql += " GROUP BY s.id ORDER BY s.id DESC LIMIT 100"
     with get_connection() as connection:
         rows = connection.execute(sql, params).fetchall()
-    return jsonify({"items": [dict(row) for row in rows], "count": len(rows)})
+    return jsonify({"items": [_store_payload(row) for row in rows], "count": len(rows)})
 
 @bp.get("/api/my/store")
 def my_store():
@@ -39,7 +48,7 @@ def my_store():
         return jsonify({"error": "authentication_required"}), 401
     with get_connection() as connection:
         row = connection.execute("SELECT * FROM stores WHERE owner_id = ?", (user["id"],)).fetchone()
-    return jsonify({"item": dict(row) if row else None})
+    return jsonify({"item": _store_payload(row)})
 
 @bp.post("/api/stores")
 def create_store():
@@ -77,7 +86,7 @@ def create_store():
             row = connection.execute("SELECT * FROM stores WHERE id = ?", (cursor.lastrowid,)).fetchone()
     except sqlite3.IntegrityError:
         return jsonify({"error": "store_exists", "message": "برای این حساب قبلاً ویترین ساخته شده است."}), 409
-    return jsonify({"item": dict(row)}), 201
+    return jsonify({"item": _store_payload(row)}), 201
 
 @bp.patch("/api/stores/<int:store_id>")
 def update_store(store_id: int):
@@ -107,7 +116,7 @@ def update_store(store_id: int):
             return jsonify({"error": "invalid_store_description", "message": "توضیحات حداکثر ۵۰۰ نویسه باشد."}), 400
         connection.execute("UPDATE stores SET name = ?, city = ?, description = ? WHERE id = ?", (name.strip(), city.strip(), description.strip(), store_id))
         updated = connection.execute("SELECT * FROM stores WHERE id = ?", (store_id,)).fetchone()
-    return jsonify({"item": dict(updated)})
+    return jsonify({"item": _store_payload(updated)})
 
 @bp.get("/api/stores/<int:store_id>")
 def store_detail(store_id: int):
@@ -132,7 +141,7 @@ def store_detail(store_id: int):
                 "SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?",
                 (user["id"], store_id),
             ).fetchone() is not None
-    return jsonify({"store": dict(store), "items": [serialize_listing(row) for row in products], "following": following})
+    return jsonify({"store": _store_payload(store), "items": [serialize_listing(row) for row in products], "following": following})
 
 @bp.post("/api/stores/<int:store_id>/follow")
 def toggle_store_follow(store_id: int):
