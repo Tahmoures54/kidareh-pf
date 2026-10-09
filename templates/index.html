@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#087f8c">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
   <title>کی‌داره | بازار خرید حضوری محلی</title>
@@ -27,7 +29,7 @@
     </nav>
     <div class="header-actions">
       <button class="button button-quiet" id="loginButton" type="button">ورود / ثبت‌نام</button><a class="button button-quiet" href="/account">حساب من</a>
-      <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> دیدن ویترین‌ها</a>
+      <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> دیدن ویترین‌ها</a><button class="button button-quiet" id="installAppButton" type="button" hidden>نصب اپ</button>
     </div>
   </header>
 
@@ -228,5 +230,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
 </body>
 </html>
