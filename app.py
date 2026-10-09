@@ -66,6 +66,7 @@ def initialize_database() -> None:
                 image_path TEXT NOT NULL DEFAULT '',
                 seller_phone TEXT NOT NULL DEFAULT '',
                 owner_id INTEGER,
+                store_id INTEGER,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -77,6 +78,8 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE listings ADD COLUMN seller_phone TEXT NOT NULL DEFAULT ''")
         if "owner_id" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN owner_id INTEGER")
+        if "store_id" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN store_id INTEGER")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +87,37 @@ def initialize_database() -> None:
                 phone TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS stores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_id INTEGER NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                city TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(owner_id) REFERENCES users(id)
+            )
+        """)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS store_follows (
+                user_id INTEGER NOT NULL,
+                store_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY(user_id, store_id),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+            )
+        """)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS saved_products (
+                user_id INTEGER NOT NULL,
+                listing_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY(user_id, listing_id),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(listing_id) REFERENCES listings(id) ON DELETE CASCADE
             )
         """)
         count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
