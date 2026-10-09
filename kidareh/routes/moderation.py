@@ -1,7 +1,8 @@
 """Authenticated content reports and a minimal phone-configured moderation queue."""
 import os
 import uuid
-from flask import Blueprint, jsonify, render_template, request, session
+from pathlib import Path
+from flask import Blueprint, current_app, jsonify, render_template, request, session
 from ..core import current_user, csrf_valid, get_connection
 bp = Blueprint("moderation", __name__)
 
@@ -12,6 +13,22 @@ def ensure_table():
 def is_admin(user):
     phone=os.environ.get("ADMIN_PHONE","").strip()
     return bool(user and phone and user.get("phone")==phone and user.get("phone_verified_at"))
+
+def _delete_listing_image(image_path: str) -> None:
+    if not image_path or not isinstance(image_path, str):
+        return
+    if not image_path.startswith("/static/uploads/"):
+        return
+    filename = image_path.rsplit("/", 1)[-1]
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return
+    target = Path(current_app.config["UPLOAD_FOLDER"]) / filename
+    try:
+        if target.is_file():
+            target.unlink()
+    except OSError:
+        pass
+
 @bp.post("/api/reports")
 def create_report():
     user=current_user()
@@ -47,11 +64,18 @@ def review_report(report_id):
     p=request.get_json(silent=True) or {}
     if p.get("status") not in {"open","resolved"}:return jsonify({"error":"invalid_status"}),400
     ensure_table()
+    image_path = ""
     with get_connection() as db:
         report=db.execute("SELECT * FROM content_reports WHERE id=?",(report_id,)).fetchone()
         if not report:return jsonify({"error":"report_not_found"}),404
         db.execute("UPDATE content_reports SET status=?,reviewed_at=CURRENT_TIMESTAMP WHERE id=?",(p["status"],report_id))
-        if p.get("hide_target") is True and report["target_type"]=="listing":db.execute("DELETE FROM listings WHERE id=?",(report["target_id"],))
+        if p.get("hide_target") is True and report["target_type"]=="listing":
+            listing = db.execute("SELECT image_path FROM listings WHERE id=?", (report["target_id"],)).fetchone()
+            if listing and listing["image_path"]:
+                image_path = listing["image_path"]
+            db.execute("DELETE FROM listings WHERE id=?",(report["target_id"],))
+    if image_path:
+        _delete_listing_image(image_path)
     return jsonify({"ok":True})
 @bp.get("/admin/reports")
 def reports_page():
