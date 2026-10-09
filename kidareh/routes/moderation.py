@@ -11,7 +11,7 @@ def ensure_table():
         db.execute("CREATE INDEX IF NOT EXISTS idx_content_reports_status ON content_reports(status,id DESC)")
 def is_admin(user):
     phone=os.environ.get("ADMIN_PHONE","").strip()
-    return bool(user and phone and user.get("phone")==phone)
+    return bool(user and phone and user.get("phone")==phone and user.get("phone_verified_at"))
 @bp.post("/api/reports")
 def create_report():
     user=current_user()
