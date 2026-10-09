@@ -6,7 +6,17 @@ def setup_test_database(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", database)
     app_module.initialize_database()
     app_module.app.config.update(TESTING=True)
-    return app_module.app.test_client()
+    client = app_module.app.test_client()
+    with app_module.get_connection() as connection:
+        connection.execute(
+            "INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)",
+            ("آزمایش", "09120000000", "test-hash"),
+        )
+    with client.session_transaction() as browser_session:
+        browser_session["user_id"] = 1
+        browser_session["csrf_token"] = "test-token"
+    client.environ_base["HTTP_X_CSRF_TOKEN"] = "test-token"
+    return client
 
 
 def test_homepage_renders_persian_marketplace(monkeypatch, tmp_path):
@@ -204,3 +214,65 @@ def test_listing_detail_includes_seller_phone(monkeypatch, tmp_path):
 
     assert response.status_code == 200
     assert response.get_json()["item"]["seller_phone"] == "09123456789"
+
+
+def test_listing_creation_requires_login_and_csrf(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+    response = client.post(
+        "/api/listings",
+        json={"title": "آگهی", "category": "home", "city": "تهران", "price": 0},
+    )
+    assert response.status_code == 401
+    assert response.get_json()["error"] == "authentication_required"
+
+
+def test_signup_creates_account_and_hashes_password(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with client.session_transaction() as browser_session:
+        browser_session.clear()
+        browser_session["csrf_token"] = "test-token"
+    response = client.post(
+        "/api/auth/signup",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"name": "کاربر جدید", "phone": "۰۹۱۲۳۴۵۶۷۸۹", "password": "secure-pass-123"},
+    )
+    assert response.status_code == 201
+    assert response.get_json()["user"]["phone"] == "09123456789"
+    with app_module.get_connection() as connection:
+        row = connection.execute("SELECT password_hash FROM users WHERE phone = ?", ("09123456789",)).fetchone()
+    assert row["password_hash"] != "secure-pass-123"
+
+
+def test_only_owner_can_edit_or_delete_listing(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post(
+        "/api/listings",
+        json={"title": "میز خودم", "category": "home", "city": "تبریز", "price": 1000},
+    )
+    listing_id = created.get_json()["item"]["id"]
+    with app_module.get_connection() as connection:
+        connection.execute(
+            "INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)",
+            ("کاربر دوم", "09120000001", "test-hash"),
+        )
+    with client.session_transaction() as browser_session:
+        browser_session["user_id"] = 2
+    denied = client.patch(
+        f"/api/listings/{listing_id}",
+        json={"title": "تغییر غیرمجاز"},
+    )
+    assert denied.status_code == 403
+    denied_delete = client.delete(f"/api/listings/{listing_id}")
+    assert denied_delete.status_code == 403
+    with client.session_transaction() as browser_session:
+        browser_session["user_id"] = 1
+    updated = client.patch(
+        f"/api/listings/{listing_id}",
+        json={"title": "میز ویرایش‌شده"},
+    )
+    assert updated.status_code == 200
+    assert updated.get_json()["item"]["title"] == "میز ویرایش‌شده"
+    deleted = client.delete(f"/api/listings/{listing_id}")
+    assert deleted.status_code == 200
