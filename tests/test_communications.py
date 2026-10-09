@@ -25,9 +25,10 @@ def test_buyer_can_start_conversation_and_exchange_messages(monkeypatch, tmp_pat
     with app_module.get_connection() as db:
         db.execute("INSERT INTO users(name,phone,password_hash,role,phone_verified_at) VALUES(?,?,?,?,?)",
                    ("خریدار", "09120000001", "x", "buyer", "verified"))
+        listing_id = db.execute("SELECT id FROM listings WHERE title='کالای تست'").fetchone()[0]
     with client.session_transaction() as s:
         s["user_id"] = 2
-    started = client.post("/api/conversations", json={"listing_id": 1})
+    started = client.post("/api/conversations", json={"listing_id": listing_id})
     assert started.status_code == 201
     thread_id = started.get_json()["id"]
     sent = client.post(f"/api/conversations/{thread_id}/messages", json={"body": "سلام، کالا موجود است؟"})
@@ -39,12 +40,15 @@ def test_buyer_can_start_conversation_and_exchange_messages(monkeypatch, tmp_pat
 
 def test_conversation_is_private_to_participants(monkeypatch, tmp_path):
     client = setup_client(monkeypatch, tmp_path)
+    from kidareh.routes.communications import ensure_tables
+    ensure_tables()
     with app_module.get_connection() as db:
         db.execute("INSERT INTO users(name,phone,password_hash,role,phone_verified_at) VALUES(?,?,?,?,?)",
                    ("خریدار", "09120000001", "x", "buyer", "verified"))
         db.execute("INSERT INTO users(name,phone,password_hash,role,phone_verified_at) VALUES(?,?,?,?,?)",
                    ("غریبه", "09120000002", "x", "buyer", "verified"))
-        db.execute("INSERT INTO conversations(listing_id,buyer_id,seller_id) VALUES(1,2,1)")
+        listing_id = db.execute("SELECT id FROM listings WHERE title='کالای تست'").fetchone()[0]
+        db.execute("INSERT INTO conversations(listing_id,buyer_id,seller_id) VALUES(?,?,?)", (listing_id, 2, 1))
     with client.session_transaction() as s:
         s["user_id"] = 3
     assert client.get("/api/conversations/1/messages").status_code == 404
