@@ -535,6 +535,10 @@
     profileStep.hidden = stage !== "profile";
     document.querySelector("#authTitle").textContent =
       stage === "phone" ? "ورود یا ساخت حساب" : stage === "code" ? "تأیید شماره همراه" : "تکمیل اطلاعات حساب";
+    authForm.elements.name.required = stage === "profile";
+    for (const name of ["store_name", "store_city"]) {
+      authForm.elements[name].required = stage === "profile" && authForm.elements.role.value === "seller";
+    }
   }
   function updateAuthUI(user) {
     currentUser = user || null;
@@ -557,7 +561,7 @@
   });
   authForm.elements.role.addEventListener("change", () => {
     sellerDetails.hidden = authForm.elements.role.value !== "seller";
-    for (const name of ["store_name", "store_city"]) authForm.elements[name].required = authForm.elements.role.value === "seller";
+    for (const name of ["store_name", "store_city"]) authForm.elements[name].required = authStage === "profile" && authForm.elements.role.value === "seller";
   });
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
