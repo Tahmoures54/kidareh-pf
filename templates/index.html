@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#087f8c">
   <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
-  <title>کی‌داره | بازار محلی شما</title>
+  <title>کی‌داره | بازار خرید حضوری محلی</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
       <span class="brand-mark">ک</span>
-      <span class="brand-copy"><strong>کی‌داره</strong><small>بازار محلی تو</small></span>
+      <span class="brand-copy"><strong>کی‌داره</strong><small>بازار خرید حضوری تو</small></span>
     </a>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
       <a class="active" href="#listings">آگهی‌ها</a>
@@ -34,7 +34,7 @@
       <div class="hero-content">
         <div class="eyebrow"><span class="eyebrow-icon">✦</span> انتخاب‌های خوب، نزدیک شما</div>
         <h1>دنبال چیزی هستی؟<br><span>شاید همین نزدیکی باشه.</span></h1>
-        <p class="hero-description">از خریدوفروش وسایل تا پیدا کردن خدمات خوب؛ محلی بگرد، هوشمندانه انتخاب کن.</p>
+        <p class="hero-description">کالاها را پیدا کن، آگهی بگذار و برای بررسی و خرید حضوری با فروشنده هماهنگ شو.</p>
         <form class="search-panel" id="searchForm" role="search">
           <label class="search-field">
             <span class="field-icon" aria-hidden="true">⌕</span>
@@ -114,6 +114,23 @@
     <p>خریدوفروش محلی، ساده‌تر از همیشه.</p>
     <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
   </footer>
+
+
+  <dialog class="listing-dialog" id="listingDialog" aria-labelledby="dialogTitle">
+    <button class="dialog-close" id="closeListingDialog" type="button" aria-label="بستن جزئیات">×</button>
+    <div class="dialog-art" id="dialogEmoji" aria-hidden="true">🛍️</div>
+    <div class="dialog-content">
+      <span class="dialog-meta" id="dialogMeta"></span>
+      <h2 id="dialogTitle">جزئیات آگهی</h2>
+      <strong class="dialog-price" id="dialogPrice"></strong>
+      <p id="dialogDescription"></p>
+      <div class="in-person-note">
+        <strong>خرید حضوری در کی‌داره</strong>
+        <p>پیش از پرداخت، کالا را حضوری بررسی کنید و درباره محل ملاقات و قیمت نهایی مستقیم با فروشنده توافق کنید. این پلتفرم پرداخت آنلاین یا ارسال کالا انجام نمی‌دهد.</p>
+      </div>
+      <button class="button button-primary dialog-done" id="dialogDone" type="button">متوجه شدم</button>
+    </div>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
