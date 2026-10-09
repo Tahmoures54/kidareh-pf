@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, session
+from urllib.parse import urljoin
 import uuid
 from ..core import CATEGORIES, get_connection
 
@@ -45,7 +46,7 @@ def product_page(product_id: int):
         product = connection.execute("SELECT title, description, city, image_path FROM listings WHERE id = ?", (product_id,)).fetchone()
     meta_title = f"{product['title']} | کی‌داره" if product else "جزئیات کالا | کی‌داره"
     meta_description = f"{product['title']} در {product['city']}؛ {product['description']}".strip("؛ ") if product else "کالاهای متنوع را در کی‌داره ببینید."
-    meta_image = request.url_root.rstrip("/") + product["image_path"] if product and product["image_path"] and product["image_path"].startswith("/") else None
+    meta_image = urljoin(request.url_root, product["image_path"]) if product and product["image_path"] else None
     return render_marketplace_page("pages/products/detail.html", product_id=product_id, meta_title=meta_title, meta_description=meta_description, meta_type="product", meta_image=meta_image)
 
 @bp.get("/seller")
