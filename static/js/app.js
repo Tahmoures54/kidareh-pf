@@ -228,6 +228,12 @@
 
   const listingSubmitForm = document.querySelector("#listingSubmitForm");
   document.querySelector("#openListingForm").addEventListener("click", () => {
+    if (!currentUser) {
+      setAuthMode("signup");
+      authDialog.showModal();
+      showToast("برای ثبت آگهی ابتدا وارد حساب شوید یا حساب بسازید.");
+      return;
+    }
     listingSubmitForm.hidden = !listingSubmitForm.hidden;
     if (!listingSubmitForm.hidden) listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
   });
