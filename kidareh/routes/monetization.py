@@ -30,7 +30,7 @@ def ensure_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, store_id INTEGER NOT NULL,
             package_id TEXT NOT NULL, amount_toman INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
             gateway_ref TEXT NOT NULL DEFAULT '', gateway_code TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, paid_at TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, paid_at TEXT NOT NULL DEFAULT ''
             )""")
         db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_monetization_gateway_ref ON monetization_orders(gateway_ref) WHERE gateway_ref <> ''")
         db.execute("""CREATE TABLE IF NOT EXISTS store_promotions (
