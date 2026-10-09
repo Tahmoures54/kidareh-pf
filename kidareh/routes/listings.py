@@ -1,7 +1,5 @@
 import math
-import os
 import re
-import sqlite3
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,6 +50,15 @@ def _attach_active_tags(items):
     return items
 
 
+def _fts_match_query(raw: str) -> str | None:
+    """Build a safe FTS5 MATCH string from user input (AND of quoted tokens)."""
+    tokens = re.findall(r"[\w\u0600-\u06FF]+", raw, flags=re.UNICODE)
+    if not tokens:
+        return None
+    # Quote each token so FTS special characters cannot break the query.
+    return " AND ".join(f'"{token}"' for token in tokens[:12])
+
+
 @bp.get("/api/categories")
 def categories():
     return jsonify({"items": CATEGORIES})
@@ -64,13 +71,24 @@ def listings():
     near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
     radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
     use_nearby = near_lat is not None and near_lon is not None and -90 <= near_lat <= 90 and -180 <= near_lon <= 180
+    page_size = min(100, max(1, request.args.get("limit", default=50, type=int) or 50))
+    # Keyset cursor: continue after this id (older / lower id when sorting featured DESC, id DESC).
+    before_id = request.args.get("before_id", type=int)
 
-    sql = "SELECT * FROM listings WHERE 1=1"
     parameters: list[Any] = []
-    if query:
-        sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
-        term = f"%{query}%"
-        parameters.extend([term, term, term])
+    fts_match = _fts_match_query(query) if query else None
+
+    if fts_match:
+        sql = """
+            SELECT listings.*
+            FROM listings
+            INNER JOIN listings_fts ON listings_fts.rowid = listings.id
+            WHERE listings_fts MATCH ?
+        """
+        parameters.append(fts_match)
+    else:
+        sql = "SELECT * FROM listings WHERE 1=1"
+
     if category and category != "all":
         sql += " AND category = ?"
         parameters.append(category)
@@ -78,7 +96,6 @@ def listings():
         sql += " AND city = ?"
         parameters.append(city)
     if use_nearby:
-        # Only candidates with coordinates; rough bounding box cuts the scan before haversine.
         sql += " AND latitude IS NOT NULL AND longitude IS NOT NULL"
         delta_lat = radius_km / 111.0
         cos_lat = max(0.01, abs(math.cos(math.radians(near_lat))))
@@ -88,15 +105,44 @@ def listings():
             near_lat - delta_lat, near_lat + delta_lat,
             near_lon - delta_lon, near_lon + delta_lon,
         ])
-    sql += " ORDER BY featured DESC, id DESC LIMIT 300"
+    if before_id is not None and before_id > 0 and not use_nearby:
+        # Stable keyset under (featured DESC, id DESC): next page has smaller id among same rank band.
+        sql += " AND id < ?"
+        parameters.append(before_id)
+
+    # Fetch one extra row to detect has_more without a separate COUNT(*).
+    fetch_limit = page_size + 1 if not use_nearby else min(300, page_size * 3)
+    sql += " ORDER BY featured DESC, id DESC LIMIT ?"
+    parameters.append(fetch_limit)
 
     with get_connection() as connection:
-        listing_columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
-        if "featured_until" not in listing_columns:
-            connection.execute("ALTER TABLE listings ADD COLUMN featured_until TEXT NOT NULL DEFAULT ''")
         now = datetime.now(timezone.utc).isoformat()
-        connection.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
-        rows = connection.execute(sql, parameters).fetchall()
+        connection.execute(
+            "UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?",
+            (now,),
+        )
+        try:
+            rows = connection.execute(sql, parameters).fetchall()
+        except Exception:
+            # If FTS is unavailable on a legacy DB, fall back to bounded LIKE once.
+            if fts_match:
+                fallback_sql = "SELECT * FROM listings WHERE 1=1"
+                fallback_params: list[Any] = []
+                term = f"%{query}%"
+                fallback_sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
+                fallback_params.extend([term, term, term])
+                if category and category != "all":
+                    fallback_sql += " AND category = ?"
+                    fallback_params.append(category)
+                if city and city != "همه شهرها":
+                    fallback_sql += " AND city = ?"
+                    fallback_params.append(city)
+                fallback_sql += " ORDER BY featured DESC, id DESC LIMIT ?"
+                fallback_params.append(fetch_limit)
+                rows = connection.execute(fallback_sql, fallback_params).fetchall()
+            else:
+                raise
+
     items = _attach_active_tags([serialize_listing(row) for row in rows])
     if use_nearby:
         for item in items:
@@ -109,7 +155,27 @@ def listings():
                 item["distance_km"] = round(6371 * 2 * math.asin(min(1, math.sqrt(a))), 2)
         items = [item for item in items if item["distance_km"] is not None and item["distance_km"] <= radius_km]
         items.sort(key=lambda item: item["distance_km"])
-    return jsonify({"items": items[:100], "count": len(items), "nearby": use_nearby, "radius_km": radius_km if use_nearby else None})
+        page = items[:page_size]
+        return jsonify({
+            "items": page,
+            "count": len(page),
+            "nearby": True,
+            "radius_km": radius_km,
+            "has_more": len(items) > page_size,
+            "next_before_id": None,
+        })
+
+    has_more = len(items) > page_size
+    page = items[:page_size]
+    next_before_id = page[-1]["id"] if has_more and page else None
+    return jsonify({
+        "items": page,
+        "count": len(page),
+        "nearby": False,
+        "radius_km": None,
+        "has_more": has_more,
+        "next_before_id": next_before_id,
+    })
 
 def inspect_image(upload) -> tuple[bytes, str] | None:
     """Identify raster image data from its signature, not the supplied filename."""
