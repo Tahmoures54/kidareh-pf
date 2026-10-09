@@ -57,6 +57,8 @@ def initialize_database() -> None:
                 seller_phone TEXT NOT NULL DEFAULT '',
                 owner_id INTEGER,
                 store_id INTEGER,
+                latitude REAL,
+                longitude REAL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -84,6 +86,10 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE listings ADD COLUMN owner_id INTEGER")
         if "store_id" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN store_id INTEGER")
+        if "latitude" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN latitude REAL")
+        if "longitude" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN longitude REAL")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
