@@ -74,12 +74,18 @@ def initialize_database() -> None:
                 phone TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'buyer',
+                phone_verified_at TEXT NOT NULL DEFAULT '',
+                terms_accepted_at TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
         user_columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
         if "role" not in user_columns:
             connection.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'buyer'")
+        if "phone_verified_at" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN phone_verified_at TEXT NOT NULL DEFAULT ''")
+        if "terms_accepted_at" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN terms_accepted_at TEXT NOT NULL DEFAULT ''")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS stores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,10 +93,24 @@ def initialize_database() -> None:
                 name TEXT NOT NULL,
                 city TEXT NOT NULL,
                 description TEXT NOT NULL DEFAULT '',
+                category TEXT NOT NULL DEFAULT '',
+                contact_name TEXT NOT NULL DEFAULT '',
+                address TEXT NOT NULL DEFAULT '',
+                hours TEXT NOT NULL DEFAULT '',
+                social_url TEXT NOT NULL DEFAULT '',
+                in_person INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(owner_id) REFERENCES users(id)
             )
         """)
+        store_columns = {row["name"] for row in connection.execute("PRAGMA table_info(stores)")}
+        for column, declaration in ((
+            "category", "TEXT NOT NULL DEFAULT ''"), ("contact_name", "TEXT NOT NULL DEFAULT ''"),
+            ("address", "TEXT NOT NULL DEFAULT ''"), ("hours", "TEXT NOT NULL DEFAULT ''"),
+            ("social_url", "TEXT NOT NULL DEFAULT ''"), ("in_person", "INTEGER NOT NULL DEFAULT 1"),
+        ):
+            if column not in store_columns:
+                connection.execute(f"ALTER TABLE stores ADD COLUMN {column} {declaration}")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS store_follows (
                 user_id INTEGER NOT NULL,
