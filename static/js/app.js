@@ -237,7 +237,14 @@
       button.disabled = false;
     }
   });
-  document.querySelector("#closeStoreDialog").addEventListener("click", () => storeDialog.close());
+  document.querySelector("#storeProductsGrid").addEventListener("click", (event) => {
+    const product = event.target.closest("[data-detail]");
+    if (!product) return;
+    const productId = product.dataset.detail;
+    storeDialog.close();
+    openListingDetails(productId);
+  });
+    document.querySelector("#closeStoreDialog").addEventListener("click", () => storeDialog.close());
   storeDialog.addEventListener("click", (event) => { if (event.target === storeDialog) storeDialog.close(); });
 
   const storeCreateDialog = document.querySelector("#storeCreateDialog");
@@ -393,15 +400,27 @@
   });
 
   const listingSubmitForm = document.querySelector("#listingSubmitForm");
-  document.querySelector("#openListingForm").addEventListener("click", () => {
+  document.querySelector("#openListingForm").addEventListener("click", async () => {
     if (!currentUser) {
       setAuthMode("signup");
       authDialog.showModal();
-      showToast("برای ثبت آگهی ابتدا وارد حساب شوید یا حساب بسازید.");
+      showToast("برای افزودن کالا به ویترین، ابتدا وارد حساب شو.");
       return;
     }
-    listingSubmitForm.hidden = !listingSubmitForm.hidden;
-    if (!listingSubmitForm.hidden) listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
+    try {
+      const response = await fetch("/api/my/store", { headers: { Accept: "application/json" } });
+      const data = await response.json();
+      currentStore = data.item || null;
+      if (!currentStore) {
+        storeCreateDialog.showModal();
+        showToast("اول ویترین فروشگاهت را بساز؛ بعد کالا اضافه کن.");
+        return;
+      }
+      listingSubmitForm.hidden = !listingSubmitForm.hidden;
+      if (!listingSubmitForm.hidden) listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (_error) {
+      showToast("اطلاعات ویترین دریافت نشد؛ دوباره تلاش کن.");
+    }
   });
 
   const imageInput = listingSubmitForm.querySelector('input[name="image"]');
