@@ -123,6 +123,50 @@
     }
   });
 
+  const listingSubmitForm = document.querySelector("#listingSubmitForm");
+  document.querySelector("#openListingForm").addEventListener("click", () => {
+    listingSubmitForm.hidden = !listingSubmitForm.hidden;
+    if (!listingSubmitForm.hidden) listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  listingSubmitForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(listingSubmitForm);
+    const payload = {
+      title: String(formData.get("title") || "").trim(),
+      category: String(formData.get("category") || ""),
+      city: String(formData.get("city") || "").trim(),
+      price: Number(formData.get("price")),
+      description: String(formData.get("description") || "").trim()
+    };
+    const submitButton = listingSubmitForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "در حال ثبت…";
+    try {
+      const response = await fetch("/api/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "اطلاعات آگهی را بررسی کنید.");
+      listingSubmitForm.reset();
+      listingSubmitForm.hidden = true;
+      searchInput.value = "";
+      citySelect.value = "";
+      activeCategory = "all";
+      document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === "all"));
+      await loadListings();
+      showToast("آگهی آزمایشی ثبت شد و در فهرست نمایش داده می‌شود.");
+      document.querySelector("#listings").scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      showToast(error.message || "ثبت آگهی انجام نشد؛ دوباره تلاش کنید.");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "ثبت آگهی آزمایشی";
+    }
+  });
+
   document.querySelector("#loginButton").addEventListener("click", () => {
     showToast("ورود و ثبت‌نام هنوز فعال نشده است؛ این نسخه فعلاً نمایشی است.");
   });
