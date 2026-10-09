@@ -36,6 +36,9 @@ def listings():
     sql += " ORDER BY featured DESC, id DESC LIMIT 100"
 
     with get_connection() as connection:
+        listing_columns = {row["name"] for row in connection.execute("PRAGMA table_info(listings)")}
+        if "featured_until" not in listing_columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN featured_until TEXT NOT NULL DEFAULT ''")
         now = datetime.now(timezone.utc).isoformat()
         connection.execute("UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?", (now,))
         rows = connection.execute(sql, parameters).fetchall()
