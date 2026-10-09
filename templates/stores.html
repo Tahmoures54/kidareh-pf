@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}ویترین فروشگاه‌ها | کی‌داره{% endblock %}
+{% block content %}
+<section class="page-heading"><span class="section-kicker">آدم‌ها و کسب‌وکارهای واقعی</span><h1>ویترین فروشگاه‌ها</h1><p>فروشگاه‌ها را بگرد، محصولاتشان را ببین و هر وقت خواستی دنبالشان کن.</p></section>
+<section class="page-panel"><form id="storeSearchForm" class="page-search"><label class="sr-only" for="storeQuery">جست‌وجوی فروشگاه</label><input id="storeQuery" placeholder="نام فروشگاه یا شهر…"><button class="button button-primary" type="submit">پیدا کن</button></form><div class="page-results-head"><h2>فروشگاه‌های بازار</h2><span id="pageResultsCount"></span></div><div id="pageStores" class="page-store-grid"><div class="loading-card">در حال بارگذاری ویترین‌ها…</div></div></section>
+{% endblock %}
+{% block scripts %}<script>window.KIDAREH_PAGE={type:"stores",query:{{ query|tojson }}};</script>{% endblock %}
