@@ -257,6 +257,15 @@
       return;
     }
     try {
+      if (currentUser.role !== "seller") {
+        const upgradeResponse = await fetch("/api/auth/become-seller", {
+          method: "POST",
+          headers: { Accept: "application/json", "X-CSRF-Token": csrfToken }
+        });
+        const upgradeData = await upgradeResponse.json();
+        if (!upgradeResponse.ok) throw new Error(upgradeData.message || "تبدیل حساب به فروشنده انجام نشد.");
+        currentUser = upgradeData.user;
+      }
       const response = await fetch("/api/my/store", { headers: { Accept: "application/json" } });
       const data = await response.json();
       currentStore = data.item || null;
@@ -502,6 +511,7 @@
   const authDialog = document.querySelector("#authDialog");
   const authForm = document.querySelector("#authForm");
   const authNameWrap = document.querySelector("#authNameWrap");
+  const authRoleWrap = document.querySelector("#authRoleWrap");
   const authModeToggle = document.querySelector("#authModeToggle");
   const authSubmit = document.querySelector("#authSubmit");
   const logoutButton = document.querySelector("#logoutButton");
@@ -510,6 +520,7 @@
   function setAuthMode(mode) {
     authMode = mode;
     authNameWrap.hidden = mode !== "signup";
+    authRoleWrap.hidden = mode !== "signup";
     authForm.elements.name.required = mode === "signup";
     authSubmit.textContent = mode === "signup" ? "ساخت حساب" : "ورود";
     authModeToggle.textContent = mode === "signup" ? "قبلاً حساب ساخته‌ام؛ ورود" : "حساب ندارم؛ ثبت‌نام";
@@ -537,6 +548,7 @@
     event.preventDefault();
     const payload = {
       name: authForm.elements.name.value.trim(),
+      role: authForm.elements.role.value,
       phone: authForm.elements.phone.value.trim(),
       password: authForm.elements.password.value
     };
@@ -581,7 +593,7 @@
       const data = await response.json();
       if (data.csrf_token) csrfToken = data.csrf_token;
       updateAuthUI(data.user);
-      if (data.user) {
+      if (data.user && data.user.role === "seller") {
         const storeResponse = await fetch("/api/my/store", { headers: { Accept: "application/json" } });
         const storeData = await storeResponse.json();
         currentStore = storeData.item || null;
