@@ -335,3 +335,12 @@ def test_buyer_cannot_create_store(monkeypatch, tmp_path):
     )
     assert response.status_code == 403
     assert response.get_json()["error"] == "seller_account_required"
+
+
+def test_buyer_can_switch_to_seller_when_ready_to_open_storefront(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with app_module.get_connection() as connection:
+        connection.execute("UPDATE users SET role = 'buyer' WHERE id = 1")
+    response = client.post("/api/auth/become-seller", headers={"X-CSRF-Token": "test-token"})
+    assert response.status_code == 200
+    assert response.get_json()["user"]["role"] == "seller"
