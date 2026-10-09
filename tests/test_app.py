@@ -5,7 +5,7 @@ def setup_test_database(monkeypatch, tmp_path):
     database = tmp_path / "test-kidareh.sqlite3"
     monkeypatch.setattr(app_module, "DATABASE_PATH", database)
     app_module.initialize_database()
-    app_module.app.config.update(TESTING=True)
+    app_module.app.config.update(TESTING=True, TESTING_OTP_CODE=False)
     client = app_module.app.test_client()
     with app_module.get_connection() as connection:
         connection.execute(
@@ -398,3 +398,107 @@ def test_following_stores_api_lists_followed_store(monkeypatch, tmp_path):
     response = client.get("/api/stores/following")
     assert response.status_code == 200
     assert any(item["id"] == store_id for item in response.get_json()["items"])
+
+
+def _request_test_otp(client, phone, monkeypatch):
+    import kidareh.routes.auth as auth_routes
+
+    monkeypatch.setattr(auth_routes, "_send_kavenegar_otp", lambda _phone, _code: True)
+    app_module.app.config["TESTING_OTP_CODE"] = True
+    challenge = client.get("/api/auth/challenge").get_json()["question"]
+    left, right = [int(value.strip()) for value in challenge.replace("= ؟", "").strip().split("+")]
+    response = client.post(
+        "/api/auth/request-otp",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"phone": phone, "captcha_answer": str(left + right), "terms_accepted": True},
+    )
+    assert response.status_code == 200, response.get_json()
+    return response.get_json()["test_code"]
+
+
+def test_phone_first_signup_records_terms_and_verifies_phone(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    code = _request_test_otp(client, "۰۹۱۲۳۴۵۶۷۸۹", monkeypatch)
+    verified = client.post("/api/auth/verify-otp", headers={"X-CSRF-Token": "test-token"}, json={"code": code})
+    assert verified.status_code == 200
+    assert verified.get_json()["existing_user"] is False
+    created = client.post(
+        "/api/auth/complete-profile",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"name": "خریدار آزمایشی", "role": "buyer"},
+    )
+    assert created.status_code == 200
+    assert created.get_json()["user"]["phone"] == "09123456789"
+    with app_module.get_connection() as connection:
+        row = connection.execute("SELECT phone_verified_at, terms_accepted_at FROM users WHERE phone = ?", ("09123456789",)).fetchone()
+    assert row["phone_verified_at"]
+    assert row["terms_accepted_at"]
+
+
+def test_phone_first_seller_signup_creates_store_and_full_journey(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    code = _request_test_otp(client, "09123334444", monkeypatch)
+    verified = client.post("/api/auth/verify-otp", headers={"X-CSRF-Token": "test-token"}, json={"code": code})
+    assert verified.status_code == 200 and not verified.get_json()["existing_user"]
+    created = client.post(
+        "/api/auth/complete-profile",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"name": "فروشنده آزمایشی", "role": "seller", "store_name": "فروشگاه آزمون",
+              "store_category": "لوازم خانه", "store_city": "تبریز", "contact_name": "مسئول آزمون",
+              "store_address": "تبریز، خیابان نمونه", "store_hours": "۹ تا ۱۸",
+              "social_url": "@kidareh_test", "store_description": "فروشگاه تست مسیر کامل", "in_person": True},
+    )
+    assert created.status_code == 200, created.get_json()
+    store = created.get_json()["store"]
+    assert store["name"] == "فروشگاه آزمون" and store["address"] == "تبریز، خیابان نمونه"
+    new_csrf = created.get_json()["csrf_token"]
+    client.environ_base["HTTP_X_CSRF_TOKEN"] = new_csrf
+    product = client.post(
+        "/api/listings", headers={"X-CSRF-Token": new_csrf},
+        json={"title": "کالای مسیر کامل", "category": "home", "city": "تبریز", "price": 125000, "description": "آزمون ذخیره و حذف"},
+    )
+    assert product.status_code == 201, product.get_json()
+    product_id = product.get_json()["item"]["id"]
+    assert product.get_json()["item"]["store_id"] == store["id"]
+    edited = client.patch(f"/api/listings/{product_id}", headers={"X-CSRF-Token": new_csrf}, json={"title": "کالای ویرایش‌شده"})
+    assert edited.status_code == 200 and edited.get_json()["item"]["title"] == "کالای ویرایش‌شده"
+    saved = client.post(f"/api/listings/{product_id}/save", headers={"X-CSRF-Token": new_csrf})
+    assert saved.status_code == 200 and saved.get_json()["saved"] is True
+    assert any(item["id"] == product_id for item in client.get("/api/products/saved").get_json()["items"])
+    other_store = next(item for item in client.get("/api/stores").get_json()["items"] if item["id"] != store["id"])
+    followed = client.post(f"/api/stores/{other_store['id']}/follow", headers={"X-CSRF-Token": new_csrf})
+    assert followed.status_code == 200 and followed.get_json()["following"] is True
+    assert any(item["id"] == other_store["id"] for item in client.get("/api/stores/following").get_json()["items"])
+    deleted = client.delete(f"/api/listings/{product_id}", headers={"X-CSRF-Token": new_csrf})
+    assert deleted.status_code == 200
+    assert client.get(f"/api/listings/{product_id}").status_code == 404
+    with app_module.get_connection() as connection:
+        persisted_store = connection.execute("SELECT name, address, hours FROM stores WHERE id = ?", (store["id"],)).fetchone()
+        persisted_follow = connection.execute("SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?", (created.get_json()["user"]["id"], other_store["id"])).fetchone()
+    assert persisted_store["name"] == "فروشگاه آزمون" and persisted_store["address"] == "تبریز، خیابان نمونه"
+    assert persisted_follow is not None
+
+
+def test_otp_requires_correct_math_answer_and_terms(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    client.get("/api/auth/challenge")
+    response = client.post(
+        "/api/auth/request-otp", headers={"X-CSRF-Token": "test-token"},
+        json={"phone": "09123334445", "captcha_answer": "999", "terms_accepted": True},
+    )
+    assert response.status_code == 400 and response.get_json()["error"] == "captcha_failed"
+    challenge = client.get("/api/auth/challenge").get_json()["question"]
+    left, right = [int(value.strip()) for value in challenge.replace("= ؟", "").strip().split("+")]
+    no_terms = client.post(
+        "/api/auth/request-otp", headers={"X-CSRF-Token": "test-token"},
+        json={"phone": "09123334445", "captcha_answer": str(left + right), "terms_accepted": False},
+    )
+    assert no_terms.status_code == 400 and no_terms.get_json()["error"] == "terms_required"
+
+
+def test_otp_verification_rejects_wrong_code(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    valid_code = _request_test_otp(client, "09123334446", monkeypatch)
+    wrong_code = "000000" if valid_code != "000000" else "000001"
+    response = client.post("/api/auth/verify-otp", headers={"X-CSRF-Token": "test-token"}, json={"code": wrong_code})
+    assert response.status_code == 400 and response.get_json()["error"] == "otp_invalid"
