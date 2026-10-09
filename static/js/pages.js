@@ -4,8 +4,33 @@
   const toast = document.querySelector("#pageToast");
   const fmt = new Intl.NumberFormat("fa-IR");
   const savedKey = "kidareh-saved-products";
-  const escapeHTML = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c]));
+  const escapeHTML = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const categoryNames = {home:"خانه و زندگی",digital:"دیجیتال",fashion:"پوشاک",vehicle:"خودرو",services:"خدمات",other:"سایر"};
+  /** Deep-links to Iranian + Google navigation apps — we do not build a router. */
+  function navLinks(lat, lng) {
+    const la = Number(lat), lo = Number(lng);
+    if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
+    const sLat = encodeURIComponent(String(la));
+    const sLng = encodeURIComponent(String(lo));
+    return {
+      neshan: "https://nshn.ir?destination=" + sLat + "," + sLng + "&vehicle=d",
+      balad: "https://balad.ir/location?latitude=" + sLat + "&longitude=" + sLng,
+      google: "https://www.google.com/maps/dir/?api=1&destination=" + sLat + "," + sLng,
+    };
+  }
+  function navigateButtonsHTML(lat, lng, opts) {
+    const links = navLinks(lat, lng);
+    if (!links) return "";
+    const label = (opts && opts.label) || "مسیریابی به فروشگاه";
+    return '<div class="nav-to-store" role="group" aria-label="مسیریابی">' +
+      '<span class="nav-to-store-label">' + escapeHTML(label) + '</span>' +
+      '<div class="nav-to-store-actions">' +
+      '<a class="nav-btn nav-btn-neshan" target="_blank" rel="noopener noreferrer" href="' + links.neshan + '">نشان</a>' +
+      '<a class="nav-btn nav-btn-balad" target="_blank" rel="noopener noreferrer" href="' + links.balad + '">بلد</a>' +
+      '<a class="nav-btn nav-btn-google" target="_blank" rel="noopener noreferrer" href="' + links.google + '">گوگل مپ</a>' +
+      '</div>' +
+      '<p class="nav-to-store-hint">مسیر در اپ مسیریابی باز می‌شود.</p></div>';
+  }
   function notify(message){if(!toast)return;toast.textContent=message;toast.classList.add("visible");window.setTimeout(()=>toast.classList.remove("visible"),2600);}
   async function api(url, options={}) {
     const headers = {Accept:"application/json", ...(options.headers||{})};
@@ -19,7 +44,7 @@
     const price = Number(item.price)>0 ? fmt.format(item.price)+" تومان" : "قیمت توافقی";
     const art = item.image_path ? '<img src="'+escapeHTML(item.image_path)+'" alt="'+escapeHTML(item.title)+'" loading="lazy">' : '<span>'+escapeHTML(item.emoji||"🛍️")+'</span>';
     const paidTag = item.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(item.paid_tag.type) + '">' + escapeHTML(item.paid_tag.label) + '</span>' : '';
-    return '<article class="page-listing-card"><a class="page-listing-art" href="/product/'+item.id+'" aria-label="'+escapeHTML(item.title)+'">'+art+paidTag+'</a><div class="page-listing-body"><div class="page-listing-meta"><span>'+escapeHTML(item.city)+'</span><span>·</span><span>'+escapeHTML(categoryNames[item.category]||"کالا")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"برای اطلاعات بیشتر، جزئیات کالا را ببین.")+'</p><div class="page-listing-footer"><strong>'+price+'</strong><a href="/product/'+item.id+'">جزئیات ←</a>'+(item.latitude!=null&&item.longitude!=null?'<a target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat='+encodeURIComponent(item.latitude)+'&mlon='+encodeURIComponent(item.longitude)+'#map=16/'+encodeURIComponent(item.latitude)+'/'+encodeURIComponent(item.longitude)+'">نقشه ↗</a>':'')+'<button type="button" data-save="'+item.id+'">♡ ذخیره</button><button class="share-button" type="button" data-share-url="/product/'+item.id+'" data-share-title="کالای '+escapeHTML(item.title)+'" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button><button type="button" data-report-listing="'+item.id+'">گزارش</button></div></div></article>';
+    return '<article class="page-listing-card"><a class="page-listing-art" href="/product/'+item.id+'" aria-label="'+escapeHTML(item.title)+'">'+art+paidTag+'</a><div class="page-listing-body"><div class="page-listing-meta"><span>'+escapeHTML(item.city)+'</span><span>·</span><span>'+escapeHTML(categoryNames[item.category]||"کالا")+'</span></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description||"برای اطلاعات بیشتر، جزئیات کالا را ببین.")+'</p><div class="page-listing-footer"><strong>'+price+'</strong><a href="/product/'+item.id+'">جزئیات ←</a>'+(item.latitude!=null&&item.longitude!=null?'<a class="nav-btn nav-btn-compact" target="_blank" rel="noopener noreferrer" href="https://nshn.ir?destination='+encodeURIComponent(item.latitude)+','+encodeURIComponent(item.longitude)+'&vehicle=d" title="مسیریابی با نشان">مسیریابی</a>':'')+'<button type="button" data-save="'+item.id+'">♡ ذخیره</button><button class="share-button" type="button" data-share-url="/product/'+item.id+'" data-share-title="کالای '+escapeHTML(item.title)+'" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button><button type="button" data-report-listing="'+item.id+'">گزارش</button></div></div></article>';
   }
   function storeCard(store){
     const badge = store.blue_tick_active ? '<span class="store-paid-badge" title="نشان تبلیغاتی زمان‌دار؛ نه تأیید هویت">✓ تیک آبی</span>' : '';
@@ -120,6 +145,19 @@
       if (s.hours) details.push("<p><strong>ساعات کاری:</strong> "+escapeHTML(s.hours)+"</p>");
       if (s.contact_name) details.push("<p><strong>مسئول پاسخ‌گو:</strong> "+escapeHTML(s.contact_name)+"</p>");
       if (contact) contact.innerHTML = details.join("");
+      const navHost = document.querySelector("#storeNavigate");
+      if (navHost) {
+        if (s.latitude != null && s.longitude != null) {
+          navHost.innerHTML = navigateButtonsHTML(s.latitude, s.longitude, {label: "مسیریابی به «" + (s.name || "فروشگاه") + "»"});
+        } else if (s.address) {
+          navHost.innerHTML = '<div class="nav-to-store nav-to-store-address"><span class="nav-to-store-label">آدرس فروشگاه</span><p class="nav-address-text">' + escapeHTML(s.address) + '</p><button type="button" class="button button-outline" id="copyStoreAddress">کپی آدرس</button><p class="nav-to-store-hint">مختصات ثبت نشده؛ فروشنده می‌تواند در ویترین مختصات را اضافه کند.</p></div>';
+          document.querySelector("#copyStoreAddress")?.addEventListener("click", async () => {
+            try { await navigator.clipboard.writeText(s.address); notify("آدرس کپی شد."); } catch { notify("کپی پشتیبانی نشد."); }
+          });
+        } else {
+          navHost.innerHTML = "";
+        }
+      }
       const shareStore=document.querySelector("#shareStore");if(shareStore){shareStore.dataset.shareUrl="/store/"+s.id;shareStore.dataset.shareTitle="ویترین "+s.name;}
       const follow=document.querySelector("#followStore");follow.textContent=data.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";
       follow.addEventListener("click",async()=>{try{const me=await api("/api/auth/me");if(!me.user){notify("برای دنبال‌کردن فروشگاه ابتدا وارد حساب شو.");location.href="/account";return;}const result=await api("/api/stores/"+page.storeId+"/follow",{method:"POST"});follow.textContent=result.following?"✓ دنبال می‌کنی":"♡ دنبال‌کردن فروشگاه";document.querySelector("#storeMeta").textContent=s.city+" · "+fmt.format(s.product_count||0)+" کالا · "+fmt.format(result.follower_count||0)+" دنبال‌کننده";notify(result.following?"فروشگاه به دنبال‌شده‌ها اضافه شد.":"فروشگاه از دنبال‌شده‌ها برداشته شد.");}catch(e){notify(e.message)}});
@@ -133,7 +171,8 @@
       const price=Number(p.price)>0?fmt.format(p.price)+" تومان":"قیمت توافقی";
       const art=p.image_path?'<img src="'+escapeHTML(p.image_path)+'" alt="'+escapeHTML(p.title)+'">':escapeHTML(p.emoji||"🛍️");
       const paidTag = p.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(p.paid_tag.type) + '">' + escapeHTML(p.paid_tag.label) + '</span> ' : '';
-      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(categoryNames[p.category]||"کالا") + '</div><div>' + paidTag + '</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button><button class="share-button" type="button" data-share-url="/product/'+p.id+'" data-share-title="کالای '+escapeHTML(p.title)+'">↗ اشتراک‌گذاری کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<p><a class="button button-outline" href="tel:'+escapeHTML(p.seller_phone)+'">تماس با فروشنده</a></p>':'')+'</div>';
+      const navBlock = navigateButtonsHTML(p.latitude, p.longitude, {label: "مسیریابی به محل کالا / فروشگاه"});
+      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(categoryNames[p.category]||"کالا") + '</div><div>' + paidTag + '</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button><button class="share-button" type="button" data-share-url="/product/'+p.id+'" data-share-title="کالای '+escapeHTML(p.title)+'">↗ اشتراک‌گذاری کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<p><a class="button button-outline" href="tel:'+escapeHTML(p.seller_phone)+'">تماس با فروشنده</a></p>':'')+navBlock+'</div>';
       document.querySelector("#productSave").addEventListener("click",()=>saveProduct(p.id));
     }catch(e){document.querySelector("#productDetail").innerHTML='<div class="empty-page-state">این کالا پیدا نشد یا حذف شده است.</div>';}
   }
@@ -185,7 +224,9 @@
     search: initSearch,
     stores: initStores,
     store: initStoreDetail,
+    "store-detail": initStoreDetail,
     product: initProductDetail,
+    "product-detail": initProductDetail,
     saved: initSaved,
     following: initFollowing,
     account: initAccount,
