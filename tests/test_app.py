@@ -565,3 +565,31 @@ def test_listing_api_includes_paid_tag_field(monkeypatch, tmp_path):
     response = client.get("/api/listings")
     assert response.status_code == 200
     assert all("paid_tag" in item for item in response.get_json()["items"])
+
+
+def test_nearby_search_filters_unlocated_listings(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with app_module.get_connection() as db:
+        db.execute("UPDATE listings SET latitude=?, longitude=? WHERE title=?", (35.6892, 51.3890, "گوشی سامسونگ تمیز و سالم"))
+        db.execute("UPDATE listings SET latitude=NULL, longitude=NULL WHERE title=?", ("میز کار چوبی مینیمال",))
+    response = client.get("/api/listings?lat=35.69&lon=51.39&radius_km=25")
+    assert response.status_code == 200 and response.get_json()["nearby"] is True
+    items = response.get_json()["items"]
+    assert any(item["title"] == "گوشی سامسونگ تمیز و سالم" and item["distance_km"] is not None for item in items)
+    assert all(item.get("latitude") is not None for item in items)
+
+
+def test_report_queue_requires_configured_admin_phone(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post("/api/reports", headers={"X-CSRF-Token":"test-token"}, json={"target_type":"listing","target_id":1,"reason":"spam","details":"test"})
+    assert created.status_code == 201
+    assert client.get("/api/admin/reports").status_code == 403
+    monkeypatch.setenv("ADMIN_PHONE", "09120000000")
+    result = client.get("/api/admin/reports")
+    assert result.status_code == 200 and len(result.get_json()["items"]) == 1
+
+
+def test_pwa_assets_are_served():
+    client = app_module.app.test_client()
+    assert client.get("/static/manifest.webmanifest").status_code == 200
+    assert client.get("/static/sw.js").status_code == 200
