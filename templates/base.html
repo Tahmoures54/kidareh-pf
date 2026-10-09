@@ -4,29 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="theme-color" content="#087f8c">
+  <meta name="theme-color" content="#0E7490">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>{% block title %}کی‌داره | بازار فروشگاه‌ها و کالاها{% endblock %}</title>
-  <meta name="description" content="{{ meta_description or 'در کی‌داره آزادانه کالاها را ببینید، فروشگاه‌ها را کشف کنید و ویترین خود را بسازید.' }}">
+  <title>{% block title %}کی‌داره | ویترین آنلاین فروش حضوری{% endblock %}</title>
+  <meta name="description" content="{{ meta_description or 'ویترینت را آنلاین کن؛ مشتری را به فروشگاهت بکش. در کی‌داره کالاها را پیدا کن و برای خرید حضوری هماهنگ شو.' }}">
   <meta property="og:site_name" content="کی‌داره">
   <meta property="og:locale" content="fa_IR">
   <meta property="og:type" content="{{ 'product' if meta_type == 'product' else 'website' }}">
-  <meta property="og:title" content="{{ meta_title or 'کی‌داره | بازار فروشگاه‌ها و کالاها' }}">
-  <meta property="og:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببینید و برای دوستانتان بفرستید.' }}">
+  <meta property="og:title" content="{{ meta_title or 'کی‌داره | ویترین آنلاین فروش حضوری' }}">
+  <meta property="og:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
   <meta property="og:url" content="{{ request.url }}">
   {% if meta_image %}<meta property="og:image" content="{{ meta_image }}">{% endif %}
   <meta name="twitter:card" content="{{ 'summary_large_image' if meta_image else 'summary' }}">
-  <meta name="twitter:title" content="{{ meta_title or 'کی‌داره | بازار فروشگاه‌ها و کالاها' }}">
-  <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببینید و برای دوستانتان بفرستید.' }}">
+  <meta name="twitter:title" content="{{ meta_title or 'کی‌داره | ویترین آنلاین فروش حضوری' }}">
+  <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body class="inner-page">
-  <div class="announcement">کی‌داره؛ برای پیدا کردن چیزهای خوب، ساده‌تر بگرد.</div>
+  <div class="announcement">ویترینت را آنلاین کن — منتظر نمان؛ مشتری را به فروشگاهت بکش</div>
   <header class="site-header">
-    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار انتخاب‌های خوب</small></span></a>
+    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ویترین آنلاین فروش حضوری</small></span></a>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
       <a href="/">خانه</a><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ویترین من</a><a href="/messages">گفت‌وگوها</a><a href="/support">پشتیبانی</a>
     </nav>
@@ -36,7 +40,7 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer inner-footer">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار ساده و مردمی</small></span></a>
+    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>موتور جذب مشتری به مغازه</small></span></a>
     <nav class="footer-links"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a></nav>
     <p>دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید.</p>
   </footer>
