@@ -214,6 +214,7 @@
       storeDialog.close();
       setAuthStage("phone");
       authDialog.showModal();
+      loadCaptcha();
       showToast("برای دنبال‌کردن فروشگاه یک حساب ساده بساز یا وارد شو.");
       return;
     }
@@ -253,6 +254,7 @@
     if (!currentUser) {
       setAuthStage("phone");
       authDialog.showModal();
+      loadCaptcha();
       showToast("برای ساخت ویترین، ابتدا وارد حساب شو.");
       return;
     }
@@ -413,6 +415,7 @@
     if (!currentUser) {
       setAuthStage("phone");
       authDialog.showModal();
+      loadCaptcha();
       showToast("برای افزودن کالا به ویترین، ابتدا وارد حساب شو.");
       return;
     }
