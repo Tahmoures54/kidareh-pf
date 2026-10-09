@@ -8,7 +8,7 @@ import urllib.parse
 import urllib.request
 import uuid
 from datetime import datetime, timezone
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..core import current_user, csrf_valid, get_connection
 
