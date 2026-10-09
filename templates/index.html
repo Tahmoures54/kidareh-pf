@@ -164,6 +164,7 @@
       <h2 id="authTitle">ورود یا ساخت حساب</h2>
       <form id="authForm">
         <label id="authNameWrap">نام<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
+        <label id="authRoleWrap">نوع حساب<select name="role"><option value="buyer">خریدار — فقط گشت‌وگذار و ذخیره کالا</option><option value="seller">فروشنده — ساخت ویترین و چیدن کالاها</option></select></label>
         <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
         <label>رمز عبور<input name="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" required placeholder="حداقل ۱۰ نویسه"></label>
         <button class="button button-primary" id="authSubmit" type="submit">ساخت حساب</button>
