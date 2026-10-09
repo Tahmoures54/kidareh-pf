@@ -98,10 +98,12 @@ def initialize_database() -> None:
             )
 
 
-def serialize_listing(row: sqlite3.Row) -> dict[str, Any]:
+def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
     item["featured"] = bool(item["featured"])
     item.pop("password_hash", None)
+    if not include_contact:
+        item.pop("seller_phone", None)
     item["can_edit"] = bool(session.get("user_id") and item.get("owner_id") == session.get("user_id"))
     return item
 
@@ -323,7 +325,7 @@ def create_listing():
             "SELECT * FROM listings WHERE id = ?", (listing_id,)
         ).fetchone()
 
-    return jsonify({"item": serialize_listing(row)}), 201
+    return jsonify({"item": serialize_listing(row, include_contact=True)}), 201
 
 
 
@@ -375,7 +377,7 @@ def manage_listing(listing_id: int):
             return jsonify({"error": "invalid_seller_phone"}), 400
         connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, listing_id))
         updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
-        return jsonify({"item": serialize_listing(updated)})
+        return jsonify({"item": serialize_listing(updated, include_contact=True)})
 
 
 @app.errorhandler(413)
