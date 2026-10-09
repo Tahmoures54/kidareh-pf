@@ -244,6 +244,19 @@ def auth_login():
     return jsonify({"user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
 
 
+@app.post("/api/auth/become-seller")
+def become_seller():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required"}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    with get_connection() as connection:
+        connection.execute("UPDATE users SET role = 'seller' WHERE id = ?", (user["id"],))
+    user["role"] = "seller"
+    return jsonify({"user": user})
+
+
 @app.get("/api/auth/me")
 def auth_me():
     user = current_user()
