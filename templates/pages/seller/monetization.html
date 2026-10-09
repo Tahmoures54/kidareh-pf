@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}تبلیغات و نشان‌های فروشگاه | کی‌داره{% endblock %}
+{% block head %}
+<style>
+.money-intro{background:linear-gradient(125deg,#073b4c,#087f8c);color:#fff;border-radius:24px;padding:clamp(24px,4vw,42px);margin-bottom:24px;position:relative;overflow:hidden}
+.money-intro h1{font-size:clamp(1.6rem,3vw,2.4rem);margin:10px 0}.money-intro p{max-width:700px;line-height:2;color:#e4fbfb}
+.money-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:16px}
+.money-card{border:1px solid #dce8eb;border-radius:20px;padding:22px;background:#fff;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 26px #1234}
+.money-card h2{font-size:1.12rem;margin:0}.money-icon{font-size:2rem}.money-tag{align-self:flex-start;background:#e6f7f5;color:#087f8c;padding:5px 10px;border-radius:999px;font-size:.8rem;font-weight:700}
+.money-price{font-size:1.45rem;font-weight:900;color:#073b4c}.money-price small{font-size:.8rem;font-weight:500;color:#657780}
+.money-card p{line-height:1.9;color:#5d6e76;margin:0}.money-card ul{padding-right:20px;margin:0;color:#40555e;line-height:2;flex:1}
+.money-note{background:#fff8e7;border:1px solid #f0dfb5;border-radius:16px;padding:16px;line-height:1.9;margin:20px 0;color:#6c541a}
+.money-status{margin-top:18px;line-height:1.9}.money-orders{margin-top:28px}.money-orders table{width:100%;border-collapse:collapse}.money-orders th,.money-orders td{text-align:right;padding:12px;border-bottom:1px solid #e4ecef}
+@media(max-width:600px){.money-orders{overflow-x:auto}.money-orders table{min-width:480px}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="money-intro">
+  <span class="section-kicker" style="color:#b9ffff">رشد فروشگاه · به انتخاب شما</span>
+  <h1>بیشتر دیده شو؛ حرفه‌ای‌تر به نظر برس</h1>
+  <p>خریدارها همچنان رایگان کالاها را می‌بینند. اگر خواستی برای ویترینت جایگاه تبلیغاتی یا نشان زمان‌دار بگیری، از اینجا انتخاب کن. هیچ بسته‌ای فروش یا نتیجه قطعی را تضمین نمی‌کند.</p>
+  <a class="button button-outline" style="background:#fff;color:#07515a;border-color:#fff" href="/seller">بازگشت به ویترین من</a>
+</section>
+<div class="money-note">🔒 <strong>شفافیت:</strong> تیک آبیِ خریدنی فقط یک نشان تبلیغاتیِ زمان‌دار است و به معنی احراز هویت یا تضمین کیفیت کالا نیست. بنرهای پولی در صورت نمایش باید با عنوان «تبلیغ» مشخص شوند.</div>
+<section id="moneyPackages" class="money-grid" aria-live="polite">
+{% for package in packages %}
+<article class="money-card">
+  <span class="money-icon">{{ package.icon }}</span><span class="money-tag">{{ package.tag }}</span>
+  <h2>{{ package.name }}</h2><p>{{ package.description }}</p>
+  <div class="money-price">{{ "{:,}".format(package.price) }} <small>تومان</small></div>
+  <ul>{% for feature in package.features %}<li>{{ feature }}</li>{% endfor %}</ul>
+  <button class="button button-primary buy-package" type="button" data-package="{{ package.id }}">انتخاب و پرداخت</button>
+</article>
+{% endfor %}
+</section>
+<p id="moneyStatus" class="money-status" role="status" aria-live="polite"></p>
+<section class="money-orders page-panel"><h2>سفارش‌های من</h2><p class="muted-copy">وضعیت خریدها پس از بازگشت از درگاه در این بخش قابل پیگیری است.</p><div id="moneyOrders">برای مشاهده سفارش‌ها وارد حساب فروشنده شوید.</div></section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+ const status = document.getElementById("moneyStatus");
+ const orders = document.getElementById("moneyOrders");
+ const csrf = document.querySelector('meta[name="csrf-token"]')?.content || "";
+ const say = (text) => { status.textContent = text; };
+ document.querySelectorAll(".buy-package").forEach((button) => button.addEventListener("click", async () => {
+   button.disabled = true; say("در حال آماده‌سازی پرداخت امن…");
+   try {
+     const response = await fetch("/api/monetization/orders", {method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf},body:JSON.stringify({package_id:button.dataset.package})});
+     const data = await response.json();
+     if (!response.ok) throw new Error(data.message || (data.error === "authentication_required" ? "ابتدا وارد حساب شوید." : "امکان شروع پرداخت وجود ندارد."));
+     if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
+     window.location.assign(data.redirect_url);
+   } catch (error) { say(error.message || "خطای ارتباط؛ دوباره تلاش کنید."); button.disabled = false; }
+ }));
+ async function loadOrders() {
+   try {
+     const response = await fetch("/api/monetization/orders", {credentials:"same-origin"});
+     if (response.status === 401) { orders.textContent = "برای خرید و پیگیری سفارش‌ها وارد حساب شوید."; return; }
+     const data = await response.json();
+     if (!data.items?.length) { orders.textContent = "هنوز سفارشی ثبت نشده است."; return; }
+     const table = document.createElement("table");
+     const head = document.createElement("tr");
+     ["شماره","بسته","مبلغ (تومان)","وضعیت","تاریخ"].forEach((label) => { const th=document.createElement("th"); th.textContent=label; head.appendChild(th); });
+     const thead=document.createElement("thead"); thead.appendChild(head); table.appendChild(thead);
+     const body=document.createElement("tbody");
+     const names = Object.fromEntries([...document.querySelectorAll(".buy-package")].map(b=>[b.dataset.package,b.closest(".money-card").querySelector("h2").textContent]));
+     data.items.forEach(item => { const tr=document.createElement("tr"); [item.id,names[item.package_id]||item.package_id,Number(item.amount_toman).toLocaleString("fa-IR"),({paid:"پرداخت‌شده",pending:"در انتظار پرداخت",failed:"ناموفق"}[item.status]||item.status),item.created_at].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"");tr.appendChild(td)});body.appendChild(tr); });
+     table.appendChild(body); orders.replaceChildren(table);
+   } catch { orders.textContent = "بارگذاری سفارش‌ها ممکن نشد."; }
+ }
+ const params = new URLSearchParams(location.search);
+ if (params.get("payment")==="success") say("پرداخت تأیید شد و بسته خریداری‌شده فعال شد.");
+ else if (params.get("payment")) say("پرداخت تأیید نشد؛ اگر مبلغی کسر شده، کد سفارش را نگه دارید و با پشتیبانی پیگیری کنید.");
+ loadOrders();
+});
+</script>
+{% endblock %}

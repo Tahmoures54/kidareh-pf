@@ -23,12 +23,14 @@ def create_app(test_config=None):
     from .routes.stores import bp as stores_bp
     from .routes.listings import bp as listings_bp
     from .routes.system import bp as system_bp
+    from .routes.monetization import bp as monetization_bp
 
     app.register_blueprint(pages_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(stores_bp)
     app.register_blueprint(listings_bp)
     app.register_blueprint(system_bp)
+    app.register_blueprint(monetization_bp)
 
     @app.errorhandler(413)
     def request_too_large(_error):
