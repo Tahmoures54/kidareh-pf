@@ -214,33 +214,14 @@ def complete_profile():
 
 @bp.post("/signup")
 def auth_signup():
+    """Reject legacy password signup so mobile verification cannot be bypassed."""
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
-    payload = request.get_json(silent=True) or {}
-    name, phone, password = payload.get("name", ""), payload.get("phone", ""), payload.get("password", "")
-    role = payload.get("role", "buyer")
-    if role not in {"buyer", "seller"}:
-        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
-    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
-        return jsonify({"error": "invalid_name", "message": "نام را وارد کنید."}), 400
-    if not isinstance(phone, str):
-        return jsonify({"error": "invalid_phone", "message": "شماره همراه معتبر وارد کنید."}), 400
-    phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
-    phone = re.sub(r"[\s()\-]", "", phone)
-    if not re.fullmatch(r"09\d{9}", phone):
-        return jsonify({"error": "invalid_phone", "message": "شماره همراه باید مانند 09123456789 باشد."}), 400
-    if not isinstance(password, str) or len(password) < 10 or len(password) > 128:
-        return jsonify({"error": "weak_password", "message": "رمز عبور باید حداقل ۱۰ نویسه باشد."}), 400
-    try:
-        with get_connection() as connection:
-            cursor = connection.execute("INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)", (name.strip(), phone, generate_password_hash(password), role))
-            user_id = cursor.lastrowid
-    except sqlite3.IntegrityError:
-        return jsonify({"error": "phone_exists", "message": "این شماره قبلاً ثبت شده است؛ وارد شوید."}), 409
-    session.clear()
-    session["user_id"] = user_id
-    session["csrf_token"] = uuid.uuid4().hex
-    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role}, "csrf_token": session["csrf_token"]}), 201
+    return jsonify({
+        "error": "otp_required",
+        "message": "ثبت‌نام فقط پس از تأیید کد پیامکی امکان‌پذیر است.",
+        "next": "/api/auth/request-otp",
+    }), 410
 
 @bp.post("/login")
 def auth_login():
@@ -253,9 +234,11 @@ def auth_login():
     phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
     phone = re.sub(r"[\s()\-]", "", phone)
     with get_connection() as connection:
-        user = connection.execute("SELECT id, name, phone, password_hash, role FROM users WHERE phone = ?", (phone,)).fetchone()
+        user = connection.execute("SELECT id, name, phone, password_hash, role, phone_verified_at FROM users WHERE phone = ?", (phone,)).fetchone()
     if user is None or not check_password_hash(user["password_hash"], password):
         return jsonify({"error": "invalid_credentials", "message": "شماره یا رمز عبور نادرست است."}), 401
+    if not user["phone_verified_at"]:
+        return jsonify({"error": "phone_verification_required", "message": "برای امنیت حساب، ورود پیامکی را انجام دهید."}), 403
     session.clear()
     session["user_id"] = user["id"]
     session["csrf_token"] = uuid.uuid4().hex
