@@ -118,3 +118,35 @@ def test_create_listing_rejects_negative_price(monkeypatch, tmp_path):
 
     assert response.status_code == 400
     assert response.get_json()["error"] == "invalid_price"
+
+
+def test_create_listing_with_valid_png_upload(monkeypatch, tmp_path):
+    from io import BytesIO
+
+    client = setup_test_database(monkeypatch, tmp_path)
+    upload_folder = tmp_path / "uploads"
+    monkeypatch.setattr(app_module, "UPLOAD_FOLDER", upload_folder)
+    app_module.app.config["UPLOAD_FOLDER"] = str(upload_folder)
+    png = b"\\x89PNG\\r\\n\\x1a\\n" + b"test-image-data"
+    response = client.post("/api/listings", data={"title": "صندلی سالم", "category": "home", "city": "تبریز", "price": "850000", "description": "بازدید حضوری", "image": (BytesIO(png), "my-photo.png")}, content_type="multipart/form-data")
+    assert response.status_code == 201
+    item = response.get_json()["item"]
+    assert item["image_path"].startswith("/static/uploads/")
+    saved_file = upload_folder / item["image_path"].rsplit("/", 1)[-1]
+    assert saved_file.read_bytes() == png
+
+
+def test_create_listing_rejects_non_image_upload(monkeypatch, tmp_path):
+    from io import BytesIO
+
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.post("/api/listings", data={"title": "آگهی با فایل نامعتبر", "category": "home", "city": "تهران", "price": "1000", "description": "", "image": (BytesIO(b"this is not an image"), "photo.jpg")}, content_type="multipart/form-data")
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "invalid_image"
+
+
+def test_create_listing_without_image_keeps_empty_image_path(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.post("/api/listings", json={"title": "آگهی ساده", "category": "home", "city": "تهران", "price": 0})
+    assert response.status_code == 201
+    assert response.get_json()["item"]["image_path"] == ""
