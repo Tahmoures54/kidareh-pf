@@ -1,3 +1,4 @@
+import math
 import os
 import re
 import sqlite3
@@ -9,6 +10,23 @@ from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
 
 bp = Blueprint("listings", __name__)
+
+
+def _delete_listing_image(image_path: str) -> None:
+    """Remove an uploaded listing image from disk if it lives under UPLOAD_FOLDER."""
+    if not image_path or not isinstance(image_path, str):
+        return
+    if not image_path.startswith("/static/uploads/"):
+        return
+    filename = image_path.rsplit("/", 1)[-1]
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return
+    target = Path(current_app.config["UPLOAD_FOLDER"]) / filename
+    try:
+        if target.is_file():
+            target.unlink()
+    except OSError:
+        pass
 
 
 def _attach_active_tags(items):
@@ -59,6 +77,17 @@ def listings():
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
+    if use_nearby:
+        # Only candidates with coordinates; rough bounding box cuts the scan before haversine.
+        sql += " AND latitude IS NOT NULL AND longitude IS NOT NULL"
+        delta_lat = radius_km / 111.0
+        cos_lat = max(0.01, abs(math.cos(math.radians(near_lat))))
+        delta_lon = radius_km / (111.0 * cos_lat)
+        sql += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?"
+        parameters.extend([
+            near_lat - delta_lat, near_lat + delta_lat,
+            near_lon - delta_lon, near_lon + delta_lon,
+        ])
     sql += " ORDER BY featured DESC, id DESC LIMIT 300"
 
     with get_connection() as connection:
@@ -70,14 +99,14 @@ def listings():
         rows = connection.execute(sql, parameters).fetchall()
     items = _attach_active_tags([serialize_listing(row) for row in rows])
     if use_nearby:
-        import math
         for item in items:
             lat, lon = item.get("latitude"), item.get("longitude")
             item["distance_km"] = None
             if lat is not None and lon is not None:
-                dlat, dlon = math.radians(float(lat)-near_lat), math.radians(float(lon)-near_lon)
-                a = math.sin(dlat/2)**2 + math.cos(math.radians(near_lat))*math.cos(math.radians(float(lat)))*math.sin(dlon/2)**2
-                item["distance_km"] = round(6371*2*math.asin(min(1, math.sqrt(a))), 2)
+                dlat = math.radians(float(lat) - near_lat)
+                dlon = math.radians(float(lon) - near_lon)
+                a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(near_lat)) * math.cos(math.radians(float(lat))) * math.sin(dlon / 2) ** 2
+                item["distance_km"] = round(6371 * 2 * math.asin(min(1, math.sqrt(a))), 2)
         items = [item for item in items if item["distance_km"] is not None and item["distance_km"] <= radius_km]
         items.sort(key=lambda item: item["distance_km"])
     return jsonify({"items": items[:100], "count": len(items), "nearby": use_nearby, "radius_km": radius_km if use_nearby else None})
@@ -196,47 +225,57 @@ def manage_listing(listing_id: int):
         if row["owner_id"] != user["id"]:
             return jsonify({"error": "listing_forbidden", "message": "فقط صاحب آگهی می‌تواند آن را تغییر دهد."}), 403
         if request.method == "DELETE":
+            image_path = row["image_path"] if row["image_path"] else ""
             connection.execute("DELETE FROM listings WHERE id = ?", (listing_id,))
-            return jsonify({"ok": True})
-        payload = request.get_json(silent=True) or {}
-        allowed = {"title", "category", "city", "price", "description", "seller_phone", "latitude", "longitude"}
-        if not payload or set(payload) - allowed:
-            return jsonify({"error": "invalid_payload"}), 400
-        title = payload.get("title", row["title"])
-        category = payload.get("category", row["category"])
-        city = payload.get("city", row["city"])
-        description = payload.get("description", row["description"])
-        price = payload.get("price", row["price"])
-        phone = payload.get("seller_phone", row["seller_phone"])
-        try:
-            latitude = float(payload.get("latitude", row["latitude"])) if payload.get("latitude", row["latitude"]) not in (None, "") else None
-            longitude = float(payload.get("longitude", row["longitude"])) if payload.get("longitude", row["longitude"]) not in (None, "") else None
-        except (TypeError, ValueError): return jsonify({"error":"invalid_coordinates"}), 400
-        if (latitude is None) != (longitude is None) or (latitude is not None and not (-90 <= latitude <= 90 and -180 <= longitude <= 180)):
-            return jsonify({"error":"invalid_coordinates"}), 400
-        if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
-            return jsonify({"error": "invalid_title"}), 400
-        if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
-            return jsonify({"error": "invalid_category"}), 400
-        if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
-            return jsonify({"error": "invalid_city"}), 400
-        if not isinstance(description, str) or len(description) > 1000:
-            return jsonify({"error": "invalid_description"}), 400
-        try:
-            price = int(price)
-        except (TypeError, ValueError):
-            return jsonify({"error": "invalid_price"}), 400
-        if price < 0 or price > 10**12:
-            return jsonify({"error": "invalid_price"}), 400
-        if not isinstance(phone, str):
-            return jsonify({"error": "invalid_seller_phone"}), 400
-        phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
-        phone = re.sub(r"[\s()\-]", "", phone)
-        if phone and not re.fullmatch(r"09\d{9}", phone):
-            return jsonify({"error": "invalid_seller_phone"}), 400
-        connection.execute("UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=?, latitude=?, longitude=? WHERE id=?", (title.strip(), category, city.strip(), price, description.strip(), phone, latitude, longitude, listing_id))
-        updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
-        return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
+        else:
+            image_path = None
+            payload = request.get_json(silent=True) or {}
+            allowed = {"title", "category", "city", "price", "description", "seller_phone", "latitude", "longitude"}
+            if not payload or set(payload) - allowed:
+                return jsonify({"error": "invalid_payload"}), 400
+            title = payload.get("title", row["title"])
+            category = payload.get("category", row["category"])
+            city = payload.get("city", row["city"])
+            description = payload.get("description", row["description"])
+            price = payload.get("price", row["price"])
+            phone = payload.get("seller_phone", row["seller_phone"])
+            try:
+                latitude = float(payload.get("latitude", row["latitude"])) if payload.get("latitude", row["latitude"]) not in (None, "") else None
+                longitude = float(payload.get("longitude", row["longitude"])) if payload.get("longitude", row["longitude"]) not in (None, "") else None
+            except (TypeError, ValueError):
+                return jsonify({"error": "invalid_coordinates"}), 400
+            if (latitude is None) != (longitude is None) or (latitude is not None and not (-90 <= latitude <= 90 and -180 <= longitude <= 180)):
+                return jsonify({"error": "invalid_coordinates"}), 400
+            if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
+                return jsonify({"error": "invalid_title"}), 400
+            if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+                return jsonify({"error": "invalid_category"}), 400
+            if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+                return jsonify({"error": "invalid_city"}), 400
+            if not isinstance(description, str) or len(description) > 1000:
+                return jsonify({"error": "invalid_description"}), 400
+            try:
+                price = int(price)
+            except (TypeError, ValueError):
+                return jsonify({"error": "invalid_price"}), 400
+            if price < 0 or price > 10**12:
+                return jsonify({"error": "invalid_price"}), 400
+            if not isinstance(phone, str):
+                return jsonify({"error": "invalid_seller_phone"}), 400
+            phone = phone.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+            phone = re.sub(r"[\s()\-]", "", phone)
+            if phone and not re.fullmatch(r"09\d{9}", phone):
+                return jsonify({"error": "invalid_seller_phone"}), 400
+            connection.execute(
+                "UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=?, latitude=?, longitude=? WHERE id=?",
+                (title.strip(), category, city.strip(), price, description.strip(), phone, latitude, longitude, listing_id),
+            )
+            updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
+            return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
+    if request.method == "DELETE":
+        _delete_listing_image(image_path)
+        return jsonify({"ok": True})
+    return jsonify({"error": "method_not_allowed"}), 405
 
 @bp.get("/api/listings/<int:listing_id>")
 def listing_detail(listing_id: int):
