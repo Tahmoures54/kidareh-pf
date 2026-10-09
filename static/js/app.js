@@ -212,7 +212,7 @@
     if (!activeStoreId) return;
     if (!currentUser) {
       storeDialog.close();
-      setAuthMode("signup");
+      setAuthStage("phone");
       authDialog.showModal();
       showToast("برای دنبال‌کردن فروشگاه یک حساب ساده بساز یا وارد شو.");
       return;
@@ -251,7 +251,7 @@
   const storeCreateForm = document.querySelector("#storeCreateForm");
   document.querySelector("#openStoreForm").addEventListener("click", async () => {
     if (!currentUser) {
-      setAuthMode("signup");
+      setAuthStage("phone");
       authDialog.showModal();
       showToast("برای ساخت ویترین، ابتدا وارد حساب شو.");
       return;
@@ -411,7 +411,7 @@
   const listingSubmitForm = document.querySelector("#listingSubmitForm");
   document.querySelector("#openListingForm").addEventListener("click", async () => {
     if (!currentUser) {
-      setAuthMode("signup");
+      setAuthStage("phone");
       authDialog.showModal();
       showToast("برای افزودن کالا به ویترین، ابتدا وارد حساب شو.");
       return;
@@ -510,80 +510,116 @@
 
   const authDialog = document.querySelector("#authDialog");
   const authForm = document.querySelector("#authForm");
-  const authNameWrap = document.querySelector("#authNameWrap");
-  const authRoleWrap = document.querySelector("#authRoleWrap");
-  const authModeToggle = document.querySelector("#authModeToggle");
-  const authSubmit = document.querySelector("#authSubmit");
   const logoutButton = document.querySelector("#logoutButton");
-  let authMode = "signup";
+  const phoneStep = document.querySelector("#authPhoneStep");
+  const codeStep = document.querySelector("#authCodeStep");
+  const profileStep = document.querySelector("#authProfileStep");
+  const sellerDetails = document.querySelector("#sellerDetails");
+  let authStage = "phone";
+  let pendingPhone = "";
 
-  function setAuthMode(mode) {
-    authMode = mode;
-    authNameWrap.hidden = mode !== "signup";
-    authRoleWrap.hidden = mode !== "signup";
-    authForm.elements.name.required = mode === "signup";
-    authSubmit.textContent = mode === "signup" ? "ساخت حساب" : "ورود";
-    authModeToggle.textContent = mode === "signup" ? "قبلاً حساب ساخته‌ام؛ ورود" : "حساب ندارم؛ ثبت‌نام";
-    document.querySelector("#authTitle").textContent = mode === "signup" ? "ساخت حساب کی‌داره" : "ورود به کی‌داره";
+  async function loadCaptcha() {
+    const response = await fetch("/api/auth/challenge", { headers: { Accept: "application/json" } });
+    const data = await response.json();
+    document.querySelector("#captchaQuestion").textContent = data.question || "پرسش امنیتی در دسترس نیست";
   }
-
+  function setAuthStage(stage) {
+    authStage = stage;
+    phoneStep.hidden = stage !== "phone";
+    codeStep.hidden = stage !== "code";
+    profileStep.hidden = stage !== "profile";
+    document.querySelector("#authTitle").textContent =
+      stage === "phone" ? "ورود یا ساخت حساب" : stage === "code" ? "تأیید شماره همراه" : "تکمیل اطلاعات حساب";
+  }
   function updateAuthUI(user) {
     currentUser = user || null;
     document.querySelector("#loginButton").textContent = currentUser ? currentUser.name : "ورود / ثبت‌نام";
     logoutButton.hidden = !currentUser;
     document.querySelector("#openListingForm").textContent = currentUser ? "افزودن کالا به ویترین ←" : "برای ساخت ویترین وارد شوید ←";
   }
-
-  document.querySelector("#loginButton").addEventListener("click", () => {
-    setAuthMode("signup");
+  document.querySelector("#loginButton").addEventListener("click", async () => {
+    setAuthStage("phone");
+    authForm.reset();
+    sellerDetails.hidden = true;
     authDialog.showModal();
+    await loadCaptcha();
   });
   document.querySelector("#closeAuthDialog").addEventListener("click", () => authDialog.close());
-  authDialog.addEventListener("click", (event) => {
-    if (event.target === authDialog) authDialog.close();
+  authDialog.addEventListener("click", (event) => { if (event.target === authDialog) authDialog.close(); });
+  document.querySelector("#backToPhoneButton").addEventListener("click", async () => {
+    setAuthStage("phone");
+    await loadCaptcha();
   });
-  authModeToggle.addEventListener("click", () => setAuthMode(authMode === "signup" ? "login" : "signup"));
-
+  authForm.elements.role.addEventListener("change", () => {
+    sellerDetails.hidden = authForm.elements.role.value !== "seller";
+    for (const name of ["store_name", "store_city"]) authForm.elements[name].required = authForm.elements.role.value === "seller";
+  });
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const payload = {
-      name: authForm.elements.name.value.trim(),
-      role: authForm.elements.role.value,
-      phone: authForm.elements.phone.value.trim(),
-      password: authForm.elements.password.value
-    };
-    authSubmit.disabled = true;
+    const submit = authStage === "phone" ? document.querySelector("#requestOtpButton") :
+      authStage === "code" ? document.querySelector("#verifyOtpButton") : document.querySelector("#completeProfileButton");
+    submit.disabled = true;
     try {
-      const response = await fetch(authMode === "signup" ? "/api/auth/signup" : "/api/auth/login", {
+      let url, payload;
+      if (authStage === "phone") {
+        url = "/api/auth/request-otp";
+        payload = { phone: authForm.elements.phone.value.trim(), captcha_answer: authForm.elements.captcha.value.trim(), terms_accepted: true };
+      } else if (authStage === "code") {
+        url = "/api/auth/verify-otp";
+        payload = { code: authForm.elements.otp.value.trim() };
+      } else {
+        url = "/api/auth/complete-profile";
+        payload = {
+          name: authForm.elements.name.value.trim(), role: authForm.elements.role.value,
+          store_name: authForm.elements.store_name.value.trim(), store_category: authForm.elements.store_category.value.trim(),
+          store_city: authForm.elements.store_city.value.trim(), contact_name: authForm.elements.contact_name.value.trim(),
+          store_address: authForm.elements.store_address.value.trim(), store_hours: authForm.elements.store_hours.value.trim(),
+          social_url: authForm.elements.social_url.value.trim(), store_description: authForm.elements.store_description.value.trim(),
+          in_person: authForm.elements.in_person.checked
+        };
+      }
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify(payload)
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "ورود یا ثبت‌نام انجام نشد.");
-      csrfToken = data.csrf_token || csrfToken;
-      updateAuthUI(data.user);
-      authDialog.close();
-      authForm.reset();
-      setAuthMode("signup");
-      showToast("با موفقیت وارد حساب شدید.");
+      if (!response.ok) {
+        if (authStage === "phone" && data.error === "captcha_failed") await loadCaptcha();
+        throw new Error(data.message || "عملیات انجام نشد.");
+      }
+      if (authStage === "phone") {
+        pendingPhone = authForm.elements.phone.value.trim();
+        document.querySelector("#otpPhoneLabel").textContent = pendingPhone;
+        setAuthStage("code");
+        showToast("کد تأیید ارسال شد.");
+      } else if (authStage === "code") {
+        if (data.existing_user) {
+          csrfToken = data.csrf_token || csrfToken;
+          updateAuthUI(data.user);
+          authDialog.close();
+          authForm.reset();
+          sellerDetails.hidden = true;
+          showToast("با موفقیت وارد حساب شدید.");
+        } else {
+          pendingPhone = data.phone || pendingPhone;
+          setAuthStage("profile");
+          showToast("شماره همراه تأیید شد.");
+        }
+      } else {
+        csrfToken = data.csrf_token || csrfToken;
+        updateAuthUI(data.user);
+        currentStore = data.store || currentStore;
+        authDialog.close();
+        authForm.reset();
+        sellerDetails.hidden = true;
+        setAuthStage("phone");
+        showToast("حساب شما با موفقیت ساخته شد.");
+      }
     } catch (error) {
       showToast(error.message || "ارتباط برقرار نشد.");
     } finally {
-      authSubmit.disabled = false;
-    }
-  });
-
-  logoutButton.addEventListener("click", async () => {
-    try {
-      const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken, Accept: "application/json" } });
-      if (!response.ok) throw new Error("خروج انجام نشد.");
-      updateAuthUI(null);
-      csrfToken = "";
-      authDialog.close();
-      showToast("از حساب خارج شدید.");
-    } catch (error) {
-      showToast(error.message);
+      submit.disabled = false;
     }
   });
 
@@ -602,7 +638,7 @@
       updateAuthUI(null);
     }
   }
-  setAuthMode("signup");
+  setAuthStage("phone");
   restoreSession();
   loadStores();
 
