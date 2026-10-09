@@ -1,1 +1,21 @@
-{"id":"/","name":"کی‌داره | بازارچه محلی","short_name":"کی‌داره","description":"کالاها و ویترین‌های محلی را پیدا کن.","lang":"fa-IR","dir":"rtl","start_url":"/?source=pwa","scope":"/","display":"standalone","background_color":"#fbfdfd","theme_color":"#087f8c","icons":[]}
+{
+  "id": "/",
+  "name": "کی‌داره | بازارچه محلی",
+  "short_name": "کی‌داره",
+  "description": "کالاها و ویترین‌های محلی را پیدا کن.",
+  "lang": "fa-IR",
+  "dir": "rtl",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbfdfd",
+  "theme_color": "#087f8c",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
