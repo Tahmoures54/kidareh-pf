@@ -102,6 +102,8 @@
         <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select></label>
         <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تبریز"></label>
         <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
+        <label>شماره همراه فروشنده (اختیاری)<input name="seller_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="مثلاً 09123456789" aria-describedby="sellerPhoneHelp"></label>
+        <p class="form-note" id="sellerPhoneHelp">برای هماهنگی بازدید حضوری است و در جزئیات آگهی نمایش داده می‌شود. چون این نسخه آزمایشی ورود کاربر ندارد، فعلاً شماره واقعی ثبت نکنید.</p>
         <label class="listing-description-field">توضیحات<textarea name="description" maxlength="1000" rows="3" placeholder="جزئیات مهم آگهی را بنویسید"></textarea></label>
         <label class="listing-image-field">عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <div class="image-preview-wrap" id="imagePreviewWrap" hidden><img id="imagePreview" alt="پیش‌نمایش عکس آگهی"><button class="button button-quiet" id="removeImagePreview" type="button">حذف عکس</button></div>
@@ -126,6 +128,11 @@
       <h2 id="dialogTitle">جزئیات آگهی</h2>
       <strong class="dialog-price" id="dialogPrice"></strong>
       <p id="dialogDescription"></p>
+      <div class="seller-contact" id="sellerContact" hidden>
+        <strong>هماهنگی با فروشنده</strong>
+        <p>برای هماهنگی بازدید و خرید حضوری تماس بگیرید.</p>
+        <a class="button button-primary seller-call-link" id="sellerCallLink" href="#" rel="nofollow">تماس با فروشنده</a>
+      </div>
       <div class="in-person-note">
         <strong>خرید حضوری در کی‌داره</strong>
         <p>پیش از پرداخت، کالا را حضوری بررسی کنید و درباره محل ملاقات و قیمت نهایی مستقیم با فروشنده توافق کنید. این پلتفرم پرداخت آنلاین یا ارسال کالا انجام نمی‌دهد.</p>
