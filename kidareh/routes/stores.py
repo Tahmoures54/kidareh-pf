@@ -1,5 +1,6 @@
 import re
 import sqlite3
+from datetime import datetime, timezone
 from typing import Any
 from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection, serialize_listing
@@ -143,7 +144,24 @@ def store_detail(store_id: int):
                 "SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?",
                 (user["id"], store_id),
             ).fetchone() is not None
-    return jsonify({"store": _store_payload(store), "items": [serialize_listing(row) for row in products], "following": following})
+        product_items = [serialize_listing(row) for row in products]
+        if product_items:
+            now = datetime.now(timezone.utc).isoformat()
+            ids = [item["id"] for item in product_items]
+            placeholders = ",".join("?" for _ in ids)
+            tag_rows = connection.execute(
+                f"""SELECT listing_id, tag_type, ends_at FROM listing_tags
+                    WHERE status='active' AND ends_at>? AND listing_id IN ({placeholders})
+                    ORDER BY ends_at DESC""",
+                [now, *ids],
+            ).fetchall()
+            tag_map = {}
+            tag_labels = {"listing_tag_sale": "حراج", "listing_tag_special": "فروش ویژه", "listing_tag_discount": "تخفیف‌دار"}
+            for tag in tag_rows:
+                tag_map.setdefault(tag["listing_id"], {"type": tag["tag_type"], "ends_at": tag["ends_at"], "label": tag_labels.get(tag["tag_type"], "ویژه")})
+            for item in product_items:
+                item["paid_tag"] = tag_map.get(item["id"])
+    return jsonify({"store": _store_payload(store), "items": product_items, "following": following})
 
 @bp.post("/api/stores/<int:store_id>/follow")
 def toggle_store_follow(store_id: int):
