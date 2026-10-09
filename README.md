@@ -59,3 +59,8 @@ kidareh/
 ```
 
 The public URL paths remain unchanged, so existing frontend requests and the Gunicorn `app:app` entry point continue to work. Each Blueprint owns one domain; shared database/session helpers live in `kidareh/core.py`. The application factory `create_app(test_config=None)` makes isolated configuration and testing easier.
+
+
+## Phone OTP configuration
+
+Set `KAVENEGAR_API_KEY` and `KAVENEGAR_VERIFY_TEMPLATE` to enable live SMS verification. OTP codes expire after five minutes, with a per-session 45-second resend cooldown and five failed attempts allowed. Production deployment still needs persistent cross-worker rate limiting.
