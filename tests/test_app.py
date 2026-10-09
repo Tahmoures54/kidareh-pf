@@ -9,8 +9,8 @@ def setup_test_database(monkeypatch, tmp_path):
     client = app_module.app.test_client()
     with app_module.get_connection() as connection:
         connection.execute(
-            "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
-            ("آزمایش", "09120000000", "test-hash", "seller"),
+            "INSERT INTO users (name, phone, password_hash, role, phone_verified_at) VALUES (?, ?, ?, ?, ?)",
+            ("آزمایش", "09120000000", "test-hash", "seller", "2026-10-09T00:00:00+00:00"),
         )
         connection.execute(
             "INSERT INTO stores (owner_id, name, city, description) VALUES (?, ?, ?, ?)",
