@@ -36,7 +36,7 @@
       return `
         <article class="listing-card">
           <div class="listing-image category-art-${escapeHTML(item.category)}">
-            <span class="listing-emoji" aria-hidden="true">${escapeHTML(item.emoji)}</span>
+            ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji) + '</span>'}
             ${item.featured ? '<span class="featured-label">پیشنهاد ویژه</span>' : ""}
             <button class="favorite-button" type="button" aria-label="ذخیره آگهی" data-favorite="${item.id}">♡</button>
           </div>
@@ -141,6 +141,8 @@
       if (!response.ok || !data.item) throw new Error("آگهی پیدا نشد.");
       const item = data.item;
       dialogEmoji.textContent = item.emoji || "🛍️";
+      dialogEmoji.style.backgroundImage = item.image_path ? 'url("' + item.image_path + '")' : "";
+      dialogEmoji.classList.toggle("has-photo", Boolean(item.image_path));
       dialogMeta.textContent = `${item.city} · ${categoryName(item.category)}`;
       dialogTitle.textContent = item.title;
       dialogPrice.textContent = Number(item.price) > 0
@@ -170,28 +172,57 @@
     if (!listingSubmitForm.hidden) listingSubmitForm.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 
+  const imageInput = listingSubmitForm.querySelector('input[name="image"]');
+  const imagePreviewWrap = document.querySelector("#imagePreviewWrap");
+  const imagePreview = document.querySelector("#imagePreview");
+  let previewObjectUrl = "";
+
+  function clearImagePreview() {
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+    imagePreview.removeAttribute("src");
+    imagePreviewWrap.hidden = true;
+    imageInput.value = "";
+  }
+
+  imageInput.addEventListener("change", () => {
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+    const file = imageInput.files && imageInput.files[0];
+    if (!file) { imagePreviewWrap.hidden = true; return; }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type) || file.size > 4 * 1024 * 1024) {
+      clearImagePreview();
+      showToast("عکس باید JPG، PNG یا WebP و حداکثر ۴ مگابایت باشد.");
+      return;
+    }
+    previewObjectUrl = URL.createObjectURL(file);
+    imagePreview.src = previewObjectUrl;
+    imagePreviewWrap.hidden = false;
+  });
+
+  document.querySelector("#removeImagePreview").addEventListener("click", clearImagePreview);
+
   listingSubmitForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(listingSubmitForm);
-    const payload = {
-      title: String(formData.get("title") || "").trim(),
-      category: String(formData.get("category") || ""),
-      city: String(formData.get("city") || "").trim(),
-      price: Number(formData.get("price")),
-      description: String(formData.get("description") || "").trim()
-    };
+    formData.set("title", String(formData.get("title") || "").trim());
+    formData.set("category", String(formData.get("category") || ""));
+    formData.set("city", String(formData.get("city") || "").trim());
+    formData.set("description", String(formData.get("description") || "").trim());
     const submitButton = listingSubmitForm.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.textContent = "در حال ثبت…";
     try {
       const response = await fetch("/api/listings", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload)
+        headers: { Accept: "application/json" },
+        body: formData
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "اطلاعات آگهی را بررسی کنید.");
       listingSubmitForm.reset();
+      clearImagePreview();
       listingSubmitForm.hidden = true;
       searchInput.value = "";
       citySelect.value = "";
