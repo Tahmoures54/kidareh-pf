@@ -99,7 +99,7 @@ def update_store(store_id: int):
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
     payload = request.get_json(silent=True) or {}
-    allowed = {"name", "city", "description"}
+    allowed = {"name", "city", "description", "category", "contact_name", "address", "hours", "in_person"}
     if not payload or set(payload) - allowed:
         return jsonify({"error": "invalid_payload"}), 400
     with get_connection() as connection:
@@ -111,13 +111,34 @@ def update_store(store_id: int):
         name = payload.get("name", store["name"])
         city = payload.get("city", store["city"])
         description = payload.get("description", store["description"])
+        category = payload.get("category", store["category"] if "category" in store.keys() else "")
+        contact_name = payload.get("contact_name", store["contact_name"] if "contact_name" in store.keys() else "")
+        address = payload.get("address", store["address"] if "address" in store.keys() else "")
+        hours = payload.get("hours", store["hours"] if "hours" in store.keys() else "")
+        if "in_person" in payload:
+            in_person = 1 if payload.get("in_person") else 0
+        else:
+            in_person = store["in_person"] if "in_person" in store.keys() else 1
         if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
             return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه باید حداکثر ۸۰ نویسه باشد."}), 400
         if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
             return jsonify({"error": "invalid_store_city", "message": "شهر را درست وارد کنید."}), 400
         if not isinstance(description, str) or len(description.strip()) > 500:
             return jsonify({"error": "invalid_store_description", "message": "توضیحات حداکثر ۵۰۰ نویسه باشد."}), 400
-        connection.execute("UPDATE stores SET name = ?, city = ?, description = ? WHERE id = ?", (name.strip(), city.strip(), description.strip(), store_id))
+        for value, maximum, err in (
+            (category, 80, "invalid_store_details"),
+            (contact_name, 80, "invalid_store_details"),
+            (address, 300, "invalid_store_details"),
+            (hours, 120, "invalid_store_details"),
+        ):
+            if not isinstance(value, str) or len(value.strip()) > maximum:
+                return jsonify({"error": err, "message": "اطلاعات فروشگاه معتبر نیست."}), 400
+        connection.execute(
+            """UPDATE stores SET name=?, city=?, description=?, category=?, contact_name=?, address=?, hours=?, in_person=?
+               WHERE id=?""",
+            (name.strip(), city.strip(), description.strip(), category.strip(), contact_name.strip(),
+             address.strip(), hours.strip(), in_person, store_id),
+        )
         updated = connection.execute("SELECT * FROM stores WHERE id = ?", (store_id,)).fetchone()
     return jsonify({"item": _store_payload(updated)})
 
