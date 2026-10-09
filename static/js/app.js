@@ -53,7 +53,7 @@
             <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span>${item.distance_km != null ? `<span class="meta-dot"></span><span>${numberFormat.format(item.distance_km)} کیلومتر</span>` : ""}</div>
             <h3>${escapeHTML(item.title)}</h3>
             <p>${escapeHTML(item.description)}</p>
-            <div class="listing-footer"><strong>${price}</strong><button class="listing-more" type="button" data-detail="${item.id}" aria-label="جزئیات آگهی">←</button></div>
+            <div class="listing-footer"><strong>${price}</strong><button class="listing-more" type="button" data-detail="${item.id}" aria-label="جزئیات آگهی">←</button><button class="listing-more" type="button" data-report-listing="${item.id}" aria-label="گزارش آگهی">گزارش</button></div>
           </div>
         </article>`;
     }).join("");
