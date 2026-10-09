@@ -137,7 +137,9 @@ def verify_otp():
     phone = session["otp_phone"]
     accepted_at = session.get("otp_terms_accepted_at")
     with get_connection() as connection:
-        user = connection.execute("SELECT id, name, phone, role FROM users WHERE phone = ?", (phone,)).fetchone()
+        user = connection.execute("SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?", (phone,)).fetchone()
+        if user and user["is_banned"]:
+            return jsonify({"error": "account_banned", "message": "حساب کاربری شما مسدود شده است."}), 403
         if user:
             connection.execute(
                 "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
