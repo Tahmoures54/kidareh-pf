@@ -14,6 +14,7 @@
   let currentStore = null;
   let csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
   let storeSearchTimeout;
+  let nearbyPosition = null;
   const storeGrid = document.querySelector("#storeGrid");
   const storeSearchInput = document.querySelector("#storeSearchInput");
   const savedIds = new Set(JSON.parse(localStorage.getItem("kidareh-saved-products") || "[]").map(String));
@@ -49,7 +50,7 @@
             <button class="favorite-button ${savedIds.has(String(item.id)) ? "is-favorite" : ""}" type="button" aria-label="ذخیره کالا" aria-pressed="${savedIds.has(String(item.id))}" data-favorite="${item.id}">${savedIds.has(String(item.id)) ? "♥" : "♡"}</button><button class="listing-share-button" type="button" data-share-url="/product/${item.id}" data-share-title="کالای ${escapeHTML(item.title)}" aria-label="اشتراک‌گذاری کالا" title="اشتراک‌گذاری کالا">↗</button>
           </div>
           <div class="listing-details">
-            <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span></div>
+            <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span>${item.distance_km != null ? `<span class="meta-dot"></span><span>${numberFormat.format(item.distance_km)} کیلومتر</span>` : ""}</div>
             <h3>${escapeHTML(item.title)}</h3>
             <p>${escapeHTML(item.description)}</p>
             <div class="listing-footer"><strong>${price}</strong><button class="listing-more" type="button" data-detail="${item.id}" aria-label="جزئیات آگهی">←</button></div>
@@ -74,6 +75,7 @@
     empty.hidden = true;
     grid.innerHTML = '<div class="loading-card">داریم آگهی‌ها رو پیدا می‌کنیم…</div>';
     try {
+      if (nearbyPosition) { params.set("lat", nearbyPosition.latitude); params.set("lon", nearbyPosition.longitude); params.set("radius_km", "25"); }
       const response = await fetch(`/api/listings?${params.toString()}`, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("Request failed");
       const data = await response.json();
@@ -82,6 +84,18 @@
       grid.innerHTML = '<div class="loading-card error-card">دریافت آگهی‌ها با مشکل روبه‌رو شد. صفحه را دوباره بارگذاری کن.</div>';
       count.textContent = "خطا در دریافت";
     }
+  }
+
+  if (searchForm) {
+    const nearbyButton = document.createElement("button");
+    nearbyButton.type = "button"; nearbyButton.className = "button button-outline"; nearbyButton.textContent = "کالاهای نزدیک من";
+    searchForm.insertAdjacentElement("afterend", nearbyButton);
+    nearbyButton.addEventListener("click", () => {
+      if (nearbyPosition) { nearbyPosition = null; nearbyButton.textContent = "کالاهای نزدیک من"; loadListings(); return; }
+      if (!navigator.geolocation) { showToast("موقعیت‌یابی در این مرورگر پشتیبانی نمی‌شود."); return; }
+      nearbyButton.disabled = true;
+      navigator.geolocation.getCurrentPosition(pos => { nearbyPosition={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; nearbyButton.textContent="نمایش همه شهرها"; nearbyButton.disabled=false; loadListings(); }, () => { showToast("اجازه موقعیت داده نشد؛ شهر را انتخاب کنید."); nearbyButton.disabled=false; }, {timeout:8000,maximumAge:300000});
+    });
   }
 
   searchForm.addEventListener("submit", (event) => {
