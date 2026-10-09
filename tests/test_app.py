@@ -372,3 +372,29 @@ def test_store_update_rejects_invalid_name(monkeypatch, tmp_path):
     response = client.patch(f"/api/stores/{store_id}", headers={"X-CSRF-Token": "test-token"}, json={"name": " "})
     assert response.status_code == 400
     assert response.get_json()["error"] == "invalid_store_name"
+
+
+def test_saved_products_api_toggles_and_lists_saved_item(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    product_id = client.get("/api/listings").get_json()["items"][0]["id"]
+    saved = client.post(f"/api/listings/{product_id}/save", headers={"X-CSRF-Token": "test-token"})
+    assert saved.status_code == 200
+    assert saved.get_json()["saved"] is True
+    listing = client.get("/api/products/saved")
+    assert listing.status_code == 200
+    assert any(item["id"] == product_id for item in listing.get_json()["items"])
+    removed = client.post(f"/api/listings/{product_id}/save", headers={"X-CSRF-Token": "test-token"})
+    assert removed.status_code == 200
+    assert removed.get_json()["saved"] is False
+    assert all(item["id"] != product_id for item in client.get("/api/products/saved").get_json()["items"])
+
+
+def test_following_stores_api_lists_followed_store(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    store_id = client.get("/api/my/store").get_json()["item"]["id"]
+    followed = client.post(f"/api/stores/{store_id}/follow", headers={"X-CSRF-Token": "test-token"})
+    assert followed.status_code == 200
+    assert followed.get_json()["following"] is True
+    response = client.get("/api/stores/following")
+    assert response.status_code == 200
+    assert any(item["id"] == store_id for item in response.get_json()["items"])

@@ -73,23 +73,42 @@
     }catch(e){document.querySelector("#productDetail").innerHTML='<div class="empty-page-state">این کالا پیدا نشد یا حذف شده است.</div>';}
   }
   async function saveProduct(id){
-    const ids=new Set((()=>{try{return JSON.parse(localStorage.getItem(savedKey)||"[]").map(String)}catch{return []}})());
-    if(ids.has(String(id)))ids.delete(String(id));else ids.add(String(id));
-    localStorage.setItem(savedKey,JSON.stringify([...ids]));notify(ids.has(String(id))?"کالا ذخیره شد.":"کالا از ذخیره‌ها حذف شد.");
+    try{
+      const me=await api("/api/auth/me");
+      if(me.user){
+        const result=await api("/api/listings/"+encodeURIComponent(id)+"/save",{method:"POST"});
+        notify(result.saved?"کالا به ذخیره‌های حساب اضافه شد.":"کالا از ذخیره‌های حساب برداشته شد.");
+        if(page.type==="saved")await initSaved();
+        return result.saved;
+      }
+    }catch(e){if(e.message!=="authentication_required"){notify(e.message);return false;}}
+    let ids=[];try{ids=JSON.parse(localStorage.getItem(savedKey)||"[]").map(String)}catch{}
+    const set=new Set(ids);const key=String(id);if(set.has(key))set.delete(key);else set.add(key);
+    try{localStorage.setItem(savedKey,JSON.stringify([...set]));}catch{notify("ذخیره محلی در این مرورگر در دسترس نیست.");return false;}
+    notify(set.has(key)?"کالا ذخیره شد.":"کالا از ذخیره‌ها حذف شد.");if(page.type==="saved")await initSaved();return set.has(key);
   }
   async function initSaved(){
-    const target=document.querySelector("#pageListings");let ids=[];
-    try{ids=JSON.parse(localStorage.getItem(savedKey)||"[]").map(String)}catch{}
-    const items=[];
-    for(const id of ids){try{const d=await api("/api/listings/"+encodeURIComponent(id));if(d.item)items.push(d.item)}catch{}}
+    const target=document.querySelector("#pageListings");if(!target)return;
+    target.innerHTML='<div class="loading-card">در حال بارگذاری ذخیره‌ها…</div>';
+    let user=null,items=[];
+    try{const me=await api("/api/auth/me");user=me.user;}catch{}
+    if(user){
+      try{const data=await api("/api/products/saved");items=data.items||[];}
+      catch(e){target.innerHTML='<div class="empty-page-state">'+escapeHTML(e.message)+'</div>';return;}
+    }else{
+      let ids=[];try{ids=JSON.parse(localStorage.getItem(savedKey)||"[]").map(String)}catch{}
+      for(const id of ids){try{const d=await api("/api/listings/"+encodeURIComponent(id));if(d.item)items.push(d.item)}catch{}}
+    }
     target.innerHTML=items.length?items.map(productCard).join(""):'<div class="empty-page-state">هنوز کالایی ذخیره نکرده‌ای. در صفحه جست‌وجو روی «ذخیره» بزن تا اینجا پیدایش کنی.</div>';
-    document.querySelector("#savedHint").textContent=items.length?"ذخیره‌های مهمان روی همین مرورگر و دستگاه نگهداری می‌شوند.":"";
-    document.querySelector("#clearSaved")?.addEventListener("click",()=>{localStorage.removeItem(savedKey);target.innerHTML='<div class="empty-page-state">فهرست ذخیره‌ها پاک شد.</div>';notify("ذخیره‌ها پاک شدند.")});
+    const hint=document.querySelector("#savedHint");if(hint)hint.textContent=user?"این فهرست به حساب شما متصل است و با ورود از دستگاه‌های دیگر هم در دسترس خواهد بود.":"ذخیره‌های مهمان فقط روی همین مرورگر و دستگاه نگهداری می‌شوند.";
+    const clear=document.querySelector("#clearSaved");if(clear){clear.textContent=user?"پاک‌کردن همه ذخیره‌ها":"پاک‌کردن ذخیره‌های این دستگاه";clear.onclick=async()=>{if(!items.length){if(!user){try{localStorage.removeItem(savedKey)}catch{}}notify("فهرست ذخیره‌ها خالی است.");return;}if(!window.confirm("همه کالاهای ذخیره‌شده حذف شوند؟"))return;try{if(user){for(const item of items)await api("/api/listings/"+item.id+"/save",{method:"POST"});}else{localStorage.removeItem(savedKey);}notify("ذخیره‌ها پاک شدند.");await initSaved();}catch(e){notify(e.message)}};}
   }
   async function initFollowing(){
-    const target=document.querySelector("#pageStores");
+    const target=document.querySelector("#pageStores");if(!target)return;
     try{const me=await api("/api/auth/me");if(!me.user){target.innerHTML='<div class="empty-page-state">برای دیدن فروشگاه‌های دنبال‌شده، <a href="/account">وارد حساب شو</a>. البته دیدن بقیه بازار آزاد است.</div>';return}
-      const data=await api("/api/stores/following");target.innerHTML=data.items.length?data.items.map(storeCard).join(""):'<div class="empty-page-state">هنوز فروشگاهی را دنبال نکرده‌ای. از صفحه فروشگاه‌ها شروع کن.</div>';
+      const data=await api("/api/stores/following");
+      target.innerHTML=data.items.length?data.items.map(s=>'<div class="following-store-row">'+storeCard(s)+'<button class="button button-outline" type="button" data-unfollow-store="'+s.id+'">برداشتن دنبال‌کردن</button></div>').join(""):'<div class="empty-page-state">هنوز فروشگاهی را دنبال نکرده‌ای. از صفحه فروشگاه‌ها شروع کن.</div>';
+      target.onclick=async e=>{const button=e.target.closest("[data-unfollow-store]");if(!button)return;button.disabled=true;try{await api("/api/stores/"+button.dataset.unfollowStore+"/follow",{method:"POST"});notify("فروشگاه از فهرست دنبال‌شده‌ها حذف شد.");await initFollowing();}catch(err){notify(err.message);button.disabled=false;}};
     }catch(e){target.innerHTML='<div class="empty-page-state">'+escapeHTML(e.message)+'</div>'}
   }
   async function initAccount(){
@@ -116,6 +135,6 @@
       target.addEventListener("submit",async e=>{const form=e.target.closest("[data-edit-form]");if(!form)return;e.preventDefault();const id=form.dataset.editForm,submit=form.querySelector('[type="submit"]');submit.disabled=true;try{const body=Object.fromEntries(new FormData(form));body.price=Number(body.price);await api("/api/listings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});notify("محصول به‌روزرسانی شد.");const data=await api("/api/listings");renderProducts((data.items||[]).filter(p=>Number(p.store_id)===Number(store.id)));}catch(err){notify(err.message);submit.disabled=false;}});
     }catch(e){status.textContent="برای بارگذاری پنل، صفحه را تازه‌سازی کن.";}
   }
-  document.addEventListener("click",e=>{const b=e.target.closest("[data-save]");if(b){saveProduct(b.dataset.save);b.textContent="♥ ذخیره شد"}});
+  document.addEventListener("click",async e=>{const b=e.target.closest("[data-save]");if(b){e.preventDefault();b.disabled=true;try{const saved=await saveProduct(b.dataset.save);b.textContent=saved?"♥ ذخیره شد":"♡ ذخیره";}finally{b.disabled=false;}}});
   switch(page.type){case"search":initSearch();break;case"stores":initStores();break;case"store-detail":initStoreDetail();break;case"product-detail":initProductDetail();break;case"saved":initSaved();break;case"following":initFollowing();break;case"account":initAccount();break;case"seller":initSeller();break;}
 })();
