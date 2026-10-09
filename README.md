@@ -6,6 +6,7 @@ A lightweight Persian marketplace starter built with Flask, server-rendered HTML
 
 - Responsive Persian RTL homepage
 - Search and category filters for demo listings
+- Optional listing photos (JPG, PNG, WebP; maximum 4 MiB) with server-side signature and size checks
 - Flask JSON endpoints: `/api/health`, `/api/categories`, `/api/listings`
 - Local SQLite database with safe first-run initialization and demo listings
 - No React, Node.js build step, or external runtime dependency beyond Flask
@@ -30,4 +31,4 @@ Open `http://127.0.0.1:5000`.
 
 ## Production notes
 
-Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add real authentication, moderation, and upload handling before accepting real users or transactions. The included listings are clearly demo content.
+Use a production WSGI server (for example Gunicorn), configure a persistent disk for SQLite or move to PostgreSQL as traffic grows, and add real authentication, moderation, rate limiting, and persistent upload storage before accepting real users. Uploaded images are stored under `static/uploads` by default; configure `UPLOAD_FOLDER` and durable storage on deployment. The included listings are clearly demo content.
