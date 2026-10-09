@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="theme-color" content="#087f8c">
+  <title>{% block title %}کی‌داره | بازار فروشگاه‌ها و کالاها{% endblock %}</title>
+  <meta name="description" content="{% block description %}در کی‌داره آزادانه کالاها را ببینید، فروشگاه‌ها را کشف کنید و ویترین خود را بسازید.{% endblock %}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="inner-page">
+  <div class="announcement">کی‌داره؛ برای پیدا کردن چیزهای خوب، ساده‌تر بگرد.</div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار انتخاب‌های خوب</small></span></a>
+    <nav class="desktop-nav" aria-label="ناوبری اصلی">
+      <a href="/">خانه</a><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ویترین من</a>
+    </nav>
+    <div class="header-actions"><a class="button button-outline" href="/saved">ذخیره‌ها</a><a class="button button-primary" href="/account">حساب کاربری</a></div>
+  </header>
+  <main class="page-shell">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer inner-footer">
+    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار ساده و مردمی</small></span></a>
+    <nav class="footer-links"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a></nav>
+    <p>دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید.</p>
+  </footer>
+  <div id="pageToast" class="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/pages.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
