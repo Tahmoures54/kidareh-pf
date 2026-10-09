@@ -245,8 +245,15 @@ def become_seller():
         return jsonify({"error": "csrf_failed"}), 400
     with get_connection() as connection:
         connection.execute("UPDATE users SET role = 'seller' WHERE id = ?", (user["id"],))
+        has_store = connection.execute("SELECT 1 FROM stores WHERE owner_id = ?", (user["id"],)).fetchone() is not None
     user["role"] = "seller"
-    return jsonify({"user": user})
+    response = {
+        "user": user,
+        "has_store": has_store,
+        "message": "حساب شما به فروشنده تغییر کرد." if has_store else "حساب شما به فروشنده تغییر کرد. برای افزودن کالا ابتدا ویترین فروشگاه را بسازید.",
+        "next": None if has_store else "/api/stores",
+    }
+    return jsonify(response)
 
 @bp.get("/me")
 def auth_me():
