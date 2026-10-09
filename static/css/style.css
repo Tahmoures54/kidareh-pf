@@ -492,3 +492,7 @@ h1, h2, h3, p { margin-top: 0; }
   .seller-promotion { flex-direction: column; }
   .page-listing-footer .share-button { width: 100%; }
 }
+
+.listing-share-button { position:absolute; z-index:2; top:10px; right:10px; width:34px; height:34px; display:grid; place-items:center; border:1px solid #ffffffd9; border-radius:10px; background:#ffffffed; color:#087f79; font-size:20px; font-weight:900; cursor:pointer; box-shadow:0 3px 12px #143d3d12; }
+.listing-share-button:hover { background:#e6f8f3; }
+@media(max-width:600px){.listing-share-button{top:7px;right:7px;width:28px;height:28px;font-size:17px}}
