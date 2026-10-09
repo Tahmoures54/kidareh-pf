@@ -96,7 +96,16 @@
     <section class="seller-banner" id="how-it-works">
       <div class="seller-art" aria-hidden="true"><div class="seller-circle">＋</div><span class="seller-emoji">📦</span><span class="seller-spark">✦</span></div>
       <div class="seller-copy"><span class="section-kicker">یه چیز برای فروش داری؟</span><h2>جای خوبش، کی‌داره‌ست.</h2><p>محصول یا خدماتت رو به آدم‌های شهر خودت معرفی کن. شروعش ساده‌ست.</p></div>
-      <a class="button button-light" href="#listings">به‌زودی: ثبت آگهی <span>←</span></a>
+      <button class="button button-light" id="openListingForm" type="button">شروع ثبت آگهی <span>←</span></button>
+      <form class="listing-submit-form" id="listingSubmitForm" hidden>
+        <label>عنوان آگهی<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
+        <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select></label>
+        <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تبریز"></label>
+        <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
+        <label class="listing-description-field">توضیحات<textarea name="description" maxlength="1000" rows="3" placeholder="جزئیات مهم آگهی را بنویسید"></textarea></label>
+        <button class="button button-primary" type="submit">ثبت آگهی آزمایشی</button>
+        <p class="form-note">این نسخه آزمایشی است؛ ورود کاربر و مالکیت آگهی هنوز فعال نیست. از اطلاعات شخصی حساس استفاده نکنید.</p>
+      </form>
     </section>
   </main>
 
