@@ -36,3 +36,6 @@
 .tag-listing_tag_special{background:#f2eaff;color:#7441ad;border-color:#ddc5ff}
 .tag-listing_tag_discount{background:#e5f8ed;color:#167445;border-color:#b8e7c9}
 .page-listing-art{position:relative}
+
+.product-detail-copy .paid-listing-tag{position:static;box-shadow:none;margin:8px 0}
+.store-product-card .paid-listing-tag{position:static;box-shadow:none;margin:4px 0;display:inline-flex}
