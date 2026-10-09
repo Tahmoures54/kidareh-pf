@@ -56,7 +56,6 @@ def create_store():
     contact_name = payload.get("contact_name", user.get("name", ""))
     address = payload.get("address", "")
     hours = payload.get("hours", "")
-    social_url = payload.get("social_url", "")
     in_person = 1 if payload.get("in_person", True) else 0
     if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
         return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
@@ -64,18 +63,16 @@ def create_store():
         return jsonify({"error": "invalid_store_city", "message": "شهر را وارد کنید."}), 400
     if not isinstance(description, str) or len(description.strip()) > 500:
         return jsonify({"error": "invalid_store_description"}), 400
-    for value, maximum in ((category, 80), (contact_name, 80), (address, 300), (hours, 120), (social_url, 200)):
+    for value, maximum in ((category, 80), (contact_name, 80), (address, 300), (hours, 120)):
         if not isinstance(value, str) or len(value.strip()) > maximum:
             return jsonify({"error": "invalid_store_details", "message": "اطلاعات فروشگاه معتبر نیست."}), 400
-    if social_url.strip() and not re.match(r"^(https?://|@)[^\s]+$", social_url.strip(), re.I):
-        return jsonify({"error": "invalid_social_url"}), 400
     try:
         with get_connection() as connection:
             cursor = connection.execute(
-                """INSERT INTO stores (owner_id, name, city, description, category, contact_name, address, hours, social_url, in_person)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                """INSERT INTO stores (owner_id, name, city, description, category, contact_name, address, hours, in_person)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (user["id"], name.strip(), city.strip(), description.strip(), category.strip(), contact_name.strip(),
-                 address.strip(), hours.strip(), social_url.strip(), in_person),
+                 address.strip(), hours.strip(), in_person),
             )
             row = connection.execute("SELECT * FROM stores WHERE id = ?", (cursor.lastrowid,)).fetchone()
     except sqlite3.IntegrityError:
