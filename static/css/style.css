@@ -399,3 +399,51 @@ h1, h2, h3, p { margin-top: 0; }
 .owner-actions > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .button-danger { color: #a52b2b; border: 1px solid #efc9c9; background: #fff; }
 @media (max-width: 600px) { .auth-content { padding: 22px; } .owner-actions > div > button { flex: 1; } }
+
+
+/* Storefront-first marketplace: public browsing stays open to guests. */
+.stores-section { padding-top: 12px; }
+.store-search-row { display: flex; gap: 10px; margin: 20px 0 16px; }
+.store-search { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0 14px; border: 1px solid #dce8e9; border-radius: 13px; background: #fff; color: #4c777b; }
+.store-search input { width: 100%; min-width: 0; height: 46px; border: 0; outline: 0; background: transparent; color: #18343a; font: inherit; }
+.store-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.store-card { display: flex; align-items: flex-start; gap: 13px; min-width: 0; padding: 17px; border: 1px solid #e2ebeb; border-radius: 18px; background: #fff; text-align: right; cursor: pointer; transition: border-color .18s, transform .18s, box-shadow .18s; }
+.store-card:hover { transform: translateY(-2px); border-color: #9dd9d7; box-shadow: 0 12px 28px rgba(17,93,95,.08); }
+.store-card-mark,.store-mark { display: grid; place-items: center; flex: 0 0 46px; width: 46px; height: 46px; border-radius: 15px; background: #e8f8f5; color: #087f79; font-size: 24px; font-weight: 900; }
+.store-card-copy { display: grid; gap: 6px; flex: 1; min-width: 0; }
+.store-card-copy strong { color: #163b40; font-size: 15px; }
+.store-card-copy small { color: #688184; font-size: 12px; }
+.store-card-copy > span { display: -webkit-box; overflow: hidden; color: #617578; font-size: 12px; line-height: 1.8; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.store-card-arrow { color: #168b85; font-size: 19px; }
+.store-dialog,.store-create-dialog { width: min(94vw, 760px); max-height: 88vh; padding: 0; border: 0; border-radius: 22px; color: #18343a; background: #fff; box-shadow: 0 28px 90px rgba(8,44,50,.28); }
+.store-dialog::backdrop,.store-create-dialog::backdrop { background: rgba(10,38,43,.58); backdrop-filter: blur(4px); }
+.store-dialog-content { padding: 28px; }
+.store-dialog-heading { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #e5eeee; }
+.store-dialog-heading h2 { margin: 5px 0; font-size: 23px; }
+.store-dialog-heading p { margin: 0; color: #668083; font-size: 13px; }
+.store-dialog-description { color: #526c70; line-height: 1.9; }
+.store-dialog-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin: 16px 0 22px; }
+.store-dialog-actions > span { color: #678184; font-size: 12px; }
+#followStoreButton.is-following { background: #e5f7f1; color: #087f79; border: 1px solid #bce6da; }
+.store-products-title { margin: 12px 0; font-size: 16px; }
+.store-products-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.store-product-card { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-width: 0; padding: 9px; border: 1px solid #e3ecec; border-radius: 14px; background: #fff; text-align: right; cursor: pointer; }
+.store-product-card img,.store-product-emoji { display: grid; place-items: center; width: 100%; aspect-ratio: 1/1; border-radius: 10px; object-fit: cover; background: #edf7f5; font-size: 36px; }
+.store-product-card strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.store-product-card small { color: #087f79; font-size: 11px; font-weight: 800; }
+.store-empty { grid-column: 1/-1; padding: 18px; color: #718789; text-align: center; }
+.store-create-dialog { width: min(92vw, 470px); }
+.store-create-dialog .auth-content { padding: 30px; }
+.store-create-dialog textarea { width: 100%; resize: vertical; padding: 12px; border: 1px solid #d8e5e6; border-radius: 10px; font: inherit; }
+.seller-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.seller-actions .button { white-space: nowrap; }
+@media (max-width: 820px) { .store-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 560px) {
+  .store-grid { grid-template-columns: 1fr; }
+  .store-card { padding: 14px; }
+  .store-search-row { flex-direction: column; }
+  .store-products-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .store-dialog-content { padding: 22px 16px; }
+  .seller-actions { width: 100%; }
+  .seller-actions .button { flex: 1; }
+}
