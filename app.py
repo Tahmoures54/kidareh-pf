@@ -92,7 +92,7 @@ def initialize_database() -> None:
         connection.execute("""
             CREATE TABLE IF NOT EXISTS stores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                owner_id INTEGER NOT NULL UNIQUE,
+                owner_id INTEGER UNIQUE,
                 name TEXT NOT NULL,
                 city TEXT NOT NULL,
                 description TEXT NOT NULL DEFAULT '',
@@ -120,6 +120,16 @@ def initialize_database() -> None:
                 FOREIGN KEY(listing_id) REFERENCES listings(id) ON DELETE CASCADE
             )
         """)
+        store_count = connection.execute("SELECT COUNT(*) FROM stores").fetchone()[0]
+        if store_count == 0:
+            connection.executemany(
+                "INSERT INTO stores (owner_id, name, city, description) VALUES (NULL, ?, ?, ?)",
+                [
+                    ("خانه‌چین", "تهران", "لوازم کاربردی خانه و زندگی؛ بازدید و خرید حضوری"),
+                    ("دیجیتال‌کده", "تبریز", "کالاهای دیجیتال و لوازم جانبی"),
+                    ("بازار محلی", "شیراز", "کالاهای روزمره و انتخاب‌های محلی"),
+                ],
+            )
         count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
         if count == 0:
             connection.executemany(
@@ -130,6 +140,17 @@ def initialize_database() -> None:
                 """,
                 DEMO_LISTINGS,
             )
+        connection.execute("""
+            UPDATE listings SET store_id = (
+                SELECT id FROM stores
+                WHERE stores.owner_id IS NULL
+                  AND ((listings.category = 'home' AND stores.name = 'خانه‌چین')
+                    OR (listings.category = 'digital' AND stores.name = 'دیجیتال‌کده')
+                    OR (listings.category NOT IN ('home', 'digital') AND stores.name = 'بازار محلی'))
+                LIMIT 1
+            )
+            WHERE store_id IS NULL
+        """)
 
 
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
@@ -238,6 +259,162 @@ def auth_logout():
 def health():
     return jsonify({"ok": True, "service": "kidareh-pf"})
 
+
+
+
+@app.get("/api/stores")
+def list_stores():
+    query = request.args.get("q", "").strip()[:100]
+    city = request.args.get("city", "").strip()[:60]
+    sql = """
+        SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
+               COUNT(DISTINCT f.user_id) AS follower_count
+        FROM stores s
+        LEFT JOIN listings l ON l.store_id = s.id
+        LEFT JOIN store_follows f ON f.store_id = s.id
+        WHERE 1=1
+    """
+    params: list[Any] = []
+    if query:
+        sql += " AND (s.name LIKE ? OR s.description LIKE ? OR s.city LIKE ?)"
+        term = f"%{query}%"
+        params.extend([term, term, term])
+    if city:
+        sql += " AND s.city = ?"
+        params.append(city)
+    sql += " GROUP BY s.id ORDER BY s.id DESC LIMIT 100"
+    with get_connection() as connection:
+        rows = connection.execute(sql, params).fetchall()
+    return jsonify({"items": [dict(row) for row in rows], "count": len(rows)})
+
+
+@app.post("/api/stores")
+def create_store():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای ساخت ویترین وارد حساب شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    payload = request.get_json(silent=True) or {}
+    name, city, description = payload.get("name", ""), payload.get("city", ""), payload.get("description", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
+    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+        return jsonify({"error": "invalid_store_city", "message": "شهر را وارد کنید."}), 400
+    if not isinstance(description, str) or len(description.strip()) > 500:
+        return jsonify({"error": "invalid_store_description"}), 400
+    try:
+        with get_connection() as connection:
+            cursor = connection.execute(
+                "INSERT INTO stores (owner_id, name, city, description) VALUES (?, ?, ?, ?)",
+                (user["id"], name.strip(), city.strip(), description.strip()),
+            )
+            row = connection.execute("SELECT * FROM stores WHERE id = ?", (cursor.lastrowid,)).fetchone()
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "store_exists", "message": "برای این حساب قبلاً ویترین ساخته شده است."}), 409
+    return jsonify({"item": dict(row)}), 201
+
+
+@app.get("/api/stores/<int:store_id>")
+def store_detail(store_id: int):
+    with get_connection() as connection:
+        store = connection.execute("""
+            SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
+                   COUNT(DISTINCT f.user_id) AS follower_count
+            FROM stores s
+            LEFT JOIN listings l ON l.store_id = s.id
+            LEFT JOIN store_follows f ON f.store_id = s.id
+            WHERE s.id = ? GROUP BY s.id
+        """, (store_id,)).fetchone()
+        if store is None:
+            return jsonify({"error": "store_not_found"}), 404
+        products = connection.execute(
+            "SELECT * FROM listings WHERE store_id = ? ORDER BY id DESC LIMIT 100", (store_id,)
+        ).fetchall()
+        user = current_user()
+        following = False
+        if user:
+            following = connection.execute(
+                "SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?",
+                (user["id"], store_id),
+            ).fetchone() is not None
+    return jsonify({"store": dict(store), "items": [serialize_listing(row) for row in products], "following": following})
+
+
+@app.post("/api/stores/<int:store_id>/follow")
+def toggle_store_follow(store_id: int):
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای دنبال‌کردن فروشگاه وارد شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    with get_connection() as connection:
+        if connection.execute("SELECT 1 FROM stores WHERE id = ?", (store_id,)).fetchone() is None:
+            return jsonify({"error": "store_not_found"}), 404
+        existing = connection.execute(
+            "SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?", (user["id"], store_id)
+        ).fetchone()
+        if existing:
+            connection.execute("DELETE FROM store_follows WHERE user_id = ? AND store_id = ?", (user["id"], store_id))
+            following = False
+        else:
+            connection.execute("INSERT INTO store_follows (user_id, store_id) VALUES (?, ?)", (user["id"], store_id))
+            following = True
+        count = connection.execute("SELECT COUNT(*) FROM store_follows WHERE store_id = ?", (store_id,)).fetchone()[0]
+    return jsonify({"following": following, "follower_count": count})
+
+
+@app.get("/api/stores/following")
+def followed_stores():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required"}), 401
+    with get_connection() as connection:
+        rows = connection.execute("""
+            SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
+                   COUNT(DISTINCT f2.user_id) AS follower_count
+            FROM store_follows f
+            JOIN stores s ON s.id = f.store_id
+            LEFT JOIN listings l ON l.store_id = s.id
+            LEFT JOIN store_follows f2 ON f2.store_id = s.id
+            WHERE f.user_id = ? GROUP BY s.id ORDER BY f.created_at DESC
+        """, (user["id"],)).fetchall()
+    return jsonify({"items": [dict(row) for row in rows]})
+
+
+@app.post("/api/listings/<int:listing_id>/save")
+def toggle_saved_listing(listing_id: int):
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "برای ذخیره دائمی کالا وارد حساب شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    with get_connection() as connection:
+        if connection.execute("SELECT 1 FROM listings WHERE id = ?", (listing_id,)).fetchone() is None:
+            return jsonify({"error": "product_not_found"}), 404
+        existing = connection.execute(
+            "SELECT 1 FROM saved_products WHERE user_id = ? AND listing_id = ?", (user["id"], listing_id)
+        ).fetchone()
+        if existing:
+            connection.execute("DELETE FROM saved_products WHERE user_id = ? AND listing_id = ?", (user["id"], listing_id))
+            saved = False
+        else:
+            connection.execute("INSERT INTO saved_products (user_id, listing_id) VALUES (?, ?)", (user["id"], listing_id))
+            saved = True
+    return jsonify({"saved": saved})
+
+
+@app.get("/api/products/saved")
+def saved_listings():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required"}), 401
+    with get_connection() as connection:
+        rows = connection.execute("""
+            SELECT l.* FROM saved_products s JOIN listings l ON l.id = s.listing_id
+            WHERE s.user_id = ? ORDER BY s.created_at DESC
+        """, (user["id"],)).fetchall()
+    return jsonify({"items": [serialize_listing(row) for row in rows]})
 
 @app.get("/api/categories")
 def categories():
