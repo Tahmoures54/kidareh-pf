@@ -34,6 +34,8 @@
       const data=await api("/api/conversations");
       list.innerHTML=data.items.map(c=>'<button class="community-list-item" type="button" data-thread="'+c.id+'" data-title="'+esc(c.listing_title)+'"><strong>'+esc(c.listing_title)+'</strong><span>'+esc(c.other_name||"کاربر")+'</span><small>'+esc(c.last_message||"شروع گفت‌وگو")+'</small></button>').join("")||'<p class="muted">هنوز گفت‌وگویی نداری. از صفحه یک کالای فروشنده ثبت‌شده، گزینه گفت‌وگو را بزن.</p>';
       list.querySelectorAll("[data-thread]").forEach(b=>b.addEventListener("click",()=>openThread(Number(b.dataset.thread),b.dataset.title)));
+      const requestedThread=new URLSearchParams(window.location.search).get("thread");
+      if(requestedThread){const button=list.querySelector('[data-thread="'+CSS.escape(requestedThread)+'"]');if(button)await openThread(Number(button.dataset.thread),button.dataset.title);}
     }catch(e){list.innerHTML='<p class="error-text">'+esc(e.message)+'</p>';}
     form?.addEventListener("submit",async e=>{e.preventDefault();const field=document.querySelector("#messageBody");const body=field.value.trim();if(!body||!active)return;try{await api("/api/conversations/"+active+"/messages",{method:"POST",body:JSON.stringify({body})});field.value="";await loadMessages();}catch(err){toast(err.message);}});
   }
