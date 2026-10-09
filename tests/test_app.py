@@ -150,3 +150,57 @@ def test_create_listing_without_image_keeps_empty_image_path(monkeypatch, tmp_pa
     response = client.post("/api/listings", json={"title": "آگهی ساده", "category": "home", "city": "تهران", "price": 0})
     assert response.status_code == 201
     assert response.get_json()["item"]["image_path"] == ""
+
+
+def test_create_listing_normalizes_persian_seller_phone(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.post(
+        "/api/listings",
+        json={
+            "title": "میز برای بازدید حضوری",
+            "category": "home",
+            "city": "تبریز",
+            "price": 900000,
+            "seller_phone": "۰۹۱۲ ۳۴۵ ۶۷۸۹",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.get_json()["item"]["seller_phone"] == "09123456789"
+
+
+def test_create_listing_rejects_invalid_seller_phone(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    response = client.post(
+        "/api/listings",
+        json={
+            "title": "آگهی با شماره نامعتبر",
+            "category": "home",
+            "city": "تهران",
+            "price": 1000,
+            "seller_phone": "12345",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "invalid_seller_phone"
+
+
+def test_listing_detail_includes_seller_phone(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post(
+        "/api/listings",
+        json={
+            "title": "میز با امکان بازدید",
+            "category": "home",
+            "city": "تبریز",
+            "price": 900000,
+            "seller_phone": "09123456789",
+        },
+    )
+    listing_id = created.get_json()["item"]["id"]
+
+    response = client.get(f"/api/listings/{listing_id}")
+
+    assert response.status_code == 200
+    assert response.get_json()["item"]["seller_phone"] == "09123456789"
