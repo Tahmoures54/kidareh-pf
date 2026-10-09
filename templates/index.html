@@ -3,23 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#087f8c">
+  <meta name="theme-color" content="#0E7490">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
-  <title>کی‌داره | بازار خرید حضوری محلی</title>
+  <title>کی‌داره | ویترین آنلاین فروش حضوری</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
 </head>
 <body>
-  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> بازار شهر شما، همین‌جا نزدیک‌تر است</div>
+  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> ویترینت را آنلاین کن — مشتری را به فروشگاهت بکش</div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
       <span class="brand-mark">ک</span>
-      <span class="brand-copy"><strong>کی‌داره</strong><small>بازار خرید حضوری تو</small></span>
+      <span class="brand-copy"><strong>کی‌داره</strong><small>ویترین آنلاین فروش حضوری</small></span>
     </a>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
       <a class="active" href="/">خانه</a>
@@ -131,7 +132,7 @@
   </main>
 
   <footer class="site-footer">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>بازار محلی تو</small></span></a>
+    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ویترین آنلاین فروش حضوری</small></span></a>
     <p>خریدوفروش محلی، ساده‌تر از همیشه.</p>
     <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
   </footer>
@@ -191,46 +192,14 @@
             <label>شهر فروشگاه<input name="store_city" maxlength="60" placeholder="شهر"></label>
             <label>نام مسئول فروشگاه<input name="contact_name" maxlength="80" placeholder="نام پاسخ‌گو"></label>
             <label>نشانی فروشگاه حضوری<textarea name="store_address" maxlength="300" rows="2" placeholder="نشانی برای مراجعه حضوری (در صورت وجود)"></textarea></label>
-            <label>ساعات کاری<input name="store_hours" maxlength="120" placeholder="مثلاً شنبه تا پنجشنبه، ۹ تا ۱۸"></label>
-            <label>توضیح کوتاه فروشگاه<textarea name="store_description" maxlength="500" rows="2" placeholder="چه کالاهایی عرضه می‌کنید؟"></textarea></label>
-            <label class="checkbox-line"><input name="in_person" type="checkbox" checked> امکان مراجعه و خرید حضوری وجود دارد</label>
           </div>
-          <button class="button button-primary" id="completeProfileButton" type="submit">تکمیل و ورود</button>
+          <button class="button button-primary" id="completeProfileButton" type="submit">تکمیل حساب</button>
         </section>
       </form>
-      <button class="button button-quiet" id="logoutButton" type="button" hidden>خروج از حساب</button>
-      <p class="form-note">خریداران برای دیدن کالاها و فروشگاه‌ها نیازی به ثبت‌نام ندارند.</p>
     </div>
   </dialog>
 
-  <dialog class="listing-dialog" id="listingDialog" aria-labelledby="dialogTitle">
-    <button class="dialog-close" id="closeListingDialog" type="button" aria-label="بستن جزئیات">×</button>
-    <div class="dialog-art" id="dialogEmoji" aria-hidden="true">🛍️</div>
-    <div class="dialog-content">
-      <span class="dialog-meta" id="dialogMeta"></span>
-      <h2 id="dialogTitle">جزئیات آگهی</h2>
-      <strong class="dialog-price" id="dialogPrice"></strong>
-      <p id="dialogDescription"></p>
-      <div class="owner-actions" id="ownerActions" hidden>
-        <strong>مدیریت آگهی شما</strong>
-        <div><button class="button button-outline" id="editOwnListing" type="button">ویرایش آگهی</button><button class="button button-danger" id="deleteOwnListing" type="button">حذف آگهی</button></div>
-      </div>
-      <div class="seller-contact" id="sellerContact" hidden>
-        <strong>هماهنگی با فروشنده</strong>
-        <p>برای هماهنگی بازدید و خرید حضوری تماس بگیرید.</p>
-        <a class="button button-primary seller-call-link" id="sellerCallLink" href="#" rel="nofollow">تماس با فروشنده</a>
-      </div>
-      <div class="in-person-note">
-        <strong>خرید حضوری در کی‌داره</strong>
-        <p>پیش از پرداخت، کالا را حضوری بررسی کنید و درباره محل ملاقات و قیمت نهایی مستقیم با فروشنده توافق کنید. این پلتفرم پرداخت آنلاین یا ارسال کالا انجام نمی‌دهد.</p>
-      </div>
-      <button class="button button-primary dialog-done" id="dialogDone" type="button">متوجه شدم</button>
-    </div>
-  </dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
 </body>
 </html>
