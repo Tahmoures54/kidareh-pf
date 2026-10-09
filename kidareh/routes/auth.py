@@ -147,7 +147,7 @@ def complete_profile():
             "name": payload.get("store_name", ""), "category": payload.get("store_category", ""),
             "city": payload.get("store_city", ""), "contact_name": payload.get("contact_name", name.strip()),
             "address": payload.get("store_address", ""), "hours": payload.get("store_hours", ""),
-            "social_url": payload.get("social_url", ""), "description": payload.get("store_description", ""),
+            "description": payload.get("store_description", ""),
             "in_person": 1 if payload.get("in_person") else 0,
         }
         if not isinstance(values["name"], str) or not values["name"].strip() or len(values["name"].strip()) > 80:
