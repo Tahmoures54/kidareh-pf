@@ -68,3 +68,53 @@ def test_listing_detail_returns_json_404_for_missing_item(monkeypatch, tmp_path)
     assert response.status_code == 404
     assert response.get_json() == {"error": "listing_not_found"}
 
+def test_create_listing_returns_created_item(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    payload = {
+        "title": "میز مطالعه",
+        "category": "home",
+        "city": "تبریز",
+        "price": 1250000,
+        "description": "میز سالم و تمیز",
+    }
+
+    response = client.post("/api/listings", json=payload)
+
+    assert response.status_code == 201
+    item = response.get_json()["item"]
+    assert item["title"] == payload["title"]
+    assert item["category"] == payload["category"]
+    assert item["price"] == payload["price"]
+    assert item["featured"] is False
+
+
+def test_create_listing_rejects_invalid_category(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    payload = {
+        "title": "آگهی نامعتبر",
+        "category": "unknown",
+        "city": "تهران",
+        "price": 1000,
+        "description": "",
+    }
+
+    response = client.post("/api/listings", json=payload)
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "invalid_category"
+
+
+def test_create_listing_rejects_negative_price(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    payload = {
+        "title": "آگهی تست",
+        "category": "home",
+        "city": "تهران",
+        "price": -10,
+        "description": "",
+    }
+
+    response = client.post("/api/listings", json=payload)
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "invalid_price"
