@@ -288,6 +288,16 @@ def list_stores():
     return jsonify({"items": [dict(row) for row in rows], "count": len(rows)})
 
 
+@app.get("/api/my/store")
+def my_store():
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required"}), 401
+    with get_connection() as connection:
+        row = connection.execute("SELECT * FROM stores WHERE owner_id = ?", (user["id"],)).fetchone()
+    return jsonify({"item": dict(row) if row else None})
+
+
 @app.post("/api/stores")
 def create_store():
     user = current_user()
@@ -524,12 +534,15 @@ def create_listing():
         image_path = f"/static/uploads/{filename}"
 
     with get_connection() as connection:
+        store = connection.execute("SELECT id FROM stores WHERE owner_id = ?", (user["id"],)).fetchone()
+        if store is None:
+            return jsonify({"error": "store_required", "message": "برای افزودن کالا، ابتدا ویترین فروشگاه خود را بسازید."}), 409
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id, store_id)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"]),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"], store["id"]),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
