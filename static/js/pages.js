@@ -148,7 +148,7 @@
     const message=customText||((title||"این صفحه")+" در کی‌داره");
     try {
       if(navigator.share){await navigator.share({title:title||"کی‌داره",text:message,url:absolute});return;}
-      const wa="https://wa.me/?text="+encodeURIComponent(message+"\\n"+absolute);
+      const wa="https://wa.me/?text="+encodeURIComponent(message+"\n"+absolute);
       const popup=window.open(wa,"_blank","noopener,noreferrer");
       if(!popup){try{await navigator.clipboard.writeText(absolute);notify("پیوند کپی شد؛ آن را در شبکه اجتماعی دلخواه بفرست.");}catch{notify("پیوند صفحه: "+absolute);}}
     } catch(error){if(error.name!=="AbortError")notify("اشتراک‌گذاری انجام نشد.");}
