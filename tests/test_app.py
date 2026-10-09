@@ -9,8 +9,8 @@ def setup_test_database(monkeypatch, tmp_path):
     client = app_module.app.test_client()
     with app_module.get_connection() as connection:
         connection.execute(
-            "INSERT INTO users (name, phone, password_hash) VALUES (?, ?, ?)",
-            ("آزمایش", "09120000000", "test-hash"),
+            "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("آزمایش", "09120000000", "test-hash", "seller"),
         )
         connection.execute(
             "INSERT INTO stores (owner_id, name, city, description) VALUES (?, ?, ?, ?)",
@@ -322,3 +322,16 @@ def test_saved_product_requires_login(monkeypatch, tmp_path):
         browser_session.clear()
     response = client.post(f"/api/listings/{product_id}/save")
     assert response.status_code == 401
+
+
+def test_buyer_cannot_create_store(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with app_module.get_connection() as connection:
+        connection.execute("UPDATE users SET role = 'buyer' WHERE id = 1")
+    response = client.post(
+        "/api/stores",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"name": "ویترین خریدار", "city": "تهران", "description": ""},
+    )
+    assert response.status_code == 403
+    assert response.get_json()["error"] == "seller_account_required"
