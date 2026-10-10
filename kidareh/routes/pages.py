@@ -133,6 +133,26 @@ def admin_reports_page():
     return render_marketplace_page("pages/admin/reports.html")
 
 
+
+@bp.get("/help")
+def help_page():
+    return render_marketplace_page("pages/help.html")
+
+
+@bp.get("/guide")
+def user_guide_page():
+    return render_marketplace_page("pages/guide.html")
+
+
+@bp.get("/safety")
+def safety_page():
+    return render_marketplace_page("pages/safety.html")
+
+
+@bp.get("/privacy")
+def privacy_page():
+    return render_marketplace_page("pages/privacy.html")
+
 @bp.get("/terms")
 def terms_page():
     return render_marketplace_page("pages/terms.html")
