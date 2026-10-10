@@ -33,7 +33,7 @@ LEGACY_CATEGORY_GROUPS = {
     "digital": ("digital_goods",),
     "fashion": ("personal_goods", "beauty_care"),
     "vehicle": ("vehicles",),
-    "services": ("services", "jobs"),
+    "services": ("jobs",),
     "other": ("others",),
 }
 LEGACY_CATEGORY_NAMES = {
