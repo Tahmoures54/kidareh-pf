@@ -425,7 +425,7 @@ def test_phone_first_signup_records_terms_and_verifies_phone(monkeypatch, tmp_pa
     created = client.post(
         "/api/auth/complete-profile",
         headers={"X-CSRF-Token": "test-token"},
-        json={"name": "خریدار آزمایشی", "role": "buyer"},
+        json={"name": "خریدار آزمایشی", "role": "buyer", "city": "تهران"},
     )
     assert created.status_code == 200
     assert created.get_json()["user"]["phone"] == "09123456789"
