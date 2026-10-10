@@ -1,7 +1,7 @@
 """Regression tests for image cleanup on listing delete and full store profile updates."""
 from io import BytesIO
 
-import app as app_module
+import main as app_module
 
 
 def setup_test_database(monkeypatch, tmp_path):
