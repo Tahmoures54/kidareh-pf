@@ -7,13 +7,13 @@
   <meta name="theme-color" content="#0E7490">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>{% block title %}کی‌داره | ویترین آنلاین فروش حضوری{% endblock %}</title>
-  <meta name="description" content="{{ meta_description or 'ویترینت را آنلاین کن؛ مشتری را به فروشگاهت بکش. در کی‌داره کالاها را پیدا کن و برای خرید حضوری هماهنگ شو.' }}">
+  <title>{% block title %}ببین کی‌داره؟ حضوری بگیر! | کی‌داره{% endblock %}</title>
+  <meta name="description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالای دلخواهت را پیدا کن و از فروشگاه محلی حضوری تحویل بگیر.' }}">
   <meta property="og:site_name" content="کی‌داره">
   <meta property="og:locale" content="fa_IR">
   <meta property="og:type" content="{{ 'product' if meta_type == 'product' else 'website' }}">
-  <meta property="og:title" content="{{ meta_title or 'کی‌داره | ویترین آنلاین فروش حضوری' }}">
-  <meta property="og:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
+  <meta property="og:title" content="{{ meta_title or 'ببین کی‌داره؟ حضوری بگیر! | کی‌داره' }}">
+  <meta property="og:description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالاهای نزدیکت را پیدا کن و حضوری تحویل بگیر.' }}">
   <meta property="og:url" content="{{ request.url }}">
   {% if meta_image %}<meta property="og:image" content="{{ meta_image }}">{% endif %}
   <meta name="twitter:card" content="{{ 'summary_large_image' if meta_image else 'summary' }}">
@@ -30,7 +30,7 @@
 <body class="inner-page">
   <div class="announcement">ویترینت را آنلاین کن — منتظر نمان؛ مشتری را به فروشگاهت بکش</div>
   <header class="site-header">
-    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ویترین آنلاین فروش حضوری</small></span></a>
+    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی‌داره؟ حضوری بگیر!</small></span></a>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
       <a href="/">خانه</a><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ویترین من</a><a href="/messages">گفت‌وگوها</a><a href="/support">پشتیبانی</a>
     </nav>
@@ -40,7 +40,7 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer inner-footer">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>موتور جذب مشتری به مغازه</small></span></a>
+    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی‌داره؟ حضوری بگیر!</small></span></a>
     <nav class="footer-links"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a></nav>
     <p>دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید.</p>
   </footer>
