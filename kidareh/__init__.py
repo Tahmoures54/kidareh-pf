@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from .core import BASE_DIR, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
 
@@ -52,6 +52,23 @@ def create_app(test_config=None):
     app.register_blueprint(monetization_bp)
     app.register_blueprint(moderation_bp)
     app.register_blueprint(communications_bp)
+
+    @app.get("/static/uploads/<path:filename>")
+    def uploaded_image(filename):
+        """Serve only files from the configured uploads directory.
+
+        This explicit route keeps the existing public URL stable while allowing
+        UPLOAD_FOLDER to point at a persistent Liara disk mount.
+        """
+        allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
+        if Path(filename).suffix.lower() not in allowed_extensions:
+            return jsonify({"error": "not_found"}), 404
+        return send_from_directory(
+            app.config["UPLOAD_FOLDER"],
+            filename,
+            conditional=True,
+            max_age=86400,
+        )
 
     @app.errorhandler(413)
     def request_too_large(_error):
