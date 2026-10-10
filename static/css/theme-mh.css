@@ -3,23 +3,6 @@
    Theme: Industrial · Serious · Iranian Sky Turquoise
    Source: Tahmoures54/MaterialHub design-system
    ========================================================= */
-:root {
-  color-scheme: light;
-  --ink: #0F172A !important;
-  --muted: #64748B !important;
-  --teal: #0E7490 !important;
-  --teal-dark: #0C637A !important;
-  --teal-soft: #ECFEFF !important;
-  --sky: #F0F9FF !important;
-  --line: #CBD5E1 !important;
-  --surface: #FFFFFF !important;
-  --page: #F1F5F9 !important;
-  --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
-  --radius: 10px !important;
-  --radius-sm: 6px !important;
-  --radius-lg: 14px !important;
-}
 
 body {
   background: var(--page) !important;
@@ -331,7 +314,7 @@ input:focus, textarea:focus, select:focus,
 }
 .promo-banners .promo-dots {
   position: absolute;
-  left: 50%;
+  inset-inline-start: 50%;
   bottom: 0.75rem;
   transform: translateX(-50%);
   z-index: 5;
@@ -374,8 +357,8 @@ input:focus, textarea:focus, select:focus,
   background: rgba(8, 145, 178, 0.8);
   border-color: #67E8F9;
 }
-.promo-nav-prev { right: 10px; }
-.promo-nav-next { left: 10px; }
+.promo-nav-prev { inset-inline-end: 10px; }
+.promo-nav-next { inset-inline-start: 10px; }
 
 .listings-section .listings-search {
   width: 100%;
@@ -400,7 +383,7 @@ input:focus, textarea:focus, select:focus,
   content: "";
   position: absolute;
   top: -30%;
-  left: -10%;
+  inset-inline-start: -10%;
   width: 260px;
   height: 260px;
   border-radius: 50%;
@@ -470,9 +453,9 @@ input:focus, textarea:focus, select:focus,
   .mobile-bottom-nav {
     position: fixed;
     z-index: 1000;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
-    left: 0;
+    inset-inline-start: 0;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 2px;
@@ -516,8 +499,8 @@ input:focus, textarea:focus, select:focus,
 .pwa-install-copy { flex: 1; min-width: 0; } .pwa-install-copy strong { display: block; color: #0F172A; font-size: .88rem; } .pwa-install-copy p { margin: 3px 0 0; color: #64748B; font-size: .73rem; line-height: 1.6; }
 .pwa-install-action { min-height: 42px; padding-inline: 14px; }
 .pwa-install-close, .pwa-help-close { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 0; border-radius: 10px; background: #F1F5F9; color: #475569; font-size: 23px; }
-.pwa-install-help { width: min(92vw,420px); padding: 25px; border: 1px solid #E2E8F0; border-radius: 22px; color: #0F172A; text-align: right; box-shadow: 0 24px 70px rgba(15,23,42,.25); }
-.pwa-install-help::backdrop { background: rgba(15,23,42,.52); backdrop-filter: blur(3px); } .pwa-install-help .pwa-help-close { float: left; } .pwa-install-help .pwa-install-icon { margin: 8px 0 14px; } .pwa-install-help h2 { margin: 0 0 12px; font-size: 1.2rem; } .pwa-install-help p { color: #475569; font-size: .9rem; line-height: 1.9; } .pwa-install-help .pwa-help-done { width: 100%; margin-top: 5px; }
+.pwa-install-help { width: min(92vw,420px); padding: 25px; border: 1px solid #E2E8F0; border-radius: 22px; color: #0F172A; text-align: end; box-shadow: 0 24px 70px rgba(15,23,42,.25); }
+.pwa-install-help::backdrop { background: rgba(15,23,42,.52); backdrop-filter: blur(3px); } .pwa-install-help .pwa-help-close { float: inline-start; } .pwa-install-help .pwa-install-icon { margin: 8px 0 14px; } .pwa-install-help h2 { margin: 0 0 12px; font-size: 1.2rem; } .pwa-install-help p { color: #475569; font-size: .9rem; line-height: 1.9; } .pwa-install-help .pwa-help-done { width: 100%; margin-top: 5px; }
 @media (max-width: 760px) {
   html { scroll-padding-top: 18px; } .announcement { padding: 5px 12px; text-align: center; line-height: 1.5; }
   .site-header { width: calc(100% - 24px); height: 64px; gap: 6px; } .brand { gap: 7px; } .brand-mark { width: 35px; height: 35px; border-radius: 11px; font-size: 20px; } .brand-copy strong { font-size: 15px; } .brand-copy small { max-width: 125px; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
@@ -602,7 +585,7 @@ input:focus, textarea:focus, select:focus,
 .mobile-nav-more > summary::-webkit-details-marker { display: none; }
 .mobile-nav-menu {
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   bottom: calc(100% + 12px);
   width: min(270px, calc(100vw - 24px));
   padding: 8px;
@@ -672,7 +655,7 @@ input:focus, textarea:focus, select:focus,
   body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
   .help-card-grid { grid-template-columns: 1fr; }
   .policy-toc { grid-template-columns: 1fr 1fr; }
-  .mobile-nav-menu { right: auto; left: 0; }
+  .mobile-nav-menu { inset-inline-end: auto; inset-inline-start: 0; }
 }
 
 @media (max-width: 760px) {
@@ -801,8 +784,8 @@ input:focus, textarea:focus, select:focus,
 .home-intro-float strong, .home-intro-float small { display: block; white-space: nowrap; }
 .home-intro-float strong { color: #0F172A; font-size: 10px; }
 .home-intro-float small { margin-top: 3px; color: #64748B; font-size: 9px; }
-.home-intro-float-top { top: 20px; right: -2px; }
-.home-intro-float-bottom { bottom: 20px; left: -2px; }
+.home-intro-float-top { top: 20px; inset-inline-end: -2px; }
+.home-intro-float-bottom { bottom: 20px; inset-inline-start: -2px; }
 .home-intro-float-bottom > span { background: #D1FAE5; color: #047857; }
 .market-location-bar { width: min(1100px, calc(100% - 48px)); margin: 22px auto 0; }
 .home-intro + .market-location-bar { margin-top: 18px; }
@@ -838,8 +821,8 @@ input:focus, textarea:focus, select:focus,
   .home-intro-product-tags i { width: 20px; height: 5px; }
   .home-intro-float { padding: 7px 9px; gap: 6px; }
   .home-intro-float > span { width: 28px; height: 28px; font-size: 17px; }
-  .home-intro-float-top { top: 5px; right: 0; }
-  .home-intro-float-bottom { bottom: 5px; left: 0; }
+  .home-intro-float-top { top: 5px; inset-inline-end: 0; }
+  .home-intro-float-bottom { bottom: 5px; inset-inline-start: 0; }
   .market-location-bar { width: calc(100% - 24px); margin-top: 14px; }
   .listings-section { width: calc(100% - 24px) !important; margin-top: 36px !important; }
   .listings-section .section-heading { align-items: flex-start; }
@@ -904,8 +887,8 @@ input:focus, textarea:focus, select:focus,
     width: 100%;
   }
   .mobile-nav-menu {
-    right: 0;
-    left: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
     width: min(280px, calc(100vw - 20px));
     bottom: calc(100% + 10px);
   }
@@ -1192,9 +1175,9 @@ input:focus, select:focus, textarea:focus,
 .mobile-bottom-nav {
   position: fixed !important;
   z-index: 1000 !important;
-  right: 0 !important;
+  inset-inline-end: 0 !important;
   bottom: 0 !important;
-  left: 0 !important;
+  inset-inline-start: 0 !important;
   width: 100% !important;
   max-width: none !important;
   display: grid !important;
@@ -1252,8 +1235,8 @@ input:focus, select:focus, textarea:focus,
 .mobile-nav-more > summary { width: 100%; }
 .mobile-nav-menu {
   bottom: calc(100% + 12px) !important;
-  right: 0 !important;
-  left: auto !important;
+  inset-inline-end: 0 !important;
+  inset-inline-start: auto !important;
   width: min(290px, calc(100vw - 24px)) !important;
   max-height: min(65vh, 440px);
   overflow-y: auto;
@@ -1334,8 +1317,8 @@ body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
 .mobile-bottom-nav {
   position: fixed !important;
   top: auto !important;
-  left: 0 !important;
-  right: 0 !important;
+  inset-inline-start: 0 !important;
+  inset-inline-end: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
   max-width: 100vw !important;
@@ -1347,7 +1330,7 @@ body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
 }
 @media (max-width: 760px) {
   .mobile-bottom-nav {
-    padding-inline: max(8px, env(safe-area-inset-left, 0px)) !important;
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px)) !important;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
   }
   body:not(.inner-page) {

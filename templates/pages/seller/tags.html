@@ -3,7 +3,7 @@
 {% block head %}
 <style>
 .tag-hero{position:relative;overflow:hidden;margin-bottom:22px;padding:clamp(24px,4vw,42px);border-radius:26px;background:radial-gradient(circle at 10% 15%,#2aa69d55,transparent 35%),linear-gradient(125deg,#103c4b,#087f8c 68%,#149f9b);color:#fff}
-.tag-hero:after{content:"🏷️";position:absolute;left:clamp(18px,5vw,58px);bottom:-18px;font-size:clamp(100px,16vw,180px);opacity:.13;transform:rotate(-18deg)}
+.tag-hero:after{content:"🏷️";position:absolute;inset-inline-start:clamp(18px,5vw,58px);bottom:-18px;font-size:clamp(100px,16vw,180px);opacity:.13;transform:rotate(-18deg)}
 .tag-hero h1{max-width:700px;margin:12px 0;font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.45}
 .tag-hero p{max-width:690px;color:#e1fbf7;line-height:2}
 .tag-free-note{display:flex;gap:12px;align-items:flex-start;margin:18px 0;padding:16px;border:1px solid #b8e8d8;border-radius:17px;background:#effcf6;color:#245b4e;line-height:1.9}
@@ -15,7 +15,7 @@
 .tag-product-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:17px;background:#eff8f5;font-size:30px}
 .tag-product-price{color:#073b4c;font-size:1.45rem;font-weight:900}
 .tag-product-price small{color:#6c8384;font-size:.8rem;font-weight:500}
-.tag-product-card ul{padding-right:20px;margin:0;color:#4d6869;line-height:2;font-size:12px}
+.tag-product-card ul{padding-inline-end:20px;margin:0;color:#4d6869;line-height:2;font-size:12px}
 .tag-select{display:grid;gap:7px;color:#496669;font-size:13px}
 .tag-select select{width:100%;min-height:45px;padding:10px;border:1px solid #dce9e7;border-radius:12px;background:#fbfdfc;color:#24484b;font:inherit}
 .tag-buy-status{min-height:24px;color:#087f8c;line-height:1.9}
