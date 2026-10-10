@@ -86,6 +86,20 @@
     </article>
   </section>
 
+  <section class="page-panel" id="sellerPerformancePanel" style="margin-bottom:20px;border-radius:18px;padding:20px">
+    <div class="seller-panel-heading">
+      <span class="seller-panel-icon" aria-hidden="true">📈</span>
+      <div><h2>عملکرد ویترین</h2><p>آمار ثبت‌شده برای کالاهای متعلق به حساب شما</p></div>
+    </div>
+    <div class="seller-metrics" style="margin-bottom:12px">
+      <article class="seller-metric"><div class="seller-metric-copy"><small>بازدید ثبت‌شده</small><strong id="sellerViewsStat">—</strong></div></article>
+      <article class="seller-metric"><div class="seller-metric-copy"><small>فروش ثبت‌شده</small><strong id="sellerSalesStat">—</strong></div></article>
+      <article class="seller-metric"><div class="seller-metric-copy"><small>کالاهای فعال در آمار</small><strong id="sellerListingsStat">—</strong></div></article>
+    </div>
+    <div style="position:relative;height:220px;max-width:720px"><canvas id="sellerStatsChart" role="img" aria-label="نمودار بازدید، فروش و تعداد کالا"></canvas></div>
+    <p id="sellerStatsNote" class="muted-copy" role="status">در حال دریافت آمار…</p>
+  </section>
+
   <nav class="seller-quick-links" aria-label="دسترسی سریع">
     <a class="seller-quick-link primary" href="#addProductPanel">＋ ثبت کالای جدید</a>
     <a class="seller-quick-link" href="#pageListings">▦ مدیریت کالاها</a>
@@ -167,5 +181,31 @@
 {% endblock %}
 {% block scripts %}
 <script>window.KIDAREH_PAGE={type:"seller"};</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const note = document.getElementById("sellerStatsNote");
+  try {
+    const response = await fetch("/api/seller/stats", {credentials:"same-origin", headers:{Accept:"application/json"}, cache:"no-store"});
+    if (!response.ok) throw new Error("stats_unavailable");
+    const stats = await response.json();
+    document.getElementById("sellerViewsStat").textContent = Number(stats.views || 0).toLocaleString("fa-IR");
+    document.getElementById("sellerSalesStat").textContent = Number(stats.sales || 0).toLocaleString("fa-IR");
+    document.getElementById("sellerListingsStat").textContent = Number(stats.listing_count || 0).toLocaleString("fa-IR");
+    if (window.Chart) {
+      new Chart(document.getElementById("sellerStatsChart"), {
+        type:"bar",
+        data:{labels:["بازدید","فروش","تعداد کالا"],datasets:[{label:"آمار",data:[stats.views || 0,stats.sales || 0,stats.listing_count || 0],backgroundColor:["#0891B2","#0D9488","#64748B"],borderRadius:8,maxBarThickness:54}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+      });
+      note.textContent = "آمار از داده‌های موجود در پایگاه داده محاسبه شده است.";
+    } else {
+      note.textContent = "آمار بالا در دسترس است؛ برای نمایش نمودار اتصال کتابخانه نمودار لازم است.";
+    }
+  } catch (_) {
+    note.textContent = "برای مشاهده آمار، وارد حساب فروشنده شوید و اتصال اینترنت را بررسی کنید.";
+  }
+});
+</script>
 <script src="{{ url_for('static', filename='js/seller.js') }}" defer></script>
 {% endblock %}
