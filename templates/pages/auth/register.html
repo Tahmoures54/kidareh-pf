@@ -135,7 +135,13 @@
           <label class="auth-label" for="regName">نام و نام خانوادگی</label>
           <input class="auth-input" type="text" id="regName" name="name" maxlength="80" required placeholder="مثلاً علی رضایی" autocomplete="name">
 
-          <div id="sellerDetails" hidden>
+          <div id="buyerDetails" hidden>
+            <label class="auth-label" for="buyerCity">شهر محل سکونت</label>
+            <input class="auth-input" type="text" id="buyerCity" name="city" maxlength="60" placeholder="نام شهر را جست‌وجو کنید" list="registerCityOptions" data-iran-location required autocomplete="off">
+            <p class="auth-hint">برای نمایش بازار و پیشنهادهای شهر شما؛ مکان‌یابی خودکار انجام نمی‌شود.</p>
+          </div>
+
+          <div id="sellerDetails" hidden
             <div class="auth-divider"><span>اطلاعات ویترین فروشگاه</span></div>
 
             <label class="auth-label" for="storeName">نام فروشگاه / ویترین</label>
@@ -144,7 +150,7 @@
             <div class="auth-field-row">
               <div>
                 <label class="auth-label" for="storeCity">شهر</label>
-                <input class="auth-input" type="text" id="storeCity" name="store_city" maxlength="60" placeholder="تهران">
+                <input class="auth-input" type="text" id="storeCity" name="store_city" maxlength="60" placeholder="نام شهر را جست‌وجو کنید" list="registerCityOptions" data-iran-location autocomplete="off">
               </div>
               <div>
                 <label class="auth-label" for="storeCategory">صنف فروشگاه</label>
@@ -170,6 +176,7 @@
             </label>
           </div>
 
+          <datalist id="registerCityOptions"></datalist>
           <button class="button button-primary auth-submit" type="submit">تکمیل ثبت‌نام</button>
         </div>
 
