@@ -180,6 +180,9 @@ input:focus, textarea:focus, select:focus,
    Promo banners — compact, centered, action-first
    ========================================================= */
 .promo-banners.hero {
+  display: block;
+  grid-template-columns: none;
+  align-items: stretch;
   width: min(1100px, calc(100% - 24px));
   margin: 16px auto 0;
   padding: 0;
@@ -194,7 +197,8 @@ input:focus, textarea:focus, select:focus,
 .promo-banners .promo-track {
   position: relative;
   width: 100%;
-  min-height: clamp(220px, 32vw, 300px);
+  height: clamp(290px, 30vw, 340px);
+  min-height: 0;
 }
 .promo-banner-slide {
   position: absolute;
@@ -202,7 +206,7 @@ input:focus, textarea:focus, select:focus,
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1.25rem 2.5rem;
+  padding: 1.5rem 3.5rem 2.5rem;
   opacity: 0;
   transform: translateX(10%);
   transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -406,7 +410,8 @@ input:focus, textarea:focus, select:focus,
 
 @media (max-width: 560px) {
   .promo-banners.hero { width: calc(100% - 16px); }
-  .promo-banner-slide { padding: 1.35rem 1rem 2.5rem; }
+  .promo-banners .promo-track { height: 370px; }
+  .promo-banner-slide { padding: 1.35rem 2.6rem 2.5rem; }
   .promo-nav { width: 34px; height: 34px; font-size: 1.1rem; }
   .promo-cta-row { flex-direction: column; align-items: stretch; }
   .promo-cta-main, .promo-cta-ghost { min-width: 0; width: 100%; }
