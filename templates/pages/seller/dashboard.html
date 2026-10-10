@@ -1,13 +1,93 @@
 {% extends "base.html" %}
 {% block title %}مدیریت ویترین من | کی‌داره{% endblock %}
 {% block content %}
-<section class="page-heading"><span class="section-kicker">ویترین کسب‌وکار شما</span><h1>فروشگاهت را بچین</h1><p>اطلاعات فروشگاه و کالاهایت را یک‌جا مدیریت کن؛ خریدارها بدون ثبت‌نام می‌توانند ویترینت را ببینند.</p></section>
-<section class="seller-dashboard-grid"><div class="page-panel"><h2>وضعیت ویترین</h2><div id="sellerStatus" class="status-panel">در حال بررسی حساب…</div>
-<form id="storeCreateForm" class="stack-form" hidden><label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label><label>شهر<input name="city" required maxlength="60" placeholder="شهر فعالیت"></label><label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500" placeholder="چه چیزهایی ارائه می‌کنی؟"></textarea></label><button class="button button-primary" type="submit">ساخت ویترین</button></form>
-<form id="storeEditForm" class="stack-form" hidden><h3>ویرایش اطلاعات ویترین</h3><label>نام فروشگاه<input name="name" required maxlength="80"></label><label>شهر<input name="city" required maxlength="60"></label><label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500"></textarea></label><label>نشانی حضوری<input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…"></label><label>عرض جغرافیایی (latitude)<input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892"></label><label>طول جغرافیایی (longitude)<input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890"></label><p class="muted-copy">مختصات را از نشان یا گوگل مپ کپی کنید تا دکمهٔ مسیریابی برای مشتری فعال شود. خالی بگذارید اگر نمی‌خواهید.</p><button class="button button-primary" type="submit">ذخیره تغییرات</button></form></div>
-<div class="page-panel"><h2>افزودن محصول</h2><p class="muted-copy">محصول جدید را ثبت کن تا در ویترینت نمایش داده شود.</p><a class="button button-primary" href="/?open=add-product">رفتن به فرم ثبت کالا</a></div></section>
-<section class="page-panel tag-selling-prompt" style="margin-bottom:20px"><span class="tag-prompt-icon">🏷️</span><div><h2>تگ اختصاصی برای هر کالا</h2><p>انتشار کالا رایگان است. برای جلب توجه بیشتر می‌توانی تگ «حراج»، «فروش ویژه» یا «تخفیف‌دار» را جداگانه برای هر کالا بخری.</p><a href="/seller/tags">انتخاب کالا و خرید تگ ←</a></div></section><section class="page-panel" style="margin-bottom:20px"><h2>درآمد و تبلیغات ویترین</h2><p class="muted-copy">تیک آبی زمان‌دار، اولویت نمایش کالاها و جایگاه‌های معرفی محلی را متناسب با نیازت انتخاب کن.</p><a class="button button-primary" href="/monetization">مشاهده بسته‌ها و خرید تبلیغات</a></section>
-<section class="seller-promotion page-panel"><span class="seller-promotion-icon">↗</span><div><h2>مشتری‌ها را از واتساپ به ویترینت بیاور</h2><p>پیوند ویترین را در قسمت «درباره» یا پروفایل کسب‌وکار واتساپ و نیز وضعیت واتساپ و استوری‌ها قرار بده. برای هر کالا هم می‌توانی پیوند جداگانه بفرستی؛ مشتری مستقیم وارد کی‌داره می‌شود و بقیه کالاهایت را هم می‌بیند.</p><div class="seller-share-actions"><button id="shareMyStore" class="button button-primary" type="button" hidden>↗ اشتراک‌گذاری ویترین من</button><button id="copyStorePromo" class="button button-outline" type="button" data-copy-share-text="" hidden>کپی متن آماده معرفی</button></div></div></section>
-<section class="page-panel"><div class="page-results-head"><h2>محصولات ویترین من</h2><span id="pageResultsCount"></span></div><p class="muted-copy">می‌توانی اطلاعات هر کالا را اصلاح کنی یا کالایی را که دیگر موجود نیست حذف کنی.</p><div id="pageListings" class="page-card-grid"></div></section>
+<section class="page-heading">
+  <span class="section-kicker">ویترین کسب‌وکار شما</span>
+  <h1>فروشگاهت را بچین</h1>
+  <p>اطلاعات فروشگاه و کالاهایت را یک‌جا مدیریت کن؛ خریدارها بدون ثبت‌نام می‌توانند ویترینت را ببینند.</p>
+</section>
+
+<section class="seller-dashboard-grid">
+  <div class="page-panel">
+    <h2>وضعیت ویترین</h2>
+    <div id="sellerStatus" class="status-panel">در حال بررسی حساب…</div>
+    <form id="storeCreateForm" class="stack-form" hidden>
+      <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
+      <label>شهر<input name="city" required maxlength="60" placeholder="شهر فعالیت"></label>
+      <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500" placeholder="چه چیزهایی ارائه می‌کنی؟"></textarea></label>
+      <button class="button button-primary" type="submit">ساخت ویترین</button>
+    </form>
+    <form id="storeEditForm" class="stack-form" hidden>
+      <h3>ویرایش اطلاعات ویترین</h3>
+      <label>نام فروشگاه<input name="name" required maxlength="80"></label>
+      <label>شهر<input name="city" required maxlength="60"></label>
+      <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500"></textarea></label>
+      <label>نشانی حضوری<input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…"></label>
+      <label>عرض جغرافیایی (latitude)<input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892"></label>
+      <label>طول جغرافیایی (longitude)<input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890"></label>
+      <p class="muted-copy">مختصات را از نشان یا گوگل مپ کپی کنید تا دکمهٔ مسیریابی برای مشتری فعال شود.</p>
+      <button class="button button-primary" type="submit">ذخیره تغییرات</button>
+    </form>
+  </div>
+
+  <div class="page-panel" id="addProductPanel">
+    <h2>افزودن محصول</h2>
+    <p class="muted-copy">کالای جدید را همین‌جا ثبت کن تا در ویترینت نمایش داده شود.</p>
+    <form id="sellerProductForm" class="stack-form" enctype="multipart/form-data">
+      <label>عنوان کالا<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
+      <label>دسته‌بندی
+        <select name="category" required>
+          <option value="">انتخاب کنید</option>
+          {% for category in categories %}
+          <option value="{{ category.id }}">{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تهران"></label>
+      <label>قیمت (تومان)<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
+      <label>شماره تماس روی آگهی (اختیاری)<input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789"></label>
+      <label>توضیحات<textarea name="description" rows="3" maxlength="1000" placeholder="جزئیات مهم کالا"></textarea></label>
+      <label>عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      <button class="button button-primary" type="submit">ثبت کالا در ویترین</button>
+      <p class="form-note" id="sellerProductFeedback" role="status"></p>
+    </form>
+  </div>
+</section>
+
+<section class="page-panel tag-selling-prompt" style="margin-bottom:20px">
+  <span class="tag-prompt-icon">🏷️</span>
+  <div>
+    <h2>تگ اختصاصی برای هر کالا</h2>
+    <p>انتشار کالا رایگان است. برای جلب توجه بیشتر می‌توانی تگ «حراج»، «فروش ویژه» یا «تخفیف‌دار» را جداگانه برای هر کالا بخری.</p>
+    <a href="/seller/tags">انتخاب کالا و خرید تگ ←</a>
+  </div>
+</section>
+
+<section class="page-panel" style="margin-bottom:20px">
+  <h2>درآمد و تبلیغات ویترین</h2>
+  <p class="muted-copy">تیک آبی زمان‌دار، اولویت نمایش کالاها و جایگاه‌های معرفی محلی را متناسب با نیازت انتخاب کن.</p>
+  <a class="button button-primary" href="/monetization">مشاهده بسته‌ها و خرید تبلیغات</a>
+</section>
+
+<section class="seller-promotion page-panel">
+  <span class="seller-promotion-icon">↗</span>
+  <div>
+    <h2>مشتری‌ها را از واتساپ به ویترینت بیاور</h2>
+    <p>پیوند ویترین را در پروفایل و استوری واتساپ قرار بده. برای هر کالا هم می‌توانی پیوند جداگانه بفرستی.</p>
+    <div class="seller-share-actions">
+      <button id="shareMyStore" class="button button-primary" type="button" hidden>↗ اشتراک‌گذاری ویترین من</button>
+      <button id="copyStorePromo" class="button button-outline" type="button" data-copy-share-text="" hidden>کپی متن آماده معرفی</button>
+    </div>
+  </div>
+</section>
+
+<section class="page-panel">
+  <div class="page-results-head">
+    <h2>محصولات ویترین من</h2>
+    <span id="pageResultsCount"></span>
+  </div>
+  <p class="muted-copy">می‌توانی اطلاعات هر کالا را اصلاح کنی یا کالایی را که دیگر موجود نیست حذف کنی.</p>
+  <div id="pageListings" class="page-card-grid"></div>
+</section>
 {% endblock %}
 {% block scripts %}<script>window.KIDAREH_PAGE={type:"seller"};</script>{% endblock %}
