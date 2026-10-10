@@ -97,7 +97,7 @@ def test_pwa_shell_assets_and_offline_fallback_are_available(client):
         assert response.status_code == 200, path
 
     worker = client.get("/static/sw.js").get_data(as_text=True)
-    assert "kidareh-shell-v3" in worker
+    assert "kidareh-shell-v4" in worker
     assert "/static/offline.html" in worker
     assert "isPrivatePath" in worker
 
@@ -116,7 +116,7 @@ def test_service_worker_is_available_at_root_scope(client):
     response = client.get("/sw.js")
     assert response.status_code == 200
     assert response.headers.get("Service-Worker-Allowed") == "/"
-    assert "kidareh-shell-v3" in response.get_data(as_text=True)
+    assert "kidareh-shell-v4" in response.get_data(as_text=True)
 
 
 def test_profile_page_has_editable_profile_controls(client):

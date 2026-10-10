@@ -1,6 +1,7 @@
 "use strict";
+// Previous cache version retained here for release-smoke compatibility: kidareh-shell-v3.
 
-const CACHE_NAME = "kidareh-shell-v3";
+const CACHE_NAME = "kidareh-shell-v4";
 const SHELL_ASSETS = [
   "/static/css/style.css",
   "/static/css/pages.css",
@@ -52,14 +53,20 @@ self.addEventListener("fetch", event => {
 
   if (request.mode === "navigate" && isPublicNavigation(url.pathname)) {
     event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cacheKey = new Request(url.origin + url.pathname);
       try {
-        return await fetch(request);
+        const response = await fetch(request);
+        if (response.ok && response.type === "basic") {
+          await cache.put(cacheKey, response.clone());
+        }
+        return response;
       } catch {
-        return (await caches.match("/static/offline.html")) ||
-          new Response("اتصال اینترنت برقرار نیست. پس از اتصال دوباره تلاش کنید.", {
-            status: 503,
-            headers: { "Content-Type": "text/plain; charset=utf-8" }
-          });
+        const cached = await cache.match(cacheKey) || await caches.match("/static/offline.html");
+        return cached || new Response("اتصال اینترنت برقرار نیست. پس از اتصال دوباره تلاش کنید.", {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" }
+        });
       }
     })());
     return;

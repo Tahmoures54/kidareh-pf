@@ -61,6 +61,17 @@ def ensure_tables():
         )""")
         db.execute("CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status, updated_at DESC)")
         db.execute("CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON support_messages(ticket_id, id)")
+        db.execute("""CREATE TABLE IF NOT EXISTS in_app_notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            kind TEXT NOT NULL,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL DEFAULT '',
+            target_url TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            read_at TEXT NOT NULL DEFAULT ''
+        )""")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON in_app_notifications(user_id, read_at, id DESC)")
 
 
 def ensure_admin_schema(db):
@@ -148,12 +159,15 @@ def send_conversation_message(conversation_id):
     body = payload.get("body")
     if not isinstance(body, str) or not body.strip() or len(body.strip()) > 2000:
         return jsonify({"error": "invalid_message", "message": "پیام باید بین ۱ تا ۲۰۰۰ نویسه باشد."}), 400
+    ensure_tables()
     with get_connection() as db:
         thread = db.execute("SELECT * FROM conversations WHERE id=? AND (buyer_id=? OR seller_id=?)", (conversation_id, user["id"], user["id"])).fetchone()
         if not thread:
             return jsonify({"error": "conversation_not_found"}), 404
         cursor = db.execute("INSERT INTO conversation_messages(conversation_id,sender_id,body) VALUES(?,?,?)", (conversation_id, user["id"], body.strip()))
         db.execute("UPDATE conversations SET updated_at=CURRENT_TIMESTAMP WHERE id=?", (conversation_id,))
+        recipient_id = thread["seller_id"] if user["id"] == thread["buyer_id"] else thread["buyer_id"]
+        create_notification(db, recipient_id, "new_message", "پیام جدید", body.strip()[:140], "/messages")
         row = db.execute("SELECT id,sender_id,body,created_at,read_at FROM conversation_messages WHERE id=?", (cursor.lastrowid,)).fetchone()
     return jsonify({"item": dict(row)}), 201
 
@@ -222,6 +236,7 @@ def support_reply(ticket_id):
     body = payload.get("body")
     if not isinstance(body, str) or not 1 <= len(body.strip()) <= 4000:
         return jsonify({"error": "invalid_message", "message": "پاسخ باید حداکثر ۴۰۰۰ نویسه باشد."}), 400
+    ensure_tables()
     with get_connection() as db:
         ticket = db.execute("SELECT * FROM support_tickets WHERE id=?", (ticket_id,)).fetchone()
         if not ticket:
@@ -234,6 +249,8 @@ def support_reply(ticket_id):
         db.execute("INSERT INTO support_messages(ticket_id,sender_id,body,is_admin_reply) VALUES(?,?,?,?)", (ticket_id, user["id"], body.strip(), int(admin)))
         new_status = "answered" if admin else "open"
         db.execute("UPDATE support_tickets SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", (new_status, ticket_id))
+        if admin:
+            create_notification(db, ticket["user_id"], "support_reply", "پاسخ جدید پشتیبانی", body.strip()[:140], "/support")
     return jsonify({"ok": True}), 201
 
 
@@ -333,3 +350,69 @@ def admin_page():
         import uuid
         session["csrf_token"] = uuid.uuid4().hex
     return render_template("pages/admin/dashboard.html", csrf_token=session["csrf_token"])
+
+
+def create_notification(db, user_id, kind, title, body="", target_url=""):
+    """Persist a small user-scoped notification in the current transaction."""
+    if not user_id:
+        return
+    db.execute(
+        "INSERT INTO in_app_notifications(user_id,kind,title,body,target_url) VALUES(?,?,?,?,?)",
+        (int(user_id), str(kind)[:40], str(title)[:160], str(body)[:500], str(target_url)[:300]),
+    )
+
+
+@bp.get("/api/notifications")
+def list_notifications():
+    user, error = require_user()
+    if error:
+        return error
+    ensure_tables()
+    limit = min(50, max(1, request.args.get("limit", default=20, type=int) or 20))
+    with get_connection() as db:
+        rows = db.execute(
+            "SELECT id,kind,title,body,target_url,created_at,read_at FROM in_app_notifications WHERE user_id=? ORDER BY id DESC LIMIT ?",
+            (user["id"], limit),
+        ).fetchall()
+        unread = db.execute("SELECT COUNT(*) FROM in_app_notifications WHERE user_id=? AND read_at=''", (user["id"],)).fetchone()[0]
+    return jsonify({"items": [dict(row) for row in rows], "unread_count": unread})
+
+
+@bp.post("/api/notifications/<int:notification_id>/read")
+def mark_notification_read(notification_id):
+    user, error = require_user()
+    if error:
+        return error
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed"}), 400
+    ensure_tables()
+    with get_connection() as db:
+        db.execute("UPDATE in_app_notifications SET read_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=? AND read_at=''", (notification_id, user["id"]))
+    return jsonify({"ok": True})
+
+
+@bp.get("/api/seller/stats")
+def seller_stats():
+    user, error = require_user()
+    if error:
+        return error
+    ensure_tables()
+    with get_connection() as db:
+        listings = db.execute("SELECT id,title FROM listings WHERE owner_id=? OR store_id IN (SELECT id FROM stores WHERE owner_id=?) ORDER BY id DESC", (user["id"], user["id"])).fetchall()
+        ids = [row["id"] for row in listings]
+        views = 0
+        sales = 0
+        tables = {row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if "listing_views" in tables and ids:
+            cols = {row["name"] for row in db.execute("PRAGMA table_info(listing_views)")}
+            listing_col = "listing_id" if "listing_id" in cols else None
+            if listing_col:
+                marks = ",".join("?" for _ in ids)
+                views = db.execute(f"SELECT COUNT(*) FROM listing_views WHERE {listing_col} IN ({marks})", ids).fetchone()[0]
+        if "orders" in tables and ids:
+            cols = {row["name"] for row in db.execute("PRAGMA table_info(orders)")}
+            if "listing_id" in cols:
+                marks = ",".join("?" for _ in ids)
+                sales = db.execute(f"SELECT COUNT(*) FROM orders WHERE listing_id IN ({marks})", ids).fetchone()[0]
+        daily = [{"label": "کالاها", "value": len(listings)}, {"label": "بازدید", "value": int(views)}, {"label": "فروش", "value": int(sales)}]
+    return jsonify({"listing_count": len(listings), "views": int(views), "sales": int(sales), "chart": daily})

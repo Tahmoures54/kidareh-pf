@@ -180,6 +180,7 @@ def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
     city = request.args.get("city", "").strip()[:100]
+    province = request.args.get("province", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
     near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
     radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
     use_nearby = near_lat is not None and near_lon is not None and -90 <= near_lat <= 90 and -180 <= near_lon <= 180
@@ -211,6 +212,22 @@ def listings():
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
+    if province and province not in {"all", "همه استان‌ها"}:
+        province_row = next((item for item in IRAN_LOCATIONS.get("provinces", [])
+                             if item.get("name", "").replace("ي", "ی").replace("ك", "ک") == province), None)
+        if province_row:
+            province_city_names = [
+                item["name"] for item in IRAN_LOCATIONS.get("cities", [])
+                if item.get("province_id") == province_row.get("id")
+            ]
+            if province_city_names:
+                placeholders = ",".join("?" for _ in province_city_names)
+                sql += " AND city IN (" + placeholders + ")"
+                parameters.extend(province_city_names)
+            else:
+                sql += " AND 1=0"
+        else:
+            sql += " AND 1=0"
     if use_nearby:
         sql += " AND latitude IS NOT NULL AND longitude IS NOT NULL"
         delta_lat = radius_km / 111.0
@@ -255,6 +272,17 @@ def listings():
                 if city and city != "همه شهرها":
                     fallback_sql += " AND city = ?"
                     fallback_params.append(city)
+                if province and province not in {"all", "همه استان‌ها"}:
+                    province_row = next((item for item in IRAN_LOCATIONS.get("provinces", [])
+                                         if item.get("name", "").replace("ي", "ی").replace("ك", "ک") == province), None)
+                    province_city_names = [item["name"] for item in IRAN_LOCATIONS.get("cities", [])
+                                           if province_row and item.get("province_id") == province_row.get("id")]
+                    if province_city_names:
+                        placeholders = ",".join("?" for _ in province_city_names)
+                        fallback_sql += " AND city IN (" + placeholders + ")"
+                        fallback_params.extend(province_city_names)
+                    else:
+                        fallback_sql += " AND 1=0"
                 fallback_sql += " ORDER BY featured DESC, id DESC LIMIT ?"
                 fallback_params.append(fetch_limit)
                 rows = connection.execute(fallback_sql, fallback_params).fetchall()
