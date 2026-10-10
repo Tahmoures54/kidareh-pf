@@ -710,8 +710,6 @@ def _create_pending_blue_tick_order(monkeypatch, tmp_path):
 
 
 def test_zibal_callback_rejects_missing_amount_or_order_id(monkeypatch, tmp_path):
-    import pytest
-
     cases = [
         {"result": 100, "orderId": "kidareh-1", "refNumber": "ref-1"},
         {"result": 100, "amount": 790000, "refNumber": "ref-1"},
@@ -721,7 +719,6 @@ def test_zibal_callback_rejects_missing_amount_or_order_id(monkeypatch, tmp_path
     for index, gateway_response in enumerate(cases):
         client, order_id, monetization = _create_pending_blue_tick_order(monkeypatch, tmp_path / str(index))
         gateway_response = dict(gateway_response)
-        gateway_response["orderId"] = gateway_response.get("orderId", f"kidareh-{order_id}")
         monkeypatch.setattr(monetization, "zibal_request", lambda _url, _payload, data=gateway_response: data)
 
         response = client.get(f"/monetization/callback?order_id={order_id}&trackId=123456789")
