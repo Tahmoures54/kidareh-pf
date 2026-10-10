@@ -147,6 +147,7 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
 
     # The default location lookup must never mix in villages or unrelated rural records.
     default_search = client.get("/api/locations?q=کارخانه").get_json()["items"]
+    assert default_search == []
     assert all(item["type"] == "city" for item in default_search)
     village_search = client.get("/api/locations?kind=village&q=تهران").get_json()["items"]
     assert all(item["type"] == "village" for item in village_search)
