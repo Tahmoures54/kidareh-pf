@@ -109,3 +109,11 @@ def test_home_and_inner_pages_include_mobile_navigation_and_install_script(clien
         assert 'class="mobile-bottom-nav"' in html, path
         assert 'id="installAppButton"' in html or path == "/login"
         assert 'static/js/pwa.js' in html, path
+
+
+
+def test_service_worker_is_available_at_root_scope(client):
+    response = client.get("/sw.js")
+    assert response.status_code == 200
+    assert response.headers.get("Service-Worker-Allowed") == "/"
+    assert "kidareh-shell-v3" in response.get_data(as_text=True)
