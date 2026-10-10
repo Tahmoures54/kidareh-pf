@@ -1,5 +1,4 @@
 """Versioned category, trade, and Iranian administrative-location catalogs."""
-import gzip
 import json
 from functools import lru_cache
 from pathlib import Path
@@ -69,16 +68,3 @@ for legacy_id, groups in LEGACY_CATEGORY_GROUPS.items():
         CATEGORY_GROUPS.setdefault(legacy_id, [])
         CATEGORY_GROUPS[legacy_id].extend(CATEGORY_GROUPS.get(group_id, []))
         CATEGORY_GROUPS.setdefault(group_id, []).append(legacy_id)
-
-
-VILLAGES_PATH = DATA_DIR / "iran-villages-data.json.gz"
-
-
-@lru_cache(maxsize=1)
-def get_villages():
-    """Load the full 99k+ village directory once per worker when packaged by CI."""
-    if not VILLAGES_PATH.is_file():
-        return []
-    with gzip.open(VILLAGES_PATH, "rt", encoding="utf-8") as source:
-        records = json.load(source)
-    return records if isinstance(records, list) else []
