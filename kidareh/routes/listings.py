@@ -101,8 +101,7 @@ def locations():
                     "county": counties.get(item["county_id"], ""),
                 })
         return jsonify({"items": candidates, "count": len(candidates),
-                        "source_year": IRAN_LOCATIONS["source_year"],
-                        "villages_available": bool(get_villages())})
+                        "source_year": IRAN_LOCATIONS["source_year"]})
     if kind in {"all", "city"}:
         for item in IRAN_LOCATIONS["cities"]:
             name = item["name"].replace("ي", "ی").replace("ك", "ک")
