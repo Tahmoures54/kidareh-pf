@@ -25,9 +25,16 @@
   let storeCache = [];
 
   const numberFormat = new Intl.NumberFormat("fa-IR");
-  const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;"
-  })[char]);
+  const escapeHTML = (value) => {
+    const map = {
+      "&": "&" + "amp;",
+      "<": "&" + "lt;",
+      ">": "&" + "gt;",
+      '"': "&" + "quot;",
+      "'": "&" + "#39;"
+    };
+    return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
+  };
 
   function showToast(message) {
     if (!toast) return;
