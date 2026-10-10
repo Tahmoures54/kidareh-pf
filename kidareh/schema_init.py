@@ -14,11 +14,13 @@ def initialize_feature_schemas() -> None:
     a feature module after their last migration.
     """
     # Import lazily to avoid route imports while the core module is being loaded.
+    from .services import rate_limits
     from .routes.auth import ensure_tables as initialize_auth
     from .routes.communications import ensure_tables as initialize_communications
     from .routes.moderation import ensure_tables as initialize_moderation
     from .routes.monetization import ensure_tables as initialize_monetization
 
+    rate_limits.ensure_tables()
     initialize_auth()
     initialize_communications()
     initialize_moderation()

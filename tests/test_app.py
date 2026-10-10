@@ -146,7 +146,8 @@ def test_create_listing_with_valid_png_upload(monkeypatch, tmp_path):
     assert response.status_code == 201
     item = response.get_json()["item"]
     assert item["image_path"].startswith("/static/uploads/")
-    saved_file = upload_folder / item["image_path"].rsplit("/", 1)[-1]
+    # Uploads are sharded into two-character directories at scale.
+    saved_file = upload_folder / item["image_path"].replace("/static/uploads/", "", 1)
     assert saved_file.read_bytes() == png
 
 

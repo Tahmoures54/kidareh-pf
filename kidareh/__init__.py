@@ -5,7 +5,13 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
-from .core import CATEGORIES, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
+from .core import (
+    CATEGORIES,
+    DATABASE_PATH,
+    MAX_IMAGE_BYTES,
+    UPLOAD_FOLDER,
+    close_request_connection,
+)
 from .data_catalog import CATEGORY_TREE, TRADE_GROUPS
 
 
@@ -80,6 +86,11 @@ def create_app(test_config=None):
         response.headers["Service-Worker-Allowed"] = "/"
         response.headers["Cache-Control"] = "no-cache"
         return response
+
+    @app.teardown_appcontext
+    def close_database(_error):
+        """Release the request-scoped SQLite connection, if one was opened."""
+        close_request_connection()
 
     @app.after_request
     def security_headers(response):

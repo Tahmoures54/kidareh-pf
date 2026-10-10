@@ -2,6 +2,7 @@
 import os
 from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, delete_uploaded_image, get_connection
+from ..services import rate_limits
 
 bp = Blueprint("moderation", __name__)
 
@@ -62,16 +63,15 @@ def create_report():
     if reason not in REPORT_REASONS or not isinstance(details, str) or len(details) > 500:
         return jsonify({"error": "invalid_report"}), 400
 
+    try:
+        rate_limits.enforce("report_create", user, limit=10, window_seconds=3600)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "تعداد گزارش‌های شما از سقف ساعتی گذشته است.")
+
     with get_connection() as db:
         table = "listings" if kind == "listing" else "stores"
         if not db.execute(f"SELECT id FROM {table} WHERE id=?", (target,)).fetchone():
             return jsonify({"error": "target_not_found"}), 404
-        recent = db.execute(
-            "SELECT COUNT(*) FROM content_reports WHERE reporter_id=? AND created_at>=datetime('now','-1 hour')",
-            (user["id"],),
-        ).fetchone()[0]
-        if recent >= 10:
-            return jsonify({"error": "report_limit"}), 429
         db.execute(
             "INSERT INTO content_reports(reporter_id,target_type,target_id,reason,details) VALUES(?,?,?,?,?)",
             (user["id"], kind, target, reason, details.strip()),
