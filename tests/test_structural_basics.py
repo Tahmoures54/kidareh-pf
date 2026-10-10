@@ -18,8 +18,13 @@ def make_app(tmp_path: Path):
     return app, database_path, upload_folder
 
 
-def test_health_endpoint_checks_database_and_upload_storage(tmp_path):
+def test_health_endpoint_checks_database_and_upload_storage(monkeypatch, tmp_path):
+    from kidareh.core import initialize_database
+
+    monkeypatch.setenv("KIDAREH_SEED_DEMO_DATA", "0")
     app, database_path, upload_folder = make_app(tmp_path)
+    with app.app_context():
+        initialize_database()
 
     response = app.test_client().get("/api/health")
 
@@ -109,3 +114,13 @@ def test_auth_mutation_requires_csrf_token(tmp_path):
 
     assert response.status_code == 400
     assert response.get_json()["error"] == "csrf_failed"
+
+
+def test_health_endpoint_rejects_an_uninitialized_database(tmp_path):
+    app, _, _ = make_app(tmp_path)
+
+    response = app.test_client().get("/api/health")
+
+    assert response.status_code == 503
+    assert response.get_json()["ok"] is False
+    assert response.get_json()["database"] == "schema_incomplete"
