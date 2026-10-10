@@ -16,6 +16,27 @@ CATEGORY_TREE = _load("categories.json")
 IRAN_LOCATIONS = _load("iran_locations.json")
 TRADE_GROUPS = _load("trades.json")
 
+
+def normalize_location_name(value):
+    """Normalize Persian/Arabic letter variants and whitespace for city matching."""
+    if not isinstance(value, str):
+        return ""
+    return " ".join(value.strip().replace("ي", "ی").replace("ك", "ک").split())
+
+
+# Only entries in the administrative cities catalog are valid city selections.
+# Villages are intentionally excluded and are searchable only via kind=village.
+CITY_NAMES = {
+    normalize_location_name(item.get("name", ""))
+    for item in IRAN_LOCATIONS.get("cities", [])
+    if item.get("name")
+}
+
+
+def is_city_name(value):
+    """Return whether a value matches a city in the canonical Iranian directory."""
+    return normalize_location_name(value) in CITY_NAMES
+
 CATEGORIES = [
     {"id": group["id"], "name": group["group"], "icon": group.get("icon", "▦"),
      "description": group.get("description", ""), "types": group.get("types", [])}
