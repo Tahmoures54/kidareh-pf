@@ -12,7 +12,7 @@ def test_dedicated_marketplace_pages_render(monkeypatch, tmp_path):
     cases = [
         ("/search", "جست‌وجوی کالا"),
         ("/stores", "ویترین فروشگاه‌ها"),
-        ("/seller", "فروشگاهت را بچین"),
+        ("/seller", "پنل مدیریت فروشگاه"),
         ("/account", "حساب کاربری"),
         ("/saved", "محصولات ذخیره‌شده"),
         ("/following", "فروشگاه‌های دنبال‌شده"),
@@ -50,3 +50,24 @@ def test_search_page_preserves_filters(monkeypatch, tmp_path):
     assert "گوشی".encode() in response.data
     assert b"digital" in response.data
     assert "تهران".encode() in response.data
+
+
+def test_seller_dashboard_has_storefront_first_layout_and_product_actions(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "seller-dashboard.sqlite3")
+    app_module.initialize_database()
+    response = app_module.app.test_client().get("/seller")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    for marker in (
+        'class="seller-hero"',
+        'class="seller-metrics"',
+        'id="storePanel"',
+        'id="addProductPanel"',
+        'id="pageListings"',
+        'id="sellerStoreMetric"',
+        'id="sellerProductMetric"',
+    ):
+        assert marker in html, marker
+    assert "seller-dashboard" in html
+    assert "min-height:48px" in html

@@ -57,6 +57,8 @@
         : '<div class="empty-page-state">هنوز کالایی در ویترین ثبت نکرده‌ای.</div>';
       const count = document.querySelector("#pageResultsCount");
       if (count) count.textContent = fmt.format(items.length) + " کالا";
+      const productMetric = document.querySelector("#sellerProductMetric");
+      if (productMetric) productMetric.textContent = fmt.format(items.length) + " کالا";
     } catch (e) {
       target.innerHTML = '<div class="empty-page-state">' + escapeHTML(e.message) + "</div>";
     }
@@ -83,7 +85,15 @@
 
       const mine = await api("/api/my/store");
       const store = mine.item;
+      const storeMetric = document.querySelector("#sellerStoreMetric");
+      const nextMetric = document.querySelector("#sellerNextStepMetric");
+      const welcomeTitle = document.querySelector("#sellerWelcomeTitle");
       if (!store) {
+        if (storeMetric) storeMetric.textContent = "هنوز ساخته نشده";
+        if (nextMetric) nextMetric.textContent = "ساخت ویترین";
+        if (welcomeTitle) welcomeTitle.textContent = "سلام " + (me.user.name || "فروشگاه‌دار") + "؛ ویترینت را بساز";
+        const productMetric = document.querySelector("#sellerProductMetric");
+        if (productMetric) productMetric.textContent = "۰ کالا";
         if (status)
           status.innerHTML =
             "<strong>سلام " +
@@ -94,6 +104,9 @@
         if (productForm) productForm.hidden = true;
       } else {
         storeId = store.id;
+        if (storeMetric) storeMetric.textContent = "فعال";
+        if (nextMetric) nextMetric.textContent = "ثبت کالا";
+        if (welcomeTitle) welcomeTitle.textContent = "سلام " + (me.user.name || store.name || "فروشگاه‌دار") + "؛ " + store.name;
         if (status)
           status.innerHTML =
             "<strong>" +
