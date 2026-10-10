@@ -64,6 +64,12 @@ def _ensure_performance_indexes(connection: sqlite3.Connection) -> None:
 
 
 def _ensure_listings_fts(connection: sqlite3.Connection) -> None:
+    """Create FTS5 index for listings and keep it in sync via triggers.
+
+    External-content FTS (`content='listings'`) reports COUNT(*) from the
+    content table even when the inverted index is empty, so we cannot use
+    COUNT as a signal to rebuild. Instead we inspect fts5vocab term count.
+    """
     connection.execute(
         """
         CREATE VIRTUAL TABLE IF NOT EXISTS listings_fts USING fts5(
@@ -72,7 +78,7 @@ def _ensure_listings_fts(connection: sqlite3.Connection) -> None:
             city,
             content='listings',
             content_rowid='id',
-            tokenize='unicode61'
+            tokenize='unicode61 remove_diacritics 0'
         )
         """
     )
@@ -102,9 +108,23 @@ def _ensure_listings_fts(connection: sqlite3.Connection) -> None:
         END
         """
     )
-    fts_count = connection.execute("SELECT COUNT(*) FROM listings_fts").fetchone()[0]
     listing_count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
-    if listing_count and fts_count == 0:
+    if not listing_count:
+        return
+    # COUNT(*) on external-content FTS equals content rows even with an empty
+    # inverted index — probe vocabulary instead.
+    needs_rebuild = True
+    try:
+        connection.execute(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS _listings_fts_vocab "
+            "USING fts5vocab(listings_fts, 'row')"
+        )
+        term_count = connection.execute("SELECT COUNT(*) FROM _listings_fts_vocab").fetchone()[0]
+        connection.execute("DROP TABLE IF EXISTS _listings_fts_vocab")
+        needs_rebuild = term_count == 0
+    except Exception:
+        needs_rebuild = True
+    if needs_rebuild:
         connection.execute("INSERT INTO listings_fts(listings_fts) VALUES('rebuild')")
 
 
