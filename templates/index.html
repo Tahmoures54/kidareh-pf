@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
 </head>
 <body>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="market-ticker" id="marketTicker" aria-label="پیام‌های راهنمای کی‌داره">
     <span class="market-ticker-mark" aria-hidden="true">✦</span>
     <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
@@ -70,7 +71,7 @@
   </section>
 
   <datalist id="iranCityOptions"></datalist>
-  <div class="market-location-bar" aria-label="شهر بازار فعال">
+  <section class="market-location-bar" aria-label="شهر بازار فعال">
     <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">تهران</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
     <div class="market-city-picker" id="marketCityCombobox">
       <label class="market-city-picker-label" for="citySelect">شهر بازار</label>
@@ -80,8 +81,8 @@
     </div>
     <div class="market-location-actions"><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
     <p class="market-privacy-note">شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود.</p>
-  </div>
-  <main>
+  </section>
+  <main id="main-content">
     <section class="section listings-section" id="listings">
       <div class="section-heading">
         <div>
