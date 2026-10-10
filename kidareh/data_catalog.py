@@ -50,7 +50,7 @@ for legacy_id, groups in LEGACY_CATEGORY_GROUPS.items():
         CATEGORY_GROUPS.setdefault(group_id, []).append(legacy_id)
 
 
-VILLAGES_PATH = DATA_DIR / "villages.json.gz"
+VILLAGES_PATH = DATA_DIR / "iran-villages-data.json.gz"
 
 
 @lru_cache(maxsize=1)
