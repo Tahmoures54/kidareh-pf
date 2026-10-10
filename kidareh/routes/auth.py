@@ -102,8 +102,16 @@ def request_otp():
     try:
         _send_kavenegar_otp(phone, code)
     except Exception as exc:
-        # Do not log exception text: HTTP client errors may contain the API-key URL.
-        current_app.logger.error("Kavenegar OTP delivery failed (%s)", type(exc).__name__)
+        # Log safe diagnostic fields only (no API key / no full URL).
+        reason = getattr(exc, "reason", None) or type(exc).__name__
+        detail = str(exc)[:200] if str(exc) else type(exc).__name__
+        if "api.kavenegar.com" in detail:
+            detail = reason
+        current_app.logger.error(
+            "Kavenegar OTP delivery failed reason=%s detail=%s",
+            reason,
+            detail,
+        )
         return jsonify({"error": "sms_unavailable", "message": "ارسال پیامک ممکن نشد. تنظیمات یا سرویس پیامک را بررسی کنید."}), 503
     session["otp_phone"] = phone
     session["otp_hash"] = generate_password_hash(code)
@@ -212,8 +220,6 @@ def complete_profile():
     return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role}, "store": store, "csrf_token": session["csrf_token"]})
 
 
-
-
 @bp.post("/signup")
 def auth_signup():
     """Reject legacy password signup so mobile verification cannot be bypassed."""
@@ -270,4 +276,3 @@ def auth_logout():
         return jsonify({"error": "csrf_failed"}), 400
     session.clear()
     return jsonify({"ok": True})
-
