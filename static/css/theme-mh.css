@@ -244,10 +244,13 @@ input:focus, textarea:focus, select:focus,
 .promo-banner h1 span { color: #0E7490; }
 .promo-banner .hero-description {
   max-width: 34rem;
-  margin-bottom: 1.15rem;
+  margin-bottom: 1.25rem;
   color: #64748B;
   font-size: 0.95rem;
   line-height: 1.75;
+}
+.promo-banner .hero-content {
+  max-width: 36rem;
 }
 .promo-banner .hero-meta {
   display: flex;
@@ -409,6 +412,16 @@ input:focus, textarea:focus, select:focus,
   color: #D6E4EC;
   font-size: 0.8rem;
   line-height: 1.45;
+}
+
+/* Search sits above product grid, not inside promo banner */
+.listings-section .listings-search {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 0 0.85rem;
+}
+.listings-section .listings-popular {
+  margin: 0 0 1rem;
 }
 
 /* Seller banner — denser MaterialHub CTA */
