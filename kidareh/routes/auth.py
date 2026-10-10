@@ -120,6 +120,12 @@ def request_otp():
     session["otp_last_sent_at"] = time.time()
     session["otp_terms_accepted_at"] = datetime.now(timezone.utc).isoformat()
     session["otp_existing_user"] = exists
+    register_intent = payload.get("registering") is True
+    requested_role = payload.get("role", "seller")
+    if requested_role not in {"buyer", "seller"}:
+        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
+    session["otp_register_intent"] = register_intent
+    session["otp_registration_role"] = requested_role if register_intent else None
     result = {"ok": True, "message": "کد تأیید ارسال شد.", "expires_in": 300}
     if current_app.testing and current_app.config.get("TESTING_OTP_CODE"):
         result["test_code"] = code
