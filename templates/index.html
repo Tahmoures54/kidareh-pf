@@ -36,9 +36,10 @@
 
   <datalist id="iranCityOptions"></datalist>
   <div class="market-location-bar" aria-label="شهر بازار فعال">
-    <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">همهٔ شهرها</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
-    <div class="market-location-actions"><button class="button button-outline market-location-action" id="changeMarketCityButton" type="button">تغییر شهر</button><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
-    <p class="market-privacy-note">موقعیت مکانی فقط پس از انتخاب شما درخواست می‌شود.</p>
+    <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">تهران</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
+    <label class="market-city-picker"><span class="market-city-picker-label">شهر بازار</span><input id="citySelect" list="iranCityOptions" aria-label="انتخاب شهر یا روستا" value="تهران" autocomplete="off" placeholder="نام شهر یا روستا"></label>
+    <div class="market-location-actions"><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
+    <p class="market-privacy-note">شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود.</p>
   </div>
   <main>
     <section class="hero promo-banner promo-banners" aria-label="معرفی کی‌داره" id="promoBanner">
@@ -117,7 +118,7 @@
       <div class="section-heading">
         <div>
           <span class="section-kicker">از ویترین فروشگاه‌ها</span>
-          <h2>کالاها و خدمات معرفی‌شده</h2>
+          <h2 class="market-section-title" id="marketListingsTitle">بازار تهران</h2>
           <p class="section-subtitle">این‌ها کالاها و خدمات ویترین فروشگاه‌ها هستند؛ برای خرید، حضوری به فروشگاه مراجعه کن.</p>
         </div>
         <span class="results-count" id="resultsCount">در حال بارگذاری…</span>
@@ -128,10 +129,6 @@
           <input id="searchInput" name="q" type="search" placeholder="نام کالا، محصول یا خدمت را جست‌وجو کن…" autocomplete="off">
         </label>
         <span class="search-divider" aria-hidden="true"></span>
-        <label class="city-field">
-          <span class="field-icon" aria-hidden="true">⌖</span>
-          <input id="citySelect" list="iranCityOptions" aria-label="انتخاب شهر یا روستا" placeholder="همه شهرها" autocomplete="off">
-        </label>
         <label class="category-field">
           <span class="field-icon" aria-hidden="true">▦</span>
           <select id="categorySelect" aria-label="انتخاب دسته‌بندی">
