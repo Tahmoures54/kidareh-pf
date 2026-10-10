@@ -287,57 +287,46 @@
     loadStores();
   });
 
-  // Large promo banners — fast rotation for lively feel
-  (function initPromoBanner() {
-    const root = document.querySelector("#promoBanner");
-    const slides = Array.from(document.querySelectorAll("#promoSlides .promo-banner-slide"));
-    const dots = Array.from(document.querySelectorAll("#promoDots .promo-dot"));
-    if (slides.length < 2) return;
+  // Compact, accessible homepage message ticker.
+  (function initMarketTicker() {
+    const root = document.querySelector("#marketTicker");
+    const message = document.querySelector("#marketTickerMessage");
+    const link = document.querySelector("#marketTickerLink");
+    if (!root || !message || !link) return;
+    const items = [
+      { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "#listings" },
+      { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
+      { text: "دنبال کالای خاصی هستی؟ جست‌وجو و دسته‌بندی‌ها کمکت می‌کنند زودتر پیدایش کنی.", label: "جست‌وجو", href: "/search" },
+      { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
+      { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "#marketCityCombobox" }
+    ];
     let index = 0;
     let timer = null;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const INTERVAL_MS = 4800;
-
-    function goTo(next) {
-      const prev = index;
-      index = ((next % slides.length) + slides.length) % slides.length;
-      slides.forEach((el, i) => {
-        el.classList.toggle("active", i === index);
-        el.classList.toggle("exit", i === prev && prev !== index);
-      });
-      dots.forEach((dot, i) => {
-        const on = i === index;
-        dot.classList.toggle("active", on);
-        dot.setAttribute("aria-selected", on ? "true" : "false");
-      });
-    }
-    function start() {
-      if (reduceMotion) return;
-      stop();
-      timer = window.setInterval(() => goTo(index + 1), INTERVAL_MS);
+    function show(next) {
+      index = (next + items.length) % items.length;
+      message.textContent = items[index].text;
+      link.href = items[index].href;
+      link.firstChild.textContent = items[index].label + " ";
     }
     function stop() {
       if (timer) window.clearInterval(timer);
       timer = null;
     }
-    dots.forEach((dot) => {
-      dot.addEventListener("click", () => {
-        goTo(Number(dot.dataset.slide) || 0);
-        start();
-      });
+    function start() {
+      stop();
+      if (!reduceMotion && !document.hidden) timer = window.setInterval(() => show(index + 1), 5000);
+    }
+    root.addEventListener("mouseenter", stop);
+    root.addEventListener("mouseleave", start);
+    root.addEventListener("focusin", stop);
+    root.addEventListener("focusout", (event) => {
+      if (!root.contains(event.relatedTarget)) start();
     });
-    document.querySelector("#promoPrev")?.addEventListener("click", () => {
-      goTo(index - 1);
-      start();
-    });
-    document.querySelector("#promoNext")?.addEventListener("click", () => {
-      goTo(index + 1);
-      start();
-    });
-    root?.addEventListener("mouseenter", stop);
-    root?.addEventListener("mouseleave", start);
-    root?.addEventListener("focusin", stop);
-    root?.addEventListener("focusout", start);
+    root.addEventListener("touchstart", stop, { passive: true });
+    root.addEventListener("touchend", start, { passive: true });
+    document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+    show(0);
     start();
   })();
 
