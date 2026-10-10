@@ -223,7 +223,7 @@
           <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
           <label class="captcha-label"><span id="captchaQuestion">محاسبه امنیتی…</span><input name="captcha" inputmode="numeric" pattern="[0-9۰-۹٠-٩]+" required placeholder="پاسخ عددی"></label>
           <button class="button button-primary" id="requestOtpButton" type="submit">ارسال کد تأیید</button>
-          <p class="form-note">با ادامه، <a href="/terms" target="_blank" rel="noopener">قوانین کی‌داره</a> را می‌پذیرید.</p>
+          <label class="terms-accept"><input name="terms_accepted" type="checkbox" required> با <a href="/terms" target="_blank" rel="noopener">قوانین کی‌داره</a> موافقم.</label><p class="form-note" id="authFeedback" role="status" aria-live="polite"></p>
         </section>
         <section id="authCodeStep" hidden>
           <p class="form-note">کد ارسال‌شده به <strong id="otpPhoneLabel"></strong> را وارد کنید.</p>
@@ -251,6 +251,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </body>
 </html>
