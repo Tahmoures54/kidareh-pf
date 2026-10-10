@@ -93,7 +93,7 @@ def trades():
 def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
-    city = request.args.get("city", "").strip()[:60]
+    city = request.args.get("city", "").strip()[:100]
     near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
     radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
     use_nearby = near_lat is not None and near_lon is not None and -90 <= near_lat <= 90 and -180 <= near_lon <= 180
@@ -256,7 +256,7 @@ def create_listing():
         return jsonify({"error": "invalid_title", "message": "عنوان باید بین ۱ تا ۱۰۰ نویسه باشد."}), 400
     if not isinstance(category, str) or category not in CATEGORY_ALLOWED_IDS:
         return jsonify({"error": "invalid_category"}), 400
-    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 100:
         return jsonify({"error": "invalid_city"}), 400
     if not isinstance(description, str) or len(description.strip()) > 1000:
         return jsonify({"error": "invalid_description"}), 400
