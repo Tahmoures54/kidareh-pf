@@ -224,12 +224,21 @@ def payment_callback():
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     if result.get("result") not in (100, 201):
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
-    if result.get("amount") is not None and int(result["amount"]) != int(order["amount_toman"]) * 10:
-        current_app.logger.warning("Zibal amount mismatch for monetization order %s", order_id)
+    # Do not grant paid features unless the gateway explicitly confirms both
+    # the exact amount (Rials) and the merchant-generated order ID.
+    verified_amount = result.get("amount")
+    if (
+        isinstance(verified_amount, bool)
+        or not isinstance(verified_amount, (int, str))
+        or not str(verified_amount).isdigit()
+        or int(verified_amount) != int(order["amount_toman"]) * 10
+    ):
+        current_app.logger.warning("Zibal amount missing/invalid/mismatched for monetization order %s", order_id)
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     expected_order_id = f"kidareh-{order_id}"
-    if result.get("orderId") and str(result["orderId"]) != expected_order_id:
-        current_app.logger.warning("Zibal order ID mismatch for monetization order %s", order_id)
+    verified_order_id = result.get("orderId")
+    if not isinstance(verified_order_id, (str, int)) or str(verified_order_id) != expected_order_id:
+        current_app.logger.warning("Zibal order ID missing/invalid/mismatched for monetization order %s", order_id)
         return redirect(url_for("monetization.monetization_page", payment="unverified"))
     now = datetime.now(timezone.utc)
     starts = now.isoformat()
