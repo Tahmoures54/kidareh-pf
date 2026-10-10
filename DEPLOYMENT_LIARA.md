@@ -24,3 +24,19 @@ Before pointing `UPLOAD_FOLDER` at a separate mount directory, configure the app
 ## Health check
 
 Use `/api/health` to confirm the app can connect to its configured database. A successful health check confirms connectivity, not that the disk is persistent or backups are working.
+
+
+## Six-stage release gate
+
+Run these checks in order before announcing the marketplace ready for customers.
+
+1. **Authentication:** CI must pass the OTP challenge and auth-page tests. In Liara, verify a real SMS request, cooldown/rate-limit responses, successful login, new-user registration, and session continuity. CI does not prove that the SMS provider credentials work.
+2. **Seller journey:** verify seller registration, store creation, product creation with and without an image, public product detail, and buyer-to-seller message delivery using two test accounts.
+3. **Data and deployment:** set `SECRET_KEY`, `DATABASE_PATH`, and `UPLOAD_FOLDER` to the actual Liara environment and persistent disk mount. The explicit `/static/uploads/<filename>` route now serves supported image files from the configured upload folder. Confirm the database and uploads remain after a redeploy; the health endpoint cannot prove that a disk is persistent.
+4. **Mobile and PWA:** test at a narrow viewport and on a real phone; check bottom navigation, product cards, sign-in forms, install prompt, standalone launch, and service-worker cache refresh.
+5. **Payments and administration:** in a controlled test account, check each package/order state, provider failure and cancellation, verified callback, duplicate callback handling, admin authorization, support reply, and reporting. Never use a real charge for a smoke test.
+6. **Release acceptance:** require a green GitHub Actions run, no unresolved critical browser-console errors, successful Liara health check, and recorded confirmation of the manual checks above.
+
+### What the automated health check proves
+
+`/api/health` checks database connectivity and whether the configured upload directory exists and is writable. It deliberately does not expose filesystem paths or claim to verify persistent-disk attachment, backups, restore capability, SMS delivery, or payment settlement. Those require deployment-level checks.
