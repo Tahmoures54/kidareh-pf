@@ -165,12 +165,12 @@
         <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تبریز"></label>
         <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
         <label>شماره همراه فروشنده (اختیاری)<input name="seller_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="مثلاً 09123456789" aria-describedby="sellerPhoneHelp"></label>
-        <p class="form-note" id="sellerPhoneHelp">برای هماهنگی بازدید حضوری است و فقط در صفحه جزئیات آگهی نمایش داده می‌شود. شماره‌ای وارد کنید که مایلید خریداران ببینند.</p>
+        <p class="form-note" id="sellerPhoneHelp">برای هماهنگی بازدید حضوری است و فقط در صفحه جزئیات آگهی نمایش داده می‌شود.</p>
         <label class="listing-description-field">توضیحات<textarea name="description" maxlength="1000" rows="3" placeholder="جزئیات مهم آگهی را بنویسید"></textarea></label>
         <label class="listing-image-field">عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <div class="image-preview-wrap" id="imagePreviewWrap" hidden><img id="imagePreview" alt="پیش‌نمایش عکس آگهی"><button class="button button-quiet" id="removeImagePreview" type="button">حذف عکس</button></div>
         <button class="button button-primary" type="submit">افزودن کالا به ویترین</button>
-        <p class="form-note">برای ثبت آگهی باید وارد حساب شوید. قبل از خرید حضوری، کالا را بررسی و شرایط را مستقیم با فروشنده هماهنگ کنید.</p>
+        <p class="form-note">برای ثبت آگهی باید وارد حساب شوید.</p>
       </form>
     </section>
   </main>
@@ -181,8 +181,69 @@
     <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
   </footer>
 
+  <dialog class="store-dialog" id="storeDialog" aria-labelledby="storeDialogTitle">
+    <button class="dialog-close" id="closeStoreDialog" type="button" aria-label="بستن">×</button>
+    <div class="store-dialog-content">
+      <div class="store-dialog-heading"><span class="store-mark">⌂</span><div><span class="section-kicker">ویترین فروشگاه</span><h2 id="storeDialogTitle">فروشگاه</h2><p id="storeDialogMeta"></p></div></div>
+      <p id="storeDialogDescription" class="store-dialog-description"></p><button id="shareStoreDialog" class="share-button" type="button">↗ اشتراک‌گذاری ویترین</button>
+      <div class="store-dialog-actions"><button class="button button-primary" id="followStoreButton" type="button">♡ دنبال‌کردن فروشگاه</button><span id="storeFollowersCount"></span></div>
+      <h3 class="store-products-title">کالاهای این ویترین</h3>
+      <div class="store-products-grid" id="storeProductsGrid"></div>
+    </div>
+  </dialog>
+
+  <dialog class="store-create-dialog" id="storeCreateDialog" aria-labelledby="createStoreTitle">
+    <button class="dialog-close" id="closeStoreCreateDialog" type="button" aria-label="بستن">×</button>
+    <div class="auth-content"><span class="section-kicker">فروشنده هستی؟</span><h2 id="createStoreTitle">ویترین خودت را بچین</h2>
+      <form id="storeCreateForm">
+        <label>نام فروشگاه<input name="name" maxlength="80" required placeholder="مثلاً خانه‌چین"></label>
+        <label>شهر<input name="city" maxlength="60" required placeholder="مثلاً تهران"></label>
+        <label>معرفی کوتاه<textarea name="description" maxlength="500" rows="3" placeholder="چه کالاهایی در فروشگاهت پیدا می‌شود؟"></textarea></label>
+        <button class="button button-primary" type="submit">ساخت ویترین</button>
+      </form>
+      <p class="form-note">بعد از ساخت ویترین می‌توانی کالاها را به آن اضافه کنی.</p>
+    </div>
+  </dialog>
+
+  <dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
+    <button class="dialog-close" id="closeAuthDialog" type="button" aria-label="بستن">×</button>
+    <div class="auth-content">
+      <span class="section-kicker">ورود امن با شماره همراه</span>
+      <h2 id="authTitle">ورود یا ساخت حساب</h2>
+      <form id="authForm">
+        <section id="authPhoneStep">
+          <p class="form-note">ابتدا شماره همراه خود را وارد کنید؛ کد تأیید پیامکی برایتان ارسال می‌شود.</p>
+          <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
+          <label class="captcha-label"><span id="captchaQuestion">محاسبه امنیتی…</span><input name="captcha" inputmode="numeric" pattern="[0-9۰-۹٠-٩]+" required placeholder="پاسخ عددی"></label>
+          <button class="button button-primary" id="requestOtpButton" type="submit">ارسال کد تأیید</button>
+          <p class="form-note">با ادامه، <a href="/terms" target="_blank" rel="noopener">قوانین کی‌داره</a> را می‌پذیرید.</p>
+        </section>
+        <section id="authCodeStep" hidden>
+          <p class="form-note">کد ارسال‌شده به <strong id="otpPhoneLabel"></strong> را وارد کنید.</p>
+          <label>کد تأیید پیامکی<input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد ۶ رقمی"></label>
+          <button class="button button-primary" id="verifyOtpButton" type="submit">تأیید شماره</button>
+          <button class="text-link" id="backToPhoneButton" type="button">اصلاح شماره همراه</button>
+        </section>
+        <section id="authProfileStep" hidden>
+          <p class="form-note">شماره تأیید شد. اطلاعات حساب را تکمیل کنید.</p>
+          <label>نام و نام خانوادگی<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
+          <label>نوع حساب<select name="role"><option value="buyer">خریدار</option><option value="seller">فروشنده</option></select></label>
+          <div id="sellerDetails" hidden>
+            <h3>اطلاعات فروشگاه</h3>
+            <label>نام فروشگاه<input name="store_name" maxlength="80"></label>
+            <label>حوزه فعالیت<input name="store_category" maxlength="80"></label>
+            <label>شهر فروشگاه<input name="store_city" maxlength="60"></label>
+            <label>نام مسئول<input name="contact_name" maxlength="80"></label>
+            <label>نشانی<textarea name="store_address" maxlength="300" rows="2"></textarea></label>
+          </div>
+          <button class="button button-primary" id="completeProfileButton" type="submit">تکمیل حساب</button>
+        </section>
+      </form>
+    </div>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </body>
 </html>
