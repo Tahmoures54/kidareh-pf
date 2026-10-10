@@ -71,3 +71,17 @@ def test_seller_dashboard_has_storefront_first_layout_and_product_actions(monkey
         assert marker in html, marker
     assert "seller-dashboard" in html
     assert "min-height:48px" in html
+
+
+
+def test_global_header_exposes_logout_controls_for_authenticated_users(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "header-auth.sqlite3")
+    app_module.initialize_database()
+    response = app_module.app.test_client().get("/")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="headerLoginLink"' in html
+    assert 'id="headerRegisterLink"' in html
+    assert 'id="headerAccountLink"' in html
+    assert 'id="headerLogoutButton"' in html
