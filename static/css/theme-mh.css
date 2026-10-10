@@ -1322,3 +1322,9 @@ body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
   .header-city-picker { width: min(210px, 54vw); }
   .listings-search .nearby-search-button { grid-column: 1 / -1; width: 100%; }
 }
+
+/* Allow the two-line brand/location stack to size the header naturally. */
+.site-header { height: auto !important; min-height: 0; padding-block: 10px; box-sizing: border-box; }
+@media (max-width: 900px) {
+  .site-header { height: auto !important; min-height: 0; padding-block: 10px; }
+}
