@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
+from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS
 
 bp = Blueprint("listings", __name__)
 
@@ -61,7 +62,32 @@ def _fts_match_query(raw: str) -> str | None:
 
 @bp.get("/api/categories")
 def categories():
-    return jsonify({"items": CATEGORIES})
+    return jsonify({
+        "items": CATEGORIES,
+        "subcategories": [
+            {"id": item["value"], "name": item["text"], "group_id": group["id"], "group": group["group"]}
+            for group in CATEGORY_TREE for item in group["types"]
+        ],
+    })
+
+
+@bp.get("/api/locations")
+def locations():
+    """Search the versioned Iranian city directory without sending the full dataset to every visitor."""
+    query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
+    if len(query) < 2:
+        return jsonify({"items": []})
+    items = [
+        {"id": item["id"], "name": item["name"], "province_id": item["province_id"], "county_id": item["county_id"]}
+        for item in IRAN_LOCATIONS["cities"]
+        if query in item["name"].replace("ي", "ی").replace("ك", "ک")
+    ][:25]
+    return jsonify({"items": items, "count": len(items), "source_year": IRAN_LOCATIONS["source_year"]})
+
+
+@bp.get("/api/trades")
+def trades():
+    return jsonify({"items": TRADE_GROUPS})
 
 @bp.get("/api/listings")
 def listings():
@@ -90,8 +116,12 @@ def listings():
         sql = "SELECT * FROM listings WHERE 1=1"
 
     if category and category != "all":
-        sql += " AND category = ?"
-        parameters.append(category)
+        category_ids = [category]
+        category_ids.extend(CATEGORY_GROUPS.get(category, []))
+        category_ids = list(dict.fromkeys(category_ids))
+        placeholders = ",".join("?" for _ in category_ids)
+        sql += " AND category IN (" + placeholders + ")"
+        parameters.extend(category_ids)
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
@@ -224,7 +254,7 @@ def create_listing():
 
     if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
         return jsonify({"error": "invalid_title", "message": "عنوان باید بین ۱ تا ۱۰۰ نویسه باشد."}), 400
-    if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+    if not isinstance(category, str) or category not in CATEGORY_ALLOWED_IDS:
         return jsonify({"error": "invalid_category"}), 400
     if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
         return jsonify({"error": "invalid_city"}), 400
@@ -314,7 +344,7 @@ def manage_listing(listing_id: int):
                 return jsonify({"error": "invalid_coordinates"}), 400
             if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
                 return jsonify({"error": "invalid_title"}), 400
-            if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+            if not isinstance(category, str) or category not in CATEGORY_ALLOWED_IDS:
                 return jsonify({"error": "invalid_category"}), 400
             if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
                 return jsonify({"error": "invalid_city"}), 400
