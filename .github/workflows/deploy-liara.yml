@@ -55,9 +55,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Prepare complete Iranian village directory
-        run: python scripts/fetch_iran_villages.py
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
