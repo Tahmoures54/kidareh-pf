@@ -194,6 +194,37 @@
       }
     }catch(e){if(status)status.textContent="وضعیت حساب در دسترس نیست؛ صفحه را تازه‌سازی کنید.";}
   }
+  async function initHeaderAuth(){
+    const loginLink=document.querySelector("#headerLoginLink");
+    const registerLink=document.querySelector("#headerRegisterLink");
+    const accountLink=document.querySelector("#headerAccountLink");
+    const logoutButton=document.querySelector("#headerLogoutButton");
+    if(!loginLink||!registerLink||!accountLink||!logoutButton)return;
+    try{
+      const data=await api("/api/auth/me");
+      const signedIn=Boolean(data.user);
+      loginLink.hidden=signedIn;
+      registerLink.hidden=signedIn;
+      accountLink.hidden=!signedIn;
+      logoutButton.hidden=!signedIn;
+    }catch{
+      // Keep sign-in options visible if the session check is temporarily unavailable.
+    }
+    logoutButton.addEventListener("click",async()=>{
+      logoutButton.disabled=true;
+      const originalText=logoutButton.textContent;
+      logoutButton.textContent="در حال خروج…";
+      try{
+        await api("/api/auth/logout",{method:"POST"});
+        window.location.assign("/");
+      }catch(e){
+        notify(e.message||"خروج انجام نشد؛ دوباره تلاش کنید.");
+        logoutButton.disabled=false;
+        logoutButton.textContent=originalText;
+      }
+    });
+  }
+  initHeaderAuth();
   document.addEventListener("click", async (e) => {
     const saveBtn = e.target.closest("[data-save]");
     if (saveBtn) { e.preventDefault(); await saveProduct(saveBtn.dataset.save); }
