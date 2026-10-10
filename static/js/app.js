@@ -7,6 +7,7 @@
   const citySelect = document.querySelector("#citySelect");
   const categorySelect = document.querySelector("#categorySelect");
   const activeMarketCity = document.querySelector("#activeMarketCity");
+  const marketListingsTitle = document.querySelector("#marketListingsTitle");
   const changeMarketCityButton = document.querySelector("#changeMarketCityButton");
   const findMyLocationButton = document.querySelector("#findMyLocationButton");
   const nearbyListingsButton = document.querySelector("#nearbyListingsButton");
@@ -99,7 +100,7 @@
   async function loadListings(opts = {}) {
     const params = new URLSearchParams();
     const q = (searchInput?.value || "").trim();
-    const city = citySelect?.value.trim() || "";
+    const city = citySelect?.value.trim() || "تهران";
     if (q) params.set("q", q);
     if (city && !userCoords) params.set("city", city);
     if (currentFilter && currentFilter !== "all") params.set("category", currentFilter);
@@ -168,7 +169,9 @@
   }
 
   function updateMarketCity() {
-    if (activeMarketCity) activeMarketCity.textContent = citySelect?.value.trim() || "همهٔ شهرها";
+    const city = citySelect?.value.trim() || "تهران";
+    if (activeMarketCity) activeMarketCity.textContent = city;
+    if (marketListingsTitle) marketListingsTitle.textContent = "بازار " + city;
   }
 
   function saveMarketCity() {
@@ -182,7 +185,7 @@
 
   try {
     const savedCity = localStorage.getItem("kidareh.marketCity");
-    if (citySelect && savedCity && !citySelect.value) citySelect.value = savedCity;
+    if (citySelect && savedCity) citySelect.value = savedCity;
   } catch (_) { /* Private browsing or storage restrictions should not block browsing. */ }
   updateMarketCity();
 
@@ -194,10 +197,10 @@
     loadListings();
   });
   citySelect?.addEventListener("input", updateMarketCity);
-  citySelect?.addEventListener("change", updateMarketCity);
-  changeMarketCityButton?.addEventListener("click", () => {
-    document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.setTimeout(() => citySelect?.focus({ preventScroll: true }), 250);
+  citySelect?.addEventListener("change", () => {
+    userCoords = null;
+    saveMarketCity();
+    loadListings();
   });
   categorySelect?.addEventListener("change", () => {
     currentFilter = categorySelect.value || "all";
