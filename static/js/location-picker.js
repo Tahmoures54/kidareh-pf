@@ -24,6 +24,7 @@
         list.replaceChildren(...(result.items || []).map((item) => {
           const option = document.createElement("option");
           option.value = item.name;
+          option.label = [item.type === "village" ? "روستا" : "شهر", item.province, item.county].filter(Boolean).join(" · ");
           return option;
         }));
       } catch (_) {
