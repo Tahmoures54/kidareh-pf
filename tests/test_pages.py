@@ -85,3 +85,32 @@ def test_global_header_exposes_logout_controls_for_authenticated_users(monkeypat
     assert 'id="headerRegisterLink"' in html
     assert 'id="headerAccountLink"' in html
     assert 'id="headerLogoutButton"' in html
+
+
+def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "city-home.sqlite3")
+    app_module.initialize_database()
+    response = app_module.app.test_client().get("/")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="activeMarketCity"' in html
+    assert html.index('id="activeMarketCity"') < html.index('id="promoBanner"')
+    assert 'id="changeMarketCityButton"' in html
+    assert 'id="citySelect"' in html
+    assert 'id="categorySelect"' in html
+    assert 'id="findMyLocationButton"' in html
+    assert 'id="nearbyListingsButton"' in html
+    assert 'class="category-grid"' not in html
+    assert "موقعیت مکانی فقط پس از انتخاب شما درخواست می‌شود" in html
+
+
+def test_homepage_geolocation_is_click_driven_and_uses_api_longitude_parameter():
+    from pathlib import Path
+
+    script = Path(app_module.BASE_DIR / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    assert 'findMyLocationButton?.addEventListener("click"' in script
+    assert 'nearbyListingsButton?.addEventListener("click"' in script
+    assert 'params.set("lon", String(userCoords.lng))' in script
+    assert "getCurrentPosition(" in script
+    assert 'searchForm.insertAdjacentElement("afterend", nearbyButton)' not in script
