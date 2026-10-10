@@ -78,7 +78,7 @@
           const meta = document.createElement("small");
           meta.className = "market-city-option-meta";
           meta.textContent = [
-            item.type === "village" ? "روستا" : "شهر",
+            item.type === "urban_zone" ? "شهرک / ناحیه شهری" : item.type === "important_point" ? "نقطه مهم · مرکز شهرستان" : item.type === "province_capital" ? "مرکز استان" : "شهر",
             item.province,
             item.county
           ].filter(Boolean).join(" · ");
