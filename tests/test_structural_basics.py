@@ -68,3 +68,44 @@ def test_production_enables_secure_session_cookie(monkeypatch, tmp_path):
     app, _, _ = make_app(tmp_path)
 
     assert app.config["SESSION_COOKIE_SECURE"] is True
+
+
+def test_database_initialization_is_repeatable_and_uses_app_config(monkeypatch, tmp_path):
+    from kidareh.core import get_connection, initialize_database
+
+    monkeypatch.setenv("KIDAREH_SEED_DEMO_DATA", "0")
+    app, database_path, _ = make_app(tmp_path)
+
+    with app.app_context():
+        initialize_database()
+        initialize_database()
+        with get_connection() as connection:
+            tables = {
+                row["name"]
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+            assert {"users", "stores", "listings", "saved_products"} <= tables
+            assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
+
+    assert database_path.exists()
+
+
+def test_auth_mutation_requires_csrf_token(tmp_path):
+    app, _, _ = make_app(tmp_path)
+    client = app.test_client()
+
+    response = client.post(
+        "/api/auth/request-otp",
+        json={
+            "phone": "09123456789",
+            "registering": True,
+            "role": "buyer",
+            "captcha_answer": "1",
+            "terms_accepted": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "csrf_failed"
