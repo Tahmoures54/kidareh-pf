@@ -252,7 +252,7 @@
     let index = 0;
     let timer = null;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const INTERVAL_MS = 2200;
+    const INTERVAL_MS = 4800;
 
     function goTo(next) {
       const prev = index;
