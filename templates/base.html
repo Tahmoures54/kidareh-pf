@@ -7,17 +7,17 @@
   <meta name="theme-color" content="#0E7490">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>{% block title %}ببین کی‌داره؟ حضوری بگیر! | کی‌داره{% endblock %}</title>
+  <title>{% block title %}ببین کی داره؟ حضوری بگیر!{% endblock %}</title>
   <meta name="description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالای دلخواهت را پیدا کن و از فروشگاه محلی حضوری تحویل بگیر.' }}">
   <meta property="og:site_name" content="کی‌داره">
   <meta property="og:locale" content="fa_IR">
   <meta property="og:type" content="{{ 'product' if meta_type == 'product' else 'website' }}">
-  <meta property="og:title" content="{{ meta_title or 'ببین کی‌داره؟ حضوری بگیر! | کی‌داره' }}">
+  <meta property="og:title" content="{{ meta_title or 'ببین کی داره؟ حضوری بگیر!' }}">
   <meta property="og:description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالاهای نزدیکت را پیدا کن و حضوری تحویل بگیر.' }}">
   <meta property="og:url" content="{{ request.url }}">
   {% if meta_image %}<meta property="og:image" content="{{ meta_image }}">{% endif %}
   <meta name="twitter:card" content="{{ 'summary_large_image' if meta_image else 'summary' }}">
-  <meta name="twitter:title" content="{{ meta_title or 'کی‌داره | ویترین آنلاین فروش حضوری' }}">
+  <meta name="twitter:title" content="{{ meta_title or 'ببین کی داره؟ حضوری بگیر!' }}">
   <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
