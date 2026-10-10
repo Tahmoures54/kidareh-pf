@@ -74,7 +74,7 @@
     }
     const html = items.map((item) => {
       return `
-        <a class="listing-card" href="/listing/${escapeHTML(item.id)}">
+        <a class="listing-card" href="/product/${escapeHTML(item.id)}">
           <div class="listing-image category-art-${escapeHTML(item.category)}">
             ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji || "🛍️") + '</span>'}
             ${item.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(item.paid_tag.type) + '">' + escapeHTML(item.paid_tag.label) + '</span>' : ""}

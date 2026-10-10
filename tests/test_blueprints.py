@@ -22,4 +22,4 @@ def test_health_endpoint_is_available_through_factory():
     response = app.test_client().get("/api/health")
 
     assert response.status_code == 200
-    assert response.get_json() == {"ok": True, "service": "kidareh-pf", "database": "ok"}
+    assert response.get_json() == {"ok": True, "service": "kidareh-pf", "database": "ok", "uploads": "writable"}

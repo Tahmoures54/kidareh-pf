@@ -232,6 +232,7 @@
     }
   });
 
+  // showStep() already loads the challenge when the initial step is "phone".
+  // Avoid a second parallel request that can invalidate the challenge the user sees.
   showStep(currentStep);
-  if (currentStep === "phone") loadChallenge();
 })();
