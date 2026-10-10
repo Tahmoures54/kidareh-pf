@@ -692,3 +692,94 @@ def test_production_requires_non_default_secret_and_secure_cookie_settings(monke
     assert production_app.config["SESSION_COOKIE_SECURE"] is True
     assert production_app.config["SESSION_COOKIE_HTTPONLY"] is True
     assert production_app.config["SESSION_COOKIE_SAMESITE"] == "Lax"
+
+
+def _create_pending_blue_tick_order(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    import kidareh.routes.monetization as monetization
+
+    monetization.ensure_tables()
+    with app_module.get_connection() as db:
+        cursor = db.execute(
+            """INSERT INTO monetization_orders
+               (user_id, store_id, package_id, amount_toman, status, gateway_code)
+               VALUES (?, ?, ?, ?, 'pending', ?)""",
+            (1, 1, "blue_tick_30d", 79000, "123456789"),
+        )
+    return client, cursor.lastrowid, monetization
+
+
+def test_zibal_callback_rejects_missing_amount_or_order_id(monkeypatch, tmp_path):
+    import pytest
+
+    cases = [
+        {"result": 100, "orderId": "kidareh-1", "refNumber": "ref-1"},
+        {"result": 100, "amount": 790000, "refNumber": "ref-1"},
+        {"result": 100, "amount": 790001, "orderId": "kidareh-1"},
+        {"result": 100, "amount": 790000, "orderId": "kidareh-999"},
+    ]
+    for index, gateway_response in enumerate(cases):
+        client, order_id, monetization = _create_pending_blue_tick_order(monkeypatch, tmp_path / str(index))
+        gateway_response = dict(gateway_response)
+        gateway_response["orderId"] = gateway_response.get("orderId", f"kidareh-{order_id}")
+        monkeypatch.setattr(monetization, "zibal_request", lambda _url, _payload, data=gateway_response: data)
+
+        response = client.get(f"/monetization/callback?order_id={order_id}&trackId=123456789")
+
+        assert response.status_code == 302
+        assert "payment=unverified" in response.headers["Location"]
+        with app_module.get_connection() as db:
+            order = db.execute("SELECT status FROM monetization_orders WHERE id=?", (order_id,)).fetchone()
+            promotion_count = db.execute("SELECT COUNT(*) FROM store_promotions WHERE store_id=1").fetchone()[0]
+            store = db.execute("SELECT badge_until FROM stores WHERE id=1").fetchone()
+        assert order["status"] == "pending"
+        assert promotion_count == 0
+        assert store["badge_until"] == ""
+
+
+def test_zibal_callback_activates_once_after_complete_verification(monkeypatch, tmp_path):
+    client, order_id, monetization = _create_pending_blue_tick_order(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        monetization,
+        "zibal_request",
+        lambda _url, _payload: {
+            "result": 100,
+            "amount": 790000,
+            "orderId": f"kidareh-{order_id}",
+            "refNumber": "verified-reference",
+        },
+    )
+
+    first = client.get(f"/monetization/callback?order_id={order_id}&trackId=123456789")
+    assert first.status_code == 302
+    assert "payment=success" in first.headers["Location"]
+    second = client.get(f"/monetization/callback?order_id={order_id}&trackId=123456789")
+    assert second.status_code == 302
+    assert "payment=unverified" in second.headers["Location"]
+
+    with app_module.get_connection() as db:
+        order = db.execute("SELECT status, gateway_ref FROM monetization_orders WHERE id=?", (order_id,)).fetchone()
+        promotions = db.execute("SELECT COUNT(*) FROM store_promotions WHERE store_id=1").fetchone()[0]
+        store = db.execute("SELECT badge_until FROM stores WHERE id=1").fetchone()
+    assert order["status"] == "paid"
+    assert order["gateway_ref"] == "verified-reference"
+    assert promotions == 1
+    assert store["badge_until"]
+
+
+def test_non_admin_cannot_access_admin_api_or_mutate_accounts(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    monkeypatch.delenv("ADMIN_PHONE", raising=False)
+
+    assert client.get("/api/admin/dashboard").status_code == 403
+    assert client.get("/api/admin/reports").status_code == 403
+    assert client.patch(
+        "/api/admin/users/1",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"is_banned": True, "reason": "test"},
+    ).status_code == 403
+    assert client.patch(
+        "/api/admin/tickets/1",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"status": "closed"},
+    ).status_code == 403
