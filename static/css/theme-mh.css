@@ -674,3 +674,13 @@ input:focus, textarea:focus, select:focus,
   .policy-toc { grid-template-columns: 1fr 1fr; }
   .mobile-nav-menu { right: auto; left: 0; }
 }
+
+@media (max-width: 760px) {
+  .mobile-bottom-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .mobile-nav-item > small { font-size: .62rem; }
+}
+@media (max-width: 390px) {
+  .mobile-bottom-nav { padding-inline: 3px; gap: 0; }
+  .mobile-nav-item > small { font-size: .58rem; }
+  .mobile-nav-item > span { font-size: 1.15rem; }
+}
