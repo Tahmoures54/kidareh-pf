@@ -73,3 +73,47 @@ def test_listing_creation_requires_authentication(client):
         "price": 0,
     })
     assert response.status_code == 401
+
+
+def test_pwa_manifest_is_valid_and_installable(client):
+    import json
+
+    response = client.get("/static/manifest.webmanifest")
+    assert response.status_code == 200
+    manifest = json.loads(response.get_data(as_text=True))
+    assert manifest["display"] == "standalone"
+    assert manifest["start_url"] == "/?source=pwa"
+    assert manifest["scope"] == "/"
+    assert manifest["icons"]
+
+
+def test_pwa_shell_assets_and_offline_fallback_are_available(client):
+    for path in (
+        "/static/js/pwa.js",
+        "/static/sw.js",
+        "/static/offline.html",
+    ):
+        response = client.get(path)
+        assert response.status_code == 200, path
+
+    worker = client.get("/static/sw.js").get_data(as_text=True)
+    assert "kidareh-shell-v3" in worker
+    assert "/static/offline.html" in worker
+    assert "isPrivatePath" in worker
+
+
+def test_home_and_inner_pages_include_mobile_navigation_and_install_script(client):
+    for path in ("/", "/stores", "/login"):
+        response = client.get(path)
+        html = response.get_data(as_text=True)
+        assert 'class="mobile-bottom-nav"' in html, path
+        assert 'id="installAppButton"' in html or path == "/login"
+        assert 'static/js/pwa.js' in html, path
+
+
+
+def test_service_worker_is_available_at_root_scope(client):
+    response = client.get("/sw.js")
+    assert response.status_code == 200
+    assert response.headers.get("Service-Worker-Allowed") == "/"
+    assert "kidareh-shell-v3" in response.get_data(as_text=True)
