@@ -163,6 +163,8 @@
           phone,
           captcha_answer: captcha,
           terms_accepted: accepted,
+          registering: mode === "register",
+          role: selectedRole(),
         });
 
         const label = document.querySelector("#otpPhoneLabel");
