@@ -204,3 +204,28 @@ def test_homepage_uses_compact_accessible_message_ticker_instead_of_large_promo_
     assert "setInterval(() => show(index + 1), 5000)" in script
     assert 'prefers-reduced-motion: reduce' in script
     assert 'root.addEventListener("mouseenter", stop)' in script
+
+
+def test_help_and_policy_pages_render_and_link_from_mobile_navigation(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "help-policy-pages.sqlite3")
+    app_module.initialize_database()
+    client = app_module.app.test_client()
+
+    pages = {
+        "/help": "پرسش‌های پرتکرار",
+        "/guide": "راهنمای استفاده از کی‌داره",
+        "/safety": "راهنمای خرید امن",
+        "/terms": "قوانین و مقررات استفاده",
+        "/privacy": "حریم خصوصی در کی‌داره",
+    }
+    for path, expected in pages.items():
+        response = client.get(path)
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200, path
+        assert expected in html, path
+        assert 'class="mobile-bottom-nav"' in html, path
+        assert f'href="{path}"' in html, path
+
+    home = client.get("/").get_data(as_text=True)
+    for path in pages:
+        assert f'href="{path}"' in home
