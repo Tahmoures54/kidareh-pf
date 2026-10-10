@@ -278,9 +278,13 @@ h1, h2, h3, p { margin-top: 0; }
 
 /* Compact turquoise message ticker replaces the oversized homepage carousel. */
 .market-ticker {
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  box-sizing: border-box;
   width: 100%;
   min-height: 42px;
-  margin: 0 0 8px;
+  margin: 0;
   padding: 7px max(20px, calc((100% - 1160px) / 2));
   display: flex;
   align-items: center;
