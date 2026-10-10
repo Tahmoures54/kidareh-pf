@@ -53,6 +53,19 @@ def create_app(test_config=None):
     app.register_blueprint(moderation_bp)
     app.register_blueprint(communications_bp)
 
+    @app.get("/sw.js")
+    def service_worker():
+        """Expose the service worker at the origin root so it can control the PWA."""
+        response = send_from_directory(
+            app.static_folder,
+            "sw.js",
+            mimetype="application/javascript",
+            max_age=0,
+        )
+        response.headers["Service-Worker-Allowed"] = "/"
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
     @app.get("/static/uploads/<path:filename>")
     def uploaded_image(filename):
         """Serve only files from the configured uploads directory.
