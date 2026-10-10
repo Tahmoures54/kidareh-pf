@@ -13,7 +13,7 @@
   const nearbyListingsButton = document.querySelector("#nearbyListingsButton");
   const showAllButton = document.querySelector("#showAllButton");
   const clearFilters = document.querySelector("#clearFilters");
-  const toast = document.querySelector("#toast");
+  let toast = document.querySelector("#toast");
   const storeGrid = document.querySelector("#storeGrid");
   const storesCount = document.querySelector("#storesCount");
   const storeSearchInput = document.querySelector("#storeSearchInput");
@@ -42,12 +42,20 @@
 
   const categoryName = (id, label) => label || categoryNames[id] || id || "سایر";
 
-  function showToast(message) {
-    if (!toast) return;
+  function showToast(message, kind = "info") {
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "toast";
+      toast.className = "toast";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      document.body.appendChild(toast);
+    }
     toast.textContent = message;
-    toast.classList.add("show");
+    toast.dataset.kind = kind;
+    toast.classList.add("visible");
     window.clearTimeout(showToast._t);
-    showToast._t = window.setTimeout(() => toast.classList.remove("show"), 2800);
+    showToast._t = window.setTimeout(() => toast.classList.remove("visible"), 3600);
   }
 
   function ensureLoadMoreButton() {
@@ -109,7 +117,7 @@
       params.set("lon", String(userCoords.lng));
       params.set("radius_km", "25");
     }
-    if (opts.cursor) params.set("cursor", opts.cursor);
+    if (opts.cursor) params.set("before_id", opts.cursor);
     try {
       const res = await fetch("/api/listings?" + params.toString());
       const data = await res.json();
@@ -120,8 +128,8 @@
       else if (count && !opts.append) count.textContent = numberFormat.format(items.length) + " نتیجه";
       const moreBtn = ensureLoadMoreButton();
       if (moreBtn) {
-        if (data.next_cursor) {
-          moreBtn.dataset.cursor = data.next_cursor;
+        if (data.next_before_id) {
+          moreBtn.dataset.cursor = data.next_before_id;
           moreBtn.hidden = false;
         } else {
           moreBtn.hidden = true;
@@ -129,8 +137,13 @@
         }
       }
     } catch (err) {
-      if (grid && !opts.append) grid.innerHTML = '<div class="loading-card">بارگذاری آگهی‌ها ممکن نشد.</div>';
-      showToast("بارگذاری آگهی‌ها ممکن نشد.");
+      if (grid && !opts.append) {
+        grid.innerHTML = '<div class="loading-card listing-load-error"><p>بارگذاری آگهی‌ها ممکن نشد. اتصال اینترنت را بررسی کنید.</p><button class="button button-outline" id="retryListings" type="button">تلاش دوباره</button></div>';
+        grid.querySelector("#retryListings")?.addEventListener("click", () => loadListings());
+        if (empty) empty.hidden = true;
+        if (count) count.textContent = "خطا در دریافت کالاها";
+      }
+      showToast("بارگذاری آگهی‌ها ممکن نشد.", "error");
     }
   }
 
@@ -286,6 +299,136 @@
     if (storeSearchInput) storeSearchInput.value = "";
     loadStores();
   });
+
+
+  // Seller actions: keep the storefront setup in the dedicated seller dashboard.
+  document.querySelector("#openStoreForm")?.addEventListener("click", () => {
+    window.location.assign("/seller");
+  });
+
+  const listingForm = document.querySelector("#listingSubmitForm");
+  const openListingFormButton = document.querySelector("#openListingForm");
+  const imageInput = listingForm?.querySelector('input[name="image"]');
+  const imagePreviewWrap = document.querySelector("#imagePreviewWrap");
+  const imagePreview = document.querySelector("#imagePreview");
+  const removeImagePreview = document.querySelector("#removeImagePreview");
+  let previewObjectUrl = null;
+
+  function clearImagePreview() {
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = null;
+    if (imagePreview) imagePreview.removeAttribute("src");
+    if (imagePreviewWrap) imagePreviewWrap.hidden = true;
+    if (imageInput) imageInput.value = "";
+  }
+
+  openListingFormButton?.addEventListener("click", () => {
+    if (!listingForm) return;
+    listingForm.hidden = false;
+    listingForm.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    listingForm.querySelector('input[name="title"]')?.focus({ preventScroll: true });
+  });
+
+  imageInput?.addEventListener("change", () => {
+    const file = imageInput.files?.[0];
+    if (!file) {
+      clearImagePreview();
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      clearImagePreview();
+      showToast("فرمت عکس باید JPG، PNG یا WebP باشد.", "error");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      clearImagePreview();
+      showToast("حجم عکس نباید بیشتر از ۴ مگابایت باشد.", "error");
+      return;
+    }
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = URL.createObjectURL(file);
+    if (imagePreview) imagePreview.src = previewObjectUrl;
+    if (imagePreviewWrap) imagePreviewWrap.hidden = false;
+  });
+  removeImagePreview?.addEventListener("click", clearImagePreview);
+
+  listingForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitButton = listingForm.querySelector('button[type="submit"]');
+    const originalText = submitButton?.textContent || "افزودن کالا به ویترین";
+    const token = document.querySelector('meta[name="csrf-token"]')?.content || "";
+    if (imageInput?.files?.[0]?.size > 4 * 1024 * 1024) {
+      showToast("حجم عکس نباید بیشتر از ۴ مگابایت باشد.", "error");
+      return;
+    }
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "در حال ثبت کالا…";
+    }
+    try {
+      const response = await fetch("/api/listings", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Accept: "application/json", "X-CSRF-Token": token },
+        body: new FormData(listingForm)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 401) {
+          showToast("برای ثبت کالا ابتدا وارد حساب شوید.", "error");
+          let loginNotice = listingForm.querySelector("#listingLoginNotice");
+          if (!loginNotice) {
+            loginNotice = document.createElement("p");
+            loginNotice.id = "listingLoginNotice";
+            loginNotice.className = "form-note";
+            const link = document.createElement("a");
+            link.href = "/login";
+            link.textContent = "ورود به حساب";
+            loginNotice.append("برای ادامه، ", link, " را باز کنید؛ سپس فرم را دوباره تکمیل کنید.");
+            listingForm.appendChild(loginNotice);
+          }
+          loginNotice.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          return;
+        }
+        const messages = {
+          csrf_failed: "صفحه منقضی شده است؛ صفحه را تازه‌سازی و دوباره تلاش کنید.",
+          invalid_image: "عکس انتخاب‌شده معتبر نیست.",
+          image_too_large: "حجم عکس نباید بیشتر از ۴ مگابایت باشد.",
+          invalid_category: "لطفاً دسته‌بندی معتبر انتخاب کنید.",
+          invalid_seller_phone: "شماره همراه را به شکل 09123456789 وارد کنید.",
+          invalid_city: "لطفاً شهر یا روستا را وارد کنید."
+        };
+        throw new Error(data.message || messages[data.error] || "ثبت کالا انجام نشد؛ اطلاعات را بررسی کنید.");
+      }
+      listingForm.reset();
+      clearImagePreview();
+      listingForm.hidden = true;
+      const loginNotice = listingForm.querySelector("#listingLoginNotice");
+      loginNotice?.remove();
+      showToast("کالا با موفقیت ثبت شد.", "success");
+      userCoords = null;
+      await loadListings();
+      document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      showToast(error.message || "ثبت کالا انجام نشد؛ دوباره تلاش کنید.", "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
+    }
+  });
+
+  // Accessible market message area shared by listing, location and form actions.
+  if (!document.querySelector("#toast")) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+  }
 
   // Compact, accessible homepage message ticker.
   (function initMarketTicker() {
