@@ -182,3 +182,31 @@ def test_database_migration_does_not_repeat_after_success(monkeypatch, tmp_path)
         monkeypatch.setattr(core, "_initialize_schema_v1", unexpected_rerun)
         monkeypatch.setattr(core, "SCHEMA_MIGRATIONS", ((1, unexpected_rerun),))
         core.initialize_database()
+
+
+def test_database_rejects_schema_version_newer_than_supported(tmp_path):
+    import sqlite3
+    import pytest
+
+    from kidareh.core import initialize_database
+
+    app, database_path, _ = make_app(tmp_path)
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(
+            "CREATE TABLE schema_migrations ("
+            "version INTEGER PRIMARY KEY, "
+            "applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+        )
+        connection.execute(
+            "INSERT INTO schema_migrations (version) VALUES (999)"
+        )
+
+    with app.app_context():
+        with pytest.raises(RuntimeError, match="newer than this application supports"):
+            initialize_database()
+
+    with sqlite3.connect(database_path) as connection:
+        assert connection.execute(
+            "SELECT version FROM schema_migrations"
+        ).fetchone()[0] == 999
