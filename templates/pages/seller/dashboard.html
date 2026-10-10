@@ -90,4 +90,7 @@
   <div id="pageListings" class="page-card-grid"></div>
 </section>
 {% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"seller"};</script>{% endblock %}
+{% block scripts %}
+<script>window.KIDAREH_PAGE={type:"seller"};</script>
+<script src="{{ url_for('static', filename='js/seller.js') }}" defer></script>
+{% endblock %}
