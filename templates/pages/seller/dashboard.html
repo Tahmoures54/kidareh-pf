@@ -1,94 +1,169 @@
 {% extends "base.html" %}
-{% block title %}مدیریت ویترین من | کی‌داره{% endblock %}
+{% block title %}پنل فروشگاه من | کی‌داره{% endblock %}
+{% block head %}
+<style>
+  .seller-console{--seller-accent:#0E7490;--seller-ink:#0F172A;--seller-muted:#64748B}
+  .seller-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:22px;margin:10px 0 20px;padding:clamp(22px,4vw,36px);border:1px solid #A5F3FC;border-radius:22px;background:linear-gradient(115deg,#ECFEFF 0%,#F0F9FF 58%,#fff 100%)}
+  .seller-hero:after{content:"";position:absolute;left:-52px;top:-100px;width:250px;height:250px;border:1px solid #0E749018;border-radius:50%;box-shadow:0 0 0 28px #0E749008,0 0 0 58px #0E749006;pointer-events:none}
+  .seller-hero-copy{position:relative;z-index:1;min-width:0}
+  .seller-eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border-radius:999px;background:#fff;border:1px solid #A5F3FC;color:#0E7490;font-size:11px;font-weight:800}
+  .seller-hero h1{margin:12px 0 7px;font-size:clamp(25px,3.5vw,36px);line-height:1.5;color:#0F172A}
+  .seller-hero p{max-width:620px;margin:0;color:#526D79;font-size:13px;line-height:2}
+  .seller-hero-actions{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;flex:0 0 auto}
+  .seller-hero-actions .button{min-height:48px}
+  .seller-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:20px}
+  .seller-metric{display:flex;align-items:center;gap:13px;min-width:0;padding:17px;border:1px solid #E2E8F0;border-radius:16px;background:#fff;box-shadow:0 2px 8px #0f172a06}
+  .seller-metric-icon{display:grid;place-items:center;flex:0 0 43px;height:43px;border-radius:13px;background:#ECFEFF;color:#0E7490;font-size:21px}
+  .seller-metric-copy{min-width:0}.seller-metric-copy small{display:block;color:#64748B;font-size:11px;font-weight:700}.seller-metric-copy strong{display:block;margin-top:2px;color:#0F172A;font-size:17px;overflow-wrap:anywhere}
+  .seller-dashboard-grid{align-items:start;gap:18px}
+  .seller-dashboard-grid>.page-panel{min-width:0;margin-bottom:0;border-radius:18px;padding:clamp(17px,2.2vw,24px)}
+  .seller-panel-heading{display:flex;align-items:flex-start;gap:11px;margin-bottom:16px}
+  .seller-panel-icon{display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:12px;background:#ECFEFF;color:#0E7490;font-size:20px}
+  .seller-panel-heading h2{margin:0 0 4px;font-size:17px}.seller-panel-heading p{margin:0;color:#64748B;font-size:12px;line-height:1.8}
+  .seller-console .status-panel{border:1px solid #BAE6FD;background:#F0F9FF;border-radius:13px;color:#334155}
+  .seller-console .stack-form{gap:12px}
+  .seller-console .stack-form label{color:#334155;font-size:12px;gap:6px}
+  .seller-console .stack-form input,.seller-console .stack-form select,.seller-console .stack-form textarea{width:100%;min-width:0;min-height:48px;background:#F8FAFC;border-color:#D8E1E8;border-radius:11px;font-size:14px}
+  .seller-console .stack-form textarea{min-height:86px}
+  .seller-console .stack-form button{width:100%;justify-self:stretch;min-height:49px}
+  .seller-console .stack-form [type=file]{padding:8px;font-size:12px}
+  .seller-quick-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 20px}
+  .seller-quick-link{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:47px;padding:10px 12px;border:1px solid #D8E1E8;border-radius:12px;background:#fff;color:#334155;font-size:12px;font-weight:800;text-align:center;transition:all .18s}
+  .seller-quick-link:hover{border-color:#0891B2;background:#ECFEFF;color:#0E7490}
+  .seller-quick-link.primary{border-color:#0E7490;background:#0E7490;color:white;box-shadow:0 6px 16px #0e74901a}
+  .seller-secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+  .seller-secondary-card{display:flex;align-items:flex-start;gap:13px;padding:18px;border:1px solid #E2E8F0;border-radius:16px;background:#fff}
+  .seller-secondary-card h2{margin:0 0 5px;font-size:15px}.seller-secondary-card p{margin:0 0 10px;color:#64748B;font-size:12px;line-height:1.9}
+  .seller-secondary-icon{display:grid;place-items:center;flex:0 0 40px;height:40px;border-radius:12px;background:#F1F5F9;font-size:20px}
+  .seller-products-panel{margin-top:20px!important;border-radius:18px}
+  .seller-products-panel .page-results-head{margin-top:0}
+  .seller-products-panel .page-listing-card{border-radius:14px}
+  .seller-products-panel .page-listing-footer button{min-height:38px}
+  .seller-empty-hint{padding:17px;border:1px dashed #CBD5E1;border-radius:13px;background:#F8FAFC;color:#64748B;font-size:12px;line-height:1.9}
+  @media(max-width:760px){
+    .seller-hero{align-items:stretch;flex-direction:column;margin-top:0;padding:22px 18px;border-radius:18px}
+    .seller-hero-actions{display:grid;grid-template-columns:1fr 1fr}
+    .seller-metrics{gap:8px}.seller-metric{display:block;padding:12px 10px;text-align:center;border-radius:14px}
+    .seller-metric-icon{margin:0 auto 8px;width:37px;height:37px;min-height:37px;flex-basis:37px}
+    .seller-metric-copy strong{font-size:15px}.seller-metric-copy small{font-size:10px}
+    .seller-quick-links{grid-template-columns:1fr 1fr}
+    .seller-quick-link:last-child{grid-column:1/-1}
+    .seller-secondary-grid{grid-template-columns:1fr}
+    .seller-dashboard-grid{grid-template-columns:1fr}
+    .seller-dashboard-grid>.page-panel{padding:17px}
+    .seller-console .stack-form button{width:100%}
+  }
+  @media(max-width:380px){.seller-metrics{grid-template-columns:1fr}.seller-metric{display:flex;text-align:right}.seller-metric-icon{margin:0}.seller-hero-actions{grid-template-columns:1fr}}
+</style>
+{% endblock %}
 {% block content %}
-<section class="page-heading">
-  <span class="section-kicker">ویترین کسب‌وکار شما</span>
-  <h1>فروشگاهت را بچین</h1>
-  <p>اطلاعات فروشگاه و کالاهایت را یک‌جا مدیریت کن؛ خریدارها بدون ثبت‌نام می‌توانند ویترینت را ببینند.</p>
-</section>
-
-<section class="seller-dashboard-grid">
-  <div class="page-panel">
-    <h2>وضعیت ویترین</h2>
-    <div id="sellerStatus" class="status-panel">در حال بررسی حساب…</div>
-    <form id="storeCreateForm" class="stack-form" hidden>
-      <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
-      <label>شهر<input name="city" required maxlength="60" placeholder="شهر فعالیت"></label>
-      <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500" placeholder="چه چیزهایی ارائه می‌کنی؟"></textarea></label>
-      <button class="button button-primary" type="submit">ساخت ویترین</button>
-    </form>
-    <form id="storeEditForm" class="stack-form" hidden>
-      <h3>ویرایش اطلاعات ویترین</h3>
-      <label>نام فروشگاه<input name="name" required maxlength="80"></label>
-      <label>شهر<input name="city" required maxlength="60"></label>
-      <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500"></textarea></label>
-      <label>نشانی حضوری<input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…"></label>
-      <label>عرض جغرافیایی (latitude)<input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892"></label>
-      <label>طول جغرافیایی (longitude)<input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890"></label>
-      <p class="muted-copy">مختصات را از نشان یا گوگل مپ کپی کنید تا دکمهٔ مسیریابی برای مشتری فعال شود.</p>
-      <button class="button button-primary" type="submit">ذخیره تغییرات</button>
-    </form>
-  </div>
-
-  <div class="page-panel" id="addProductPanel">
-    <h2>افزودن محصول</h2>
-    <p class="muted-copy">کالای جدید را همین‌جا ثبت کن تا در ویترینت نمایش داده شود.</p>
-    <form id="sellerProductForm" class="stack-form" enctype="multipart/form-data">
-      <label>عنوان کالا<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
-      <label>دسته‌بندی
-        <select name="category" required>
-          <option value="">انتخاب کنید</option>
-          {% for category in categories %}
-          <option value="{{ category.id }}">{{ category.name }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تهران"></label>
-      <label>قیمت (تومان)<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
-      <label>شماره تماس روی آگهی (اختیاری)<input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789"></label>
-      <label>توضیحات<textarea name="description" rows="3" maxlength="1000" placeholder="جزئیات مهم کالا"></textarea></label>
-      <label>عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
-      <button class="button button-primary" type="submit">ثبت کالا در ویترین</button>
-      <p class="form-note" id="sellerProductFeedback" role="status"></p>
-    </form>
-  </div>
-</section>
-
-<section class="page-panel tag-selling-prompt" style="margin-bottom:20px">
-  <span class="tag-prompt-icon">🏷️</span>
-  <div>
-    <h2>تگ اختصاصی برای هر کالا</h2>
-    <p>انتشار کالا رایگان است. برای جلب توجه بیشتر می‌توانی تگ «حراج»، «فروش ویژه» یا «تخفیف‌دار» را جداگانه برای هر کالا بخری.</p>
-    <a href="/seller/tags">انتخاب کالا و خرید تگ ←</a>
-  </div>
-</section>
-
-<section class="page-panel" style="margin-bottom:20px">
-  <h2>درآمد و تبلیغات ویترین</h2>
-  <p class="muted-copy">تیک آبی زمان‌دار، اولویت نمایش کالاها و جایگاه‌های معرفی محلی را متناسب با نیازت انتخاب کن.</p>
-  <a class="button button-primary" href="/monetization">مشاهده بسته‌ها و خرید تبلیغات</a>
-</section>
-
-<section class="seller-promotion page-panel">
-  <span class="seller-promotion-icon">↗</span>
-  <div>
-    <h2>مشتری‌ها را از واتساپ به ویترینت بیاور</h2>
-    <p>پیوند ویترین را در پروفایل و استوری واتساپ قرار بده. برای هر کالا هم می‌توانی پیوند جداگانه بفرستی.</p>
-    <div class="seller-share-actions">
-      <button id="shareMyStore" class="button button-primary" type="button" hidden>↗ اشتراک‌گذاری ویترین من</button>
-      <button id="copyStorePromo" class="button button-outline" type="button" data-copy-share-text="" hidden>کپی متن آماده معرفی</button>
+<div class="seller-console">
+  <section class="seller-hero">
+    <div class="seller-hero-copy">
+      <span class="seller-eyebrow">🏪 پنل مدیریت فروشگاه</span>
+      <h1 id="sellerWelcomeTitle">ویترینت را بساز؛ مشتری منتظر است</h1>
+      <p>کالاهایت را ثبت کن، ویترینت را به اشتراک بگذار و همه‌چیز را از همین‌جا مدیریت کن. انتشار کالا رایگان است.</p>
     </div>
-  </div>
-</section>
+    <div class="seller-hero-actions">
+      <a class="button button-primary" href="#addProductPanel">＋ افزودن کالا</a>
+      <a class="button button-outline" href="#storePanel">تنظیمات ویترین ←</a>
+    </div>
+  </section>
 
-<section class="page-panel">
-  <div class="page-results-head">
-    <h2>محصولات ویترین من</h2>
-    <span id="pageResultsCount"></span>
-  </div>
-  <p class="muted-copy">می‌توانی اطلاعات هر کالا را اصلاح کنی یا کالایی را که دیگر موجود نیست حذف کنی.</p>
-  <div id="pageListings" class="page-card-grid"></div>
-</section>
+  <section class="seller-metrics" aria-label="خلاصه فروشگاه">
+    <article class="seller-metric">
+      <span class="seller-metric-icon" aria-hidden="true">🏪</span>
+      <div class="seller-metric-copy"><small>وضعیت ویترین</small><strong id="sellerStoreMetric">در حال بررسی…</strong></div>
+    </article>
+    <article class="seller-metric">
+      <span class="seller-metric-icon" aria-hidden="true">▦</span>
+      <div class="seller-metric-copy"><small>کالاهای ثبت‌شده</small><strong id="sellerProductMetric">—</strong></div>
+    </article>
+    <article class="seller-metric">
+      <span class="seller-metric-icon" aria-hidden="true">↗</span>
+      <div class="seller-metric-copy"><small>گام بعدی</small><strong id="sellerNextStepMetric">ساخت ویترین</strong></div>
+    </article>
+  </section>
+
+  <nav class="seller-quick-links" aria-label="دسترسی سریع">
+    <a class="seller-quick-link primary" href="#addProductPanel">＋ ثبت کالای جدید</a>
+    <a class="seller-quick-link" href="#pageListings">▦ مدیریت کالاها</a>
+    <a class="seller-quick-link" href="/seller/tags">🏷️ تگ و معرفی کالا</a>
+  </nav>
+
+  <section class="seller-dashboard-grid">
+    <div class="page-panel" id="storePanel">
+      <div class="seller-panel-heading">
+        <span class="seller-panel-icon" aria-hidden="true">🏪</span>
+        <div><h2>ویترین فروشگاه</h2><p>اطلاعاتی که مشتری برای شناخت و پیدا کردن فروشگاهت می‌بیند.</p></div>
+      </div>
+      <div id="sellerStatus" class="status-panel">در حال بررسی حساب…</div>
+      <form id="storeCreateForm" class="stack-form" hidden>
+        <div class="seller-empty-hint">فقط نام فروشگاه و شهر را وارد کن؛ بعد از ساخت ویترین می‌توانی کالاهایت را اضافه کنی.</div>
+        <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
+        <label>شهر<input name="city" required maxlength="60" placeholder="شهر فعالیت"></label>
+        <label>درباره فروشگاه (اختیاری)<textarea name="description" rows="3" maxlength="500" placeholder="چه کالاهایی ارائه می‌کنی؟"></textarea></label>
+        <button class="button button-primary" type="submit">ساخت ویترین من</button>
+      </form>
+      <form id="storeEditForm" class="stack-form" hidden>
+        <label>نام فروشگاه<input name="name" required maxlength="80"></label>
+        <label>شهر<input name="city" required maxlength="60"></label>
+        <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500"></textarea></label>
+        <label>نشانی حضوری<input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…"></label>
+        <div class="seller-dashboard-grid">
+          <label>عرض جغرافیایی<input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892"></label>
+          <label>طول جغرافیایی<input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890"></label>
+        </div>
+        <p class="muted-copy">ثبت مختصات اختیاری است؛ با آن مشتری می‌تواند مسیر فروشگاه را پیدا کند.</p>
+        <button class="button button-primary" type="submit">ذخیره تغییرات ویترین</button>
+      </form>
+    </div>
+
+    <div class="page-panel" id="addProductPanel">
+      <div class="seller-panel-heading">
+        <span class="seller-panel-icon" aria-hidden="true">📦</span>
+        <div><h2>افزودن محصول</h2><p>برای شروع، نام، دسته‌بندی و قیمت را وارد کن. عکس و توضیحات را هم می‌توانی اضافه کنی.</p></div>
+      </div>
+      <form id="sellerProductForm" class="stack-form" enctype="multipart/form-data">
+        <label>عنوان کالا<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
+        <label>دسته‌بندی
+          <select name="category" required>
+            <option value="">انتخاب دسته‌بندی</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تهران"></label>
+        <label>قیمت (تومان)<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
+        <label>شماره تماس روی آگهی (اختیاری)<input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789"></label>
+        <label>توضیحات (اختیاری)<textarea name="description" rows="3" maxlength="1000" placeholder="جزئیات مهم کالا"></textarea></label>
+        <label>عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <button class="button button-primary" type="submit">ثبت کالا در ویترین</button>
+        <p class="form-note" id="sellerProductFeedback" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="seller-secondary-grid" aria-label="ابزارهای بیشتر فروشگاه">
+    <article class="seller-secondary-card">
+      <span class="seller-secondary-icon" aria-hidden="true">🏷️</span>
+      <div><h2>بیشتر دیده شو</h2><p>انتشار کالا رایگان است. در صورت نیاز برای هر کالا تگ «حراج»، «فروش ویژه» یا «تخفیف‌دار» انتخاب کن.</p><a class="text-link" href="/seller/tags">مدیریت تگ کالاها ←</a></div>
+    </article>
+    <article class="seller-secondary-card">
+      <span class="seller-secondary-icon" aria-hidden="true">↗</span>
+      <div><h2>مشتری را به ویترینت دعوت کن</h2><p>لینک ویترین را برای مشتری‌ها بفرست تا کالاها را ببینند و برای خرید حضوری هماهنگ شوند.</p><div class="seller-share-actions"><button id="shareMyStore" class="button button-primary" type="button" hidden>اشتراک‌گذاری ویترین</button> <button id="copyStorePromo" class="button button-outline" type="button" data-copy-share-text="" hidden>کپی متن معرفی</button></div></div>
+    </article>
+  </section>
+
+  <section class="page-panel seller-products-panel" id="myProductsPanel">
+    <div class="page-results-head">
+      <div><h2>کالاهای ویترین من</h2><p class="muted-copy" style="margin:5px 0 0">کالاها را بررسی کن؛ مواردی را که دیگر موجود نیستند حذف کن.</p></div>
+      <span id="pageResultsCount">— کالا</span>
+    </div>
+    <div id="pageListings" class="page-card-grid"><div class="loading-card">در حال دریافت کالاهای ویترین…</div></div>
+  </section>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>window.KIDAREH_PAGE={type:"seller"};</script>
