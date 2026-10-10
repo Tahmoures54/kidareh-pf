@@ -14,8 +14,6 @@
   const numberFormat = new Intl.NumberFormat("fa-IR");
   let currentFilter = "all";
   let userCoords = null;
-  let listingsCursor = null;
-  let storesCursor = null;
 
   const categoryNames = {
     home: "خانه و زندگی",
@@ -46,6 +44,23 @@
     showToast._t = window.setTimeout(() => toast.classList.remove("show"), 2800);
   }
 
+  function ensureLoadMoreButton() {
+    let btn = document.querySelector("#loadMoreListings");
+    if (!btn && grid) {
+      btn = document.createElement("button");
+      btn.id = "loadMoreListings";
+      btn.type = "button";
+      btn.className = "button button-outline";
+      btn.textContent = "نمایش بیشتر";
+      btn.hidden = true;
+      grid.parentElement?.appendChild(btn);
+      btn.addEventListener("click", () => {
+        if (btn.dataset.cursor) loadListings({ cursor: btn.dataset.cursor, append: true });
+      });
+    }
+    return btn;
+  }
+
   function renderListings(items, append) {
     if (!grid) return;
     if (!append) {
@@ -57,7 +72,6 @@
       }
       if (empty) empty.hidden = true;
     }
-    if (count && !append) count.textContent = numberFormat.format(items.length) + " نتیجه";
     const html = items.map((item) => {
       return `
         <a class="listing-card" href="/listing/${escapeHTML(item.id)}">
@@ -95,26 +109,34 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "خطا");
       const items = data.items || [];
-      listingsCursor = data.next_cursor || null;
-      renderListings(items, Boolean(opts.cursor));
+      renderListings(items, Boolean(opts.append));
       if (count && data.count != null) count.textContent = numberFormat.format(data.count) + " نتیجه";
-      const moreBtn = document.querySelector("#loadMoreListings");
-      if (moreBtn) moreBtn.hidden = !listingsCursor;
+      else if (count && !opts.append) count.textContent = numberFormat.format(items.length) + " نتیجه";
+      const moreBtn = ensureLoadMoreButton();
+      if (moreBtn) {
+        if (data.next_cursor) {
+          moreBtn.dataset.cursor = data.next_cursor;
+          moreBtn.hidden = false;
+        } else {
+          moreBtn.hidden = true;
+          delete moreBtn.dataset.cursor;
+        }
+      }
     } catch (err) {
-      if (grid && !opts.cursor) grid.innerHTML = '<div class="loading-card">بارگذاری آگهی‌ها ممکن نشد.</div>';
+      if (grid && !opts.append) grid.innerHTML = '<div class="loading-card">بارگذاری آگهی‌ها ممکن نشد.</div>';
       showToast("بارگذاری آگهی‌ها ممکن نشد.");
     }
   }
 
-  function renderStores(items, append) {
+  function renderStores(items) {
     if (!storeGrid) return;
-    if (!items.length && !append) {
+    if (!items.length) {
       storeGrid.innerHTML = '<div class="loading-card">فروشگاهی پیدا نشد.</div>';
       if (storesCount) storesCount.textContent = "۰ فروشگاه";
       return;
     }
-    if (storesCount && !append) storesCount.textContent = numberFormat.format(items.length) + " فروشگاه";
-    const html = items.map((store) => {
+    if (storesCount) storesCount.textContent = numberFormat.format(items.length) + " فروشگاه";
+    storeGrid.innerHTML = items.map((store) => {
       return '<a class="store-card" href="/store/' + escapeHTML(store.id) + '">' +
       '<span class="store-card-mark">⌂</span><span class="store-card-copy"><strong>' + escapeHTML(store.name) +
       '</strong><small>' +
@@ -122,41 +144,32 @@
       ' کالا</small><span>' + escapeHTML(store.description || "برای دیدن کالاها وارد ویترین شو.") +
       '</span></span></a>';
     }).join("");
-    if (append) storeGrid.insertAdjacentHTML("beforeend", html);
-    else storeGrid.innerHTML = html;
   }
 
-  async function loadStores(opts = {}) {
+  async function loadStores() {
     if (!storeGrid) return;
     const params = new URLSearchParams();
     const q = (storeSearchInput?.value || "").trim();
     if (q) params.set("q", q);
-    if (opts.cursor) params.set("cursor", opts.cursor);
     try {
       const res = await fetch("/api/stores?" + params.toString());
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "خطا");
-      const items = data.items || [];
-      storesCursor = data.next_cursor || null;
-      renderStores(items, Boolean(opts.cursor));
+      renderStores(data.items || []);
       if (storesCount && data.count != null) storesCount.textContent = numberFormat.format(data.count) + " فروشگاه";
-      const moreBtn = document.querySelector("#loadMoreStores");
-      if (moreBtn) moreBtn.hidden = !storesCursor;
     } catch (err) {
-      if (!opts.cursor) storeGrid.innerHTML = '<div class="loading-card">بارگذاری فروشگاه‌ها ممکن نشد.</div>';
+      storeGrid.innerHTML = '<div class="loading-card">بارگذاری فروشگاه‌ها ممکن نشد.</div>';
     }
   }
 
   searchForm?.addEventListener("submit", (e) => {
     e.preventDefault();
-    listingsCursor = null;
     loadListings();
   });
 
   document.querySelectorAll("[data-search]").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (searchInput) searchInput.value = btn.dataset.search || "";
-      listingsCursor = null;
       loadListings();
     });
   });
@@ -166,7 +179,6 @@
       document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("selected"));
       chip.classList.add("selected");
       currentFilter = chip.dataset.filter || "all";
-      listingsCursor = null;
       loadListings();
     });
   });
@@ -179,7 +191,6 @@
         c.classList.toggle("selected", (c.dataset.filter || "") === currentFilter || (currentFilter === "all" && c.dataset.filter === "all"));
       });
       document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth" });
-      listingsCursor = null;
       loadListings();
     });
   });
@@ -189,18 +200,10 @@
     if (citySelect) citySelect.value = "";
     currentFilter = "all";
     document.querySelectorAll(".filter-chip").forEach((c) => c.classList.toggle("selected", c.dataset.filter === "all"));
-    listingsCursor = null;
     loadListings();
   });
 
   clearFilters?.addEventListener("click", () => showAllButton?.click());
-
-  document.querySelector("#loadMoreListings")?.addEventListener("click", () => {
-    if (listingsCursor) loadListings({ cursor: listingsCursor });
-  });
-  document.querySelector("#loadMoreStores")?.addEventListener("click", () => {
-    if (storesCursor) loadStores({ cursor: storesCursor });
-  });
 
   // Nearby button
   if (searchForm && navigator.geolocation) {
@@ -216,7 +219,6 @@
           userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           nearbyButton.textContent = "نزدیک من ✓";
           nearbyButton.disabled = false;
-          listingsCursor = null;
           loadListings();
         },
         () => {
@@ -232,14 +234,10 @@
 
   storeSearchInput?.addEventListener("input", () => {
     window.clearTimeout(storeSearchInput._t);
-    storeSearchInput._t = window.setTimeout(() => {
-      storesCursor = null;
-      loadStores();
-    }, 280);
+    storeSearchInput._t = window.setTimeout(loadStores, 280);
   });
   document.querySelector("#showAllStores")?.addEventListener("click", () => {
     if (storeSearchInput) storeSearchInput.value = "";
-    storesCursor = null;
     loadStores();
   });
 
