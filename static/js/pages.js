@@ -200,13 +200,14 @@
     const accountLink=document.querySelector("#headerAccountLink");
     const logoutButton=document.querySelector("#headerLogoutButton");
     if(!loginLink||!registerLink||!accountLink||!logoutButton)return;
+    const setVisible=(element,visible)=>{element.hidden=!visible;element.style.display=visible?"":"none";};
     try{
       const data=await api("/api/auth/me");
       const signedIn=Boolean(data.user);
-      loginLink.hidden=signedIn;
-      registerLink.hidden=signedIn;
-      accountLink.hidden=!signedIn;
-      logoutButton.hidden=!signedIn;
+      setVisible(loginLink,!signedIn);
+      setVisible(registerLink,!signedIn);
+      setVisible(accountLink,signedIn);
+      setVisible(logoutButton,signedIn);
     }catch{
       // Keep sign-in options visible if the session check is temporarily unavailable.
     }
