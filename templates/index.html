@@ -35,6 +35,11 @@
   </header>
 
   <datalist id="iranCityOptions"></datalist>
+  <div class="market-location-bar" aria-label="شهر بازار فعال">
+    <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">همهٔ شهرها</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
+    <div class="market-location-actions"><button class="button button-outline market-location-action" id="changeMarketCityButton" type="button">تغییر شهر</button><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
+    <p class="market-privacy-note">موقعیت مکانی فقط پس از انتخاب شما درخواست می‌شود.</p>
+  </div>
   <main>
     <section class="hero promo-banner promo-banners" aria-label="معرفی کی‌داره" id="promoBanner">
       <div class="promo-track" id="promoSlides">
@@ -116,11 +121,6 @@
           <p class="section-subtitle">این‌ها کالاها و خدمات ویترین فروشگاه‌ها هستند؛ برای خرید، حضوری به فروشگاه مراجعه کن.</p>
         </div>
         <span class="results-count" id="resultsCount">در حال بارگذاری…</span>
-      </div>
-      <div class="market-location-bar" aria-label="شهر بازار فعال">
-        <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">همهٔ شهرها</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
-        <div class="market-location-actions"><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
-        <p class="market-privacy-note">موقعیت مکانی فقط پس از انتخاب شما درخواست می‌شود.</p>
       </div>
       <form class="search-panel listings-search" id="searchForm" role="search">
         <label class="search-field">
