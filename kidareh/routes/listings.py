@@ -190,8 +190,10 @@ def listings():
                 fallback_sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
                 fallback_params.extend([term, term, term])
                 if category and category != "all":
-                    fallback_sql += " AND category = ?"
-                    fallback_params.append(category)
+                    category_ids = list(dict.fromkeys([category, *CATEGORY_GROUPS.get(category, [])]))
+                    placeholders = ",".join("?" for _ in category_ids)
+                    fallback_sql += " AND category IN (" + placeholders + ")"
+                    fallback_params.extend(category_ids)
                 if city and city != "همه شهرها":
                     fallback_sql += " AND city = ?"
                     fallback_params.append(city)
