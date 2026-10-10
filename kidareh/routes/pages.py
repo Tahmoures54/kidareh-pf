@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, session
 from urllib.parse import urljoin
 import uuid
 from ..core import CATEGORIES, get_connection
+from ..data_catalog import CATEGORY_TREE, TRADE_GROUPS
 
 bp = Blueprint("pages", __name__)
 
@@ -10,13 +11,16 @@ bp = Blueprint("pages", __name__)
 def home():
     if not session.get("csrf_token"):
         session["csrf_token"] = uuid.uuid4().hex
-    return render_template("index.html", categories=CATEGORIES, csrf_token=session["csrf_token"])
+    return render_template("index.html", categories=CATEGORIES, category_tree=CATEGORY_TREE, trade_groups=TRADE_GROUPS, csrf_token=session["csrf_token"])
 
 
 def render_marketplace_page(template: str, **context):
     """Render a standalone marketplace page with the session CSRF token."""
     if not session.get("csrf_token"):
         session["csrf_token"] = uuid.uuid4().hex
+    context.setdefault("categories", CATEGORIES)
+    context.setdefault("category_tree", CATEGORY_TREE)
+    context.setdefault("trade_groups", TRADE_GROUPS)
     return render_template(template, csrf_token=session["csrf_token"], **context)
 
 
