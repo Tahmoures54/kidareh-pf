@@ -338,6 +338,7 @@ def initialize_database() -> None:
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
     item["featured"] = bool(item["featured"])
+    item["category_name"] = CATEGORY_LABELS.get(item.get("category"), item.get("category", ""))
     item.pop("password_hash", None)
     if not include_contact:
         item.pop("seller_phone", None)
