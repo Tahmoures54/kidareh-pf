@@ -276,3 +276,22 @@ def auth_logout():
         return jsonify({"error": "csrf_failed"}), 400
     session.clear()
     return jsonify({"ok": True})
+
+
+@bp.post("/profile")
+def update_profile():
+    """Update the signed-in user's basic profile without changing verified identity."""
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "ابتدا وارد حساب شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
+    payload = request.get_json(silent=True) or {}
+    name = payload.get("name", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        return jsonify({"error": "invalid_name", "message": "نام و نام خانوادگی را وارد کنید."}), 400
+    name = name.strip()
+    with get_connection() as connection:
+        connection.execute("UPDATE users SET name = ? WHERE id = ?", (name, user["id"]))
+        row = connection.execute("SELECT id, name, phone, role FROM users WHERE id = ?", (user["id"],)).fetchone()
+    return jsonify({"ok": True, "user": dict(row)})
