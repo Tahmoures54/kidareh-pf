@@ -159,11 +159,28 @@ def verify_otp():
                 "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
                 (datetime.now(timezone.utc).isoformat(), accepted_at or "", user["id"]),
             )
+        elif session.get("otp_register_intent"):
+            role = session.get("otp_registration_role", "seller")
+            default_name = "فروشگاه‌دار" if role == "seller" else "خریدار"
+            try:
+                cursor = connection.execute(
+                    "INSERT INTO users (name, phone, password_hash, role, phone_verified_at, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (default_name, phone, generate_password_hash(secrets.token_urlsafe(32)), role, datetime.now(timezone.utc).isoformat(), accepted_at or ""),
+                )
+                created_user = True
+                user = connection.execute(
+                    "SELECT id, name, phone, role, is_banned FROM users WHERE id = ?", (cursor.lastrowid,)
+                ).fetchone()
+            except sqlite3.IntegrityError:
+                user = connection.execute(
+                    "SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?", (phone,)
+                ).fetchone()
+                created_user = False
     if user:
         session.clear()
         session["user_id"] = user["id"]
         session["csrf_token"] = uuid.uuid4().hex
-        return jsonify({"existing_user": True, "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
+        return jsonify({"existing_user": True, "new_user": bool(locals().get("created_user", False)), "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
     session["verified_phone"] = phone
     session["verified_terms_accepted_at"] = accepted_at
     session.pop("otp_hash", None)
