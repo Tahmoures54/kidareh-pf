@@ -162,7 +162,7 @@
   if ("serviceWorker" in navigator &&
       (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/static/sw.js", { updateViaCache: "none" })
+      navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
         .then(registration => registration.update())
         .catch(() => {
           // The site remains usable when service-worker installation is unavailable.
