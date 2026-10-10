@@ -15,7 +15,7 @@
     if (previous) clearTimeout(previous);
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch("/api/locations?q=" + encodeURIComponent(query), {
+        const response = await fetch("/api/locations?kind=city&q=" + encodeURIComponent(query), {
           credentials: "same-origin",
           headers: { "Accept": "application/json" }
         });
@@ -25,7 +25,7 @@
         list.replaceChildren(...(result.items || []).map((item) => {
           const option = document.createElement("option");
           option.value = item.name;
-          option.label = [item.type === "village" ? "روستا" : "شهر", item.province, item.county].filter(Boolean).join(" · ");
+          option.label = [item.province, item.county].filter(Boolean).join(" · ");
           return option;
         }));
       } catch (_) {
