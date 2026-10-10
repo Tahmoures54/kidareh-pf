@@ -48,3 +48,23 @@ def test_upload_endpoint_rejects_unapproved_extension(tmp_path):
     response = app.test_client().get("/static/uploads/payload.exe")
 
     assert response.status_code == 404
+
+
+def test_production_rejects_default_secret_key(monkeypatch):
+    monkeypatch.setenv("FLASK_ENV", "production")
+    monkeypatch.delenv("LIARA_APP_ID", raising=False)
+    monkeypatch.delenv("ENV", raising=False)
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+
+    import pytest
+
+    with pytest.raises(RuntimeError, match="SECRET_KEY must be set"):
+        create_app()
+
+
+def test_production_enables_secure_session_cookie(monkeypatch, tmp_path):
+    monkeypatch.setenv("FLASK_ENV", "production")
+    monkeypatch.setenv("SECRET_KEY", "production-test-secret-key")
+    app, _, _ = make_app(tmp_path)
+
+    assert app.config["SESSION_COOKIE_SECURE"] is True
