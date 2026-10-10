@@ -45,3 +45,4 @@ for legacy_id, groups in LEGACY_CATEGORY_GROUPS.items():
     for group_id in groups:
         CATEGORY_GROUPS.setdefault(legacy_id, [])
         CATEGORY_GROUPS[legacy_id].extend(CATEGORY_GROUPS.get(group_id, []))
+        CATEGORY_GROUPS.setdefault(group_id, []).append(legacy_id)
