@@ -10,7 +10,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "kidareh" / "data" / "villages.json.gz"
+OUTPUT = ROOT / "kidareh" / "data" / "iran-villages-data.json.gz"
 SOURCE = (
     "https://raw.githubusercontent.com/sajaddp/list-of-cities-in-Iran/"
     "ace21bb251f96ced350bbc01541acffd71121feb/dist/json/villages.json"
