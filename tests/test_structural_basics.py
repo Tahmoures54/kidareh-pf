@@ -91,7 +91,19 @@ def test_database_initialization_is_repeatable_and_uses_app_config(monkeypatch, 
                     "SELECT name FROM sqlite_master WHERE type = 'table'"
                 )
             }
-            assert {"users", "stores", "listings", "saved_products"} <= tables
+            assert {
+                "users",
+                "stores",
+                "listings",
+                "saved_products",
+                "conversations",
+                "conversation_messages",
+                "support_tickets",
+                "support_messages",
+                "monetization_orders",
+                "store_promotions",
+                "listing_tags",
+            } <= tables
             assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
 
     assert database_path.exists()

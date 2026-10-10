@@ -337,6 +337,12 @@ def initialize_database() -> None:
         _ensure_performance_indexes(connection)
         _ensure_listings_fts(connection)
 
+    # Prepare feature tables before the server starts accepting user requests.
+    # The feature initializers are idempotent and preserve existing data.
+    from .schema_init import initialize_feature_schemas
+
+    initialize_feature_schemas()
+
 
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
