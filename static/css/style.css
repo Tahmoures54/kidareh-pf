@@ -233,3 +233,21 @@ h1, h2, h3, p { margin-top: 0; }
   .listings-search .category-field { grid-column: 1 / -1; min-height: 40px; border-top: 1px solid #E2E8F0; flex-basis: auto; }
   .listings-search .button-search { grid-column: 1 / -1; grid-row: auto; }
 }
+
+
+/* City selector lives with market identity, not inside search */
+.market-location-bar { align-items: center; }
+.market-city-picker { display: flex; align-items: center; gap: 10px; min-width: 190px; padding: 8px 12px; border: 1px solid #B8DDE5; border-radius: 11px; background: #fff; }
+.market-city-picker-label { flex-shrink: 0; color: #64748B; font-size: 11px; }
+.market-city-picker input { width: 100%; min-width: 90px; border: 0; outline: 0; background: transparent; color: #0F172A; font: inherit; font-size: 13px; font-weight: 700; }
+.market-city-picker:focus-within { border-color: #0891B2; box-shadow: 0 0 0 3px #0891B21A; }
+.market-section-title { display: inline-flex; align-items: center; gap: 8px; padding-inline: 3px; animation: marketTitleGlow 3.2s ease-in-out infinite; }
+.market-section-title::before { content: ''; width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: #0EA5A4; box-shadow: 0 0 0 0 #0EA5A455; animation: marketDotPulse 2s ease-out infinite; }
+@keyframes marketTitleGlow { 0%,100% { text-shadow: 0 0 0 rgba(8,145,178,0); } 50% { text-shadow: 0 0 15px rgba(8,145,178,.22); } }
+@keyframes marketDotPulse { 0% { box-shadow: 0 0 0 0 #0EA5A455; } 70% { box-shadow: 0 0 0 8px #0EA5A400; } 100% { box-shadow: 0 0 0 0 #0EA5A400; } }
+@media (prefers-reduced-motion: reduce) { .market-section-title, .market-section-title::before { animation: none !important; } }
+@media (max-width: 700px) {
+  .market-city-picker { width: 100%; min-width: 0; }
+  .market-location-actions { grid-template-columns: 1fr; }
+  .market-section-title { font-size: 22px; }
+}
