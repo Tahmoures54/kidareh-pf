@@ -401,11 +401,16 @@
         };
         throw new Error(data.message || messages[data.error] || "ثبت کالا انجام نشد؛ اطلاعات را بررسی کنید.");
       }
+      const createdCity = listingForm.elements.city?.value.trim() || "";
       listingForm.reset();
       clearImagePreview();
       listingForm.hidden = true;
       const loginNotice = listingForm.querySelector("#listingLoginNotice");
       loginNotice?.remove();
+      if (citySelect && createdCity) {
+        citySelect.value = createdCity;
+        saveMarketCity();
+      }
       showToast("کالا با موفقیت ثبت شد.", "success");
       userCoords = null;
       await loadListings();
