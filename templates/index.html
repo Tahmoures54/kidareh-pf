@@ -1,3 +1,4 @@
+{% from "macros/category_options.html" import category_options %}
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -138,9 +139,7 @@
           <span class="field-icon" aria-hidden="true">▦</span>
           <select id="categorySelect" aria-label="انتخاب دسته‌بندی">
             <option value="all">همهٔ دسته‌بندی‌ها</option>
-            {% for group in category_tree %}
-            <optgroup label="{{ group.group }}"><option value="{{ group.id }}">{{ group.group }} — همه</option>{% for item in group.types %}<option value="{{ item.value }}">{{ item.text }}</option>{% endfor %}</optgroup>
-            {% endfor %}
+            {{ category_options(category_tree) }}
           </select>
         </label>
         <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
@@ -163,7 +162,7 @@
       <form class="listing-submit-form" id="listingSubmitForm" hidden>
         <div class="tag-selling-prompt"><span class="tag-prompt-icon">✦</span><div><strong>کالایت رایگان منتشر می‌شود؛ می‌خواهی بیشتر به چشم بیاید؟</strong><p>بعد از ثبت کالا می‌توانی تگ‌هایی مثل «حراج» یا «فروش ویژه» بخری. این کار اختیاری است و انتشار رایگان را متوقف نمی‌کند.</p><a href="/seller/tags">دیدن تگ‌های کالا و قیمت‌ها ←</a></div></div>
         <label>عنوان آگهی<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
-        <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for group in category_tree %}<optgroup label="{{ group.group }}">{% for item in group.types %}<option value="{{ item.value }}">{{ item.text }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
+        <label>دسته‌بندی<select name="category" required>{{ category_options(category_tree, include_empty=true, empty_label="انتخاب دسته‌بندی") }}</select></label>
         <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا"></label>
         <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
         <label>شماره همراه فروشنده (اختیاری)<input name="seller_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="مثلاً 09123456789" aria-describedby="sellerPhoneHelp"></label>
