@@ -103,7 +103,7 @@
         <div class="seller-empty-hint">فقط نام فروشگاه و شهر را وارد کن؛ بعد از ساخت ویترین می‌توانی کالاهایت را اضافه کنی.</div>
         <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
         <label>صنف فروشگاه<select name="category" aria-label="صنف فروشگاه">{{ category_options(category_tree, include_empty=true, empty_label="انتخاب صنف (اختیاری)") }}</select></label>
-        <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا"></label>
+        <label>شهر<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="نام شهر را جست‌وجو کنید"></label>
         <label>درباره فروشگاه (اختیاری)<textarea name="description" rows="3" maxlength="500" placeholder="چه کالاهایی ارائه می‌کنی؟"></textarea></label>
         <button class="button button-primary" type="submit">ساخت ویترین من</button>
       </form>
