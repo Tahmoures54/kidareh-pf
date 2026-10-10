@@ -102,10 +102,11 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
     assert 'id="citySelect"' not in html[html.index('id="searchForm"'):html.index('</form>', html.index('id="searchForm"'))]
     assert "کالاها و خدمات معرفی‌شده" not in html
     assert 'id="categorySelect"' in html
-    assert 'id="findMyLocationButton"' in html
+    assert 'id="findMyLocationButton"' not in html
     assert 'id="nearbyListingsButton"' in html
+    assert 'id="nearbyListingsButton"' in html[html.index('id="searchForm"'):html.index('</form>', html.index('id="searchForm"'))]
+    assert 'class="market-location-bar"' not in html
     assert 'class="category-grid"' not in html
-    assert "شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود" in html
 
 
 def test_homepage_geolocation_is_click_driven_and_uses_api_longitude_parameter():
@@ -194,7 +195,8 @@ def test_homepage_uses_compact_accessible_message_ticker_instead_of_large_promo_
     assert 'id="marketTicker"' in html
     assert 'id="marketTickerMessage" aria-live="polite"' in html
     assert 'id="marketTickerLink"' in html
-    assert html.index('id="marketTicker"') < html.index('class="market-location-bar"')
+    assert html.index('id="marketTicker"') < html.index('id="marketCityCombobox"')
+    assert 'class="market-location-bar"' not in html
     assert 'id="promoBanner"' not in html
     assert 'class="promo-banner-slide"' not in html
 
