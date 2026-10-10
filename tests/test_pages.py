@@ -105,7 +105,7 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
     assert 'id="findMyLocationButton"' in html
     assert 'id="nearbyListingsButton"' in html
     assert 'class="category-grid"' not in html
-    assert "موقعیت مکانی فقط پس از انتخاب شما درخواست می‌شود" in html
+    assert "شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود" in html
 
 
 def test_homepage_geolocation_is_click_driven_and_uses_api_longitude_parameter():
