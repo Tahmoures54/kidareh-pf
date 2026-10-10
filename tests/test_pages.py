@@ -95,7 +95,7 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
 
     assert response.status_code == 200
     assert 'id="activeMarketCity"' in html
-    assert html.index('id="activeMarketCity"') < html.index('id="promoBanner"')
+    assert html.index('id="marketTicker"') < html.index('id="activeMarketCity"')
     assert 'id="citySelect"' in html
     assert 'value="تهران"' in html
     assert 'id="marketListingsTitle">بازار تهران</h2>' in html
@@ -182,3 +182,25 @@ def test_category_options_are_shared_across_home_search_seller_and_registration(
         assert all(marker in html for marker in markers), path
         assert 'value="food"' in html, path
         assert 'value="fresh_produce"' in html, path
+
+
+def test_homepage_uses_compact_accessible_message_ticker_instead_of_large_promo_carousel(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "compact-ticker.sqlite3")
+    app_module.initialize_database()
+    response = app_module.app.test_client().get("/")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="marketTicker"' in html
+    assert 'id="marketTickerMessage" aria-live="polite"' in html
+    assert 'id="marketTickerLink"' in html
+    assert html.index('id="marketTicker"') < html.index('class="market-location-bar"')
+    assert 'id="promoBanner"' not in html
+    assert 'class="promo-banner-slide"' not in html
+
+    from pathlib import Path
+    script = Path(app_module.BASE_DIR / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    assert "initMarketTicker" in script
+    assert "setInterval(() => show(index + 1), 5000)" in script
+    assert 'prefers-reduced-motion: reduce' in script
+    assert 'root.addEventListener("mouseenter", stop)' in script
