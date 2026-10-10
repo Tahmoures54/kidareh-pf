@@ -76,7 +76,6 @@ def list_conversations():
     user, error = require_user()
     if error:
         return error
-    ensure_tables()
     with get_connection() as db:
         rows = db.execute("""
             SELECT c.id, c.listing_id, l.title AS listing_title,
@@ -106,7 +105,6 @@ def start_conversation():
     listing_id = payload.get("listing_id")
     if not isinstance(listing_id, int) or listing_id < 1:
         return jsonify({"error": "invalid_listing"}), 400
-    ensure_tables()
     with get_connection() as db:
         listing = db.execute("SELECT id, title, owner_id, store_id FROM listings WHERE id=?", (listing_id,)).fetchone()
         if not listing:
@@ -129,7 +127,6 @@ def conversation_messages(conversation_id):
     user, error = require_user()
     if error:
         return error
-    ensure_tables()
     with get_connection() as db:
         thread = db.execute("SELECT * FROM conversations WHERE id=? AND (buyer_id=? OR seller_id=?)", (conversation_id, user["id"], user["id"])).fetchone()
         if not thread:
@@ -151,7 +148,6 @@ def send_conversation_message(conversation_id):
     body = payload.get("body")
     if not isinstance(body, str) or not body.strip() or len(body.strip()) > 2000:
         return jsonify({"error": "invalid_message", "message": "پیام باید بین ۱ تا ۲۰۰۰ نویسه باشد."}), 400
-    ensure_tables()
     with get_connection() as db:
         thread = db.execute("SELECT * FROM conversations WHERE id=? AND (buyer_id=? OR seller_id=?)", (conversation_id, user["id"], user["id"])).fetchone()
         if not thread:
@@ -167,7 +163,6 @@ def support_list():
     user, error = require_user()
     if error:
         return error
-    ensure_tables()
     with get_connection() as db:
         rows = db.execute("""SELECT t.*,
           (SELECT body FROM support_messages m WHERE m.ticket_id=t.id ORDER BY m.id DESC LIMIT 1) AS last_message,
@@ -192,7 +187,6 @@ def support_create():
         return jsonify({"error": "invalid_message", "message": "شرح درخواست باید بین ۱۰ تا ۴۰۰۰ نویسه باشد."}), 400
     if category not in {"general", "account", "listing", "payment", "technical", "other"}:
         return jsonify({"error": "invalid_category"}), 400
-    ensure_tables()
     with get_connection() as db:
         recent = db.execute("SELECT COUNT(*) FROM support_tickets WHERE user_id=? AND created_at>=datetime('now','-1 day')", (user["id"],)).fetchone()[0]
         if recent >= 10:
@@ -207,7 +201,6 @@ def support_detail(ticket_id):
     user, error = require_user()
     if error:
         return error
-    ensure_tables()
     with get_connection() as db:
         ticket = db.execute("SELECT * FROM support_tickets WHERE id=?", (ticket_id,)).fetchone()
         if not ticket:
@@ -229,7 +222,6 @@ def support_reply(ticket_id):
     body = payload.get("body")
     if not isinstance(body, str) or not 1 <= len(body.strip()) <= 4000:
         return jsonify({"error": "invalid_message", "message": "پاسخ باید حداکثر ۴۰۰۰ نویسه باشد."}), 400
-    ensure_tables()
     with get_connection() as db:
         ticket = db.execute("SELECT * FROM support_tickets WHERE id=?", (ticket_id,)).fetchone()
         if not ticket:
@@ -252,9 +244,7 @@ def admin_dashboard():
         return error
     if not is_admin(user):
         return jsonify({"error": "admin_required"}), 403
-    ensure_tables()
     with get_connection() as db:
-        ensure_admin_schema(db)
         counts = {
             "users": db.execute("SELECT COUNT(*) FROM users").fetchone()[0],
             "buyers": db.execute("SELECT COUNT(*) FROM users WHERE role='buyer'").fetchone()[0],
@@ -291,9 +281,7 @@ def admin_update_user(user_id):
     payload = request.get_json(silent=True) or {}
     if "is_banned" not in payload or not isinstance(payload["is_banned"], bool):
         return jsonify({"error": "invalid_user_update"}), 400
-    ensure_tables()
     with get_connection() as db:
-        ensure_admin_schema(db)
         target = db.execute("SELECT id,phone FROM users WHERE id=?", (user_id,)).fetchone()
         if not target:
             return jsonify({"error": "user_not_found"}), 404
@@ -316,7 +304,6 @@ def admin_update_ticket(ticket_id):
     status = payload.get("status")
     if status not in {"open", "in_progress", "answered", "closed"}:
         return jsonify({"error": "invalid_status"}), 400
-    ensure_tables()
     with get_connection() as db:
         if not db.execute("SELECT id FROM support_tickets WHERE id=?", (ticket_id,)).fetchone():
             return jsonify({"error": "ticket_not_found"}), 404

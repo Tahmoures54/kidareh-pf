@@ -112,7 +112,6 @@ def my_listings_for_tags():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required"}), 401
-    ensure_tables()
     now = datetime.now(timezone.utc).isoformat()
     with get_connection() as db:
         rows = db.execute(
@@ -130,7 +129,6 @@ def my_orders():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required"}), 401
-    ensure_tables()
     with get_connection() as db:
         rows = db.execute("SELECT id, package_id, amount_toman, status, created_at, paid_at FROM monetization_orders WHERE user_id=? ORDER BY id DESC LIMIT 30", (user["id"],)).fetchall()
     return jsonify({"items": [dict(r) for r in rows]})
@@ -142,7 +140,6 @@ def create_order():
         return jsonify({"error": "authentication_required", "message": "برای خرید بسته وارد حساب فروشنده شوید."}), 401
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
-    ensure_tables()
     payload = request.get_json(silent=True) or {}
     all_packages = PACKAGES + TAG_PACKAGES
     package = next((p for p in all_packages if p["id"] == payload.get("package_id")), None)
@@ -202,7 +199,6 @@ def create_order():
 
 @bp.get("/monetization/callback")
 def payment_callback():
-    ensure_tables()
     order_id = request.args.get("order_id", type=int)
     track_id = (request.args.get("trackId") or request.args.get("trackid") or "").strip()
     success = request.args.get("success")
@@ -276,7 +272,6 @@ def monetization_status():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required"}), 401
-    ensure_tables()
     with get_connection() as db:
         store = db.execute("SELECT id, badge_until FROM stores WHERE owner_id=?", (user["id"],)).fetchone()
         promos = db.execute("SELECT package_id, ends_at FROM store_promotions WHERE user_id=? AND status='active' AND ends_at>CURRENT_TIMESTAMP ORDER BY ends_at DESC", (user["id"],)).fetchall()
@@ -285,7 +280,6 @@ def monetization_status():
 
 @bp.get("/api/monetization/sponsored")
 def sponsored_stores():
-    ensure_tables()
     city = request.args.get("city", "").strip()[:60]
     now = datetime.now(timezone.utc).isoformat()
     promo_ids = ("market_story_1d", "market_story_7d", "homepage_banner_7d", "visibility_bundle_7d")
