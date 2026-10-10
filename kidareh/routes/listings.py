@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
-from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS
+from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS, get_villages
 
 bp = Blueprint("listings", __name__)
 
@@ -73,16 +73,44 @@ def categories():
 
 @bp.get("/api/locations")
 def locations():
-    """Search the versioned Iranian city directory without sending the full dataset to every visitor."""
+    """Search all bundled cities and villages without sending the directory to every visitor."""
     query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
+    kind = request.args.get("kind", "all").strip().lower()
     if len(query) < 2:
         return jsonify({"items": []})
-    items = [
-        {"id": item["id"], "name": item["name"], "province_id": item["province_id"], "county_id": item["county_id"]}
-        for item in IRAN_LOCATIONS["cities"]
-        if query in item["name"].replace("ي", "ی").replace("ك", "ک")
-    ][:25]
-    return jsonify({"items": items, "count": len(items), "source_year": IRAN_LOCATIONS["source_year"]})
+    provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
+    counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
+    candidates = []
+    if kind in {"all", "city"}:
+        for item in IRAN_LOCATIONS["cities"]:
+            name = item["name"].replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item["id"], "name": item["name"], "type": "city",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": counties.get(item["county_id"], ""),
+                })
+    if kind in {"all", "village"}:
+        for item in get_villages():
+            name = item.get("name", "").replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item.get("id"), "name": item.get("name", ""), "type": "village",
+                    "province": provinces.get(item.get("province_id"), ""),
+                    "county": counties.get(item.get("county_id"), ""),
+                })
+    candidates.sort(key=lambda item: (not item["name"].replace("ي", "ی").replace("ك", "ک").startswith(query), item["type"] != "city", item["name"]))
+    seen, items = set(), []
+    for item in candidates:
+        key = (item["name"], item["type"], item["province"], item["county"])
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+        if len(items) >= 25:
+            break
+    return jsonify({"items": items, "count": len(items), "source_year": IRAN_LOCATIONS["source_year"],
+                    "villages_available": bool(get_villages())})
 
 
 @bp.get("/api/trades")
