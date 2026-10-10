@@ -4,7 +4,8 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
-from .core import BASE_DIR, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
+from .core import BASE_DIR, CATEGORIES, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
+from .data_catalog import CATEGORY_TREE, TRADE_GROUPS
 
 _DEFAULT_SECRET = "dev-only-change-this-key"
 
@@ -92,6 +93,6 @@ def create_app(test_config=None):
         if request.path.startswith("/api/"):
             return jsonify({"error": "not_found"}), 404
         from .core import CATEGORIES
-        return render_template("index.html", categories=CATEGORIES), 404
+        return render_template("index.html", categories=CATEGORIES, category_tree=CATEGORY_TREE, trade_groups=TRADE_GROUPS), 404
 
     return app
