@@ -76,6 +76,8 @@ def locations():
     """Search cities, urban zones, and important administrative centers; villages are excluded."""
     query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
     kind = request.args.get("kind", "city").strip().lower()
+    if kind == "village":
+        return jsonify({"items": [], "count": 0})
     if kind not in {"city", "point"}:
         kind = "city"
     provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
