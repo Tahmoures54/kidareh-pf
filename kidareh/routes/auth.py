@@ -82,6 +82,10 @@ def request_otp():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     payload = request.get_json(silent=True) or {}
     phone = _normalize_phone(payload.get("phone"))
+    register_intent = payload.get("registering") is True
+    requested_role = payload.get("role", "seller")
+    if requested_role not in {"buyer", "seller"}:
+        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
     if not phone:
         return jsonify({"error": "invalid_phone", "message": "شماره همراه باید مانند 09123456789 باشد."}), 400
     answer = payload.get("captcha_answer", "")
@@ -120,10 +124,6 @@ def request_otp():
     session["otp_last_sent_at"] = time.time()
     session["otp_terms_accepted_at"] = datetime.now(timezone.utc).isoformat()
     session["otp_existing_user"] = exists
-    register_intent = payload.get("registering") is True
-    requested_role = payload.get("role", "seller")
-    if requested_role not in {"buyer", "seller"}:
-        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
     session["otp_register_intent"] = register_intent
     session["otp_registration_role"] = requested_role if register_intent else None
     result = {"ok": True, "message": "کد تأیید ارسال شد.", "expires_in": 300}
