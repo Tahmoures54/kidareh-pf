@@ -98,6 +98,10 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
     assert html.index('id="activeMarketCity"') < html.index('id="promoBanner"')
     assert 'id="changeMarketCityButton"' in html
     assert 'id="citySelect"' in html
+    assert 'value="تهران"' in html
+    assert 'id="marketListingsTitle">بازار تهران</h2>' in html
+    assert 'id="citySelect"' not in html[html.index('id="searchForm"'):html.index('</form>', html.index('id="searchForm"'))]
+    assert "کالاها و خدمات معرفی‌شده" not in html
     assert 'id="categorySelect"' in html
     assert 'id="findMyLocationButton"' in html
     assert 'id="nearbyListingsButton"' in html
@@ -114,3 +118,12 @@ def test_homepage_geolocation_is_click_driven_and_uses_api_longitude_parameter()
     assert 'params.set("lon", String(userCoords.lng))' in script
     assert "getCurrentPosition(" in script
     assert 'searchForm.insertAdjacentElement("afterend", nearbyButton)' not in script
+
+
+def test_market_city_title_tracks_selected_city_and_defaults_to_tehran():
+    from pathlib import Path
+
+    script = Path(app_module.BASE_DIR / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    assert 'const city = citySelect?.value.trim() || "تهران"' in script
+    assert 'marketListingsTitle.textContent = "بازار " + city' in script
+    assert 'localStorage.getItem("kidareh.marketCity")' in script
