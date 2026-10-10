@@ -25,10 +25,19 @@
   </div>
 
   <header class="site-header">
-    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
-      <span class="brand-mark">ک</span>
-      <span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span>
-    </a>
+    <div class="brand-location-stack">
+      <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
+        <span class="brand-mark">ک</span>
+        <span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span>
+      </a>
+      <div class="market-city-picker header-city-picker" id="marketCityCombobox">
+        <label class="market-city-picker-label" for="citySelect">شهر</label>
+        <input id="citySelect" aria-label="انتخاب شهر یا روستا" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="marketCityOptions" value="تهران" autocomplete="off" placeholder="انتخاب شهر">
+        <button class="market-city-picker-toggle" id="toggleMarketCityPicker" type="button" aria-label="نمایش فهرست شهرها">⌄</button>
+        <div class="market-city-options" id="marketCityOptions" role="listbox" aria-label="شهرها و روستاهای ایران" hidden></div>
+      </div>
+      <span class="header-city-status" id="activeMarketCity">بازار تهران</span>
+    </div>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
       <a class="active" href="/">خانه</a>
       <a href="/search">جست‌وجوی کالا</a>
@@ -71,17 +80,6 @@
   </section>
 
   <datalist id="iranCityOptions"></datalist>
-  <section class="market-location-bar" aria-label="شهر بازار فعال">
-    <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">تهران</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
-    <div class="market-city-picker" id="marketCityCombobox">
-      <label class="market-city-picker-label" for="citySelect">شهر بازار</label>
-      <input id="citySelect" aria-label="انتخاب شهر یا روستا" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="marketCityOptions" value="تهران" autocomplete="off" placeholder="جست‌وجوی شهر یا روستا">
-      <button class="market-city-picker-toggle" id="toggleMarketCityPicker" type="button" aria-label="نمایش فهرست شهرها">⌄</button>
-      <div class="market-city-options" id="marketCityOptions" role="listbox" aria-label="شهرها و روستاهای ایران" hidden></div>
-    </div>
-    <div class="market-location-actions"><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
-    <p class="market-privacy-note">شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود.</p>
-  </section>
   <main id="main-content">
     <section class="section listings-section" id="listings">
       <div class="section-heading">
@@ -106,6 +104,7 @@
           </select>
         </label>
         <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
+        <button class="button button-outline nearby-search-button" id="nearbyListingsButton" type="button">⌖ کالاهای اطراف من</button>
       </form>
       <div class="popular-searches listings-popular">
         <span>جست‌وجوهای محبوب:</span>
