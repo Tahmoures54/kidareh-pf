@@ -34,7 +34,7 @@
     return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
   };
 
-  const categoryName = (id) => categoryNames[id] || id || "سایر";
+  const categoryName = (id, label) => label || categoryNames[id] || id || "سایر";
 
   function showToast(message) {
     if (!toast) return;
@@ -80,7 +80,7 @@
             ${item.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(item.paid_tag.type) + '">' + escapeHTML(item.paid_tag.label) + '</span>' : ""}
           </div>
           <div class="listing-body">
-            <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span>${item.distance_km != null ? `<span class="meta-dot"></span><span>${numberFormat.format(item.distance_km)} کیلومتر</span>` : ""}</div>
+            <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category, item.category_name))}</span>${item.distance_km != null ? `<span class="meta-dot"></span><span>${numberFormat.format(item.distance_km)} کیلومتر</span>` : ""}</div>
             <h3>${escapeHTML(item.title)}</h3>
             <p>${escapeHTML(item.description || "")}</p>
             <div class="listing-footer"><strong>${item.price ? numberFormat.format(item.price) + " تومان" : "توافقی"}</strong></div>
