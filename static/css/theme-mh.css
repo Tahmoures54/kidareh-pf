@@ -419,3 +419,46 @@ input:focus, textarea:focus, select:focus,
 @media (prefers-reduced-motion: reduce) {
   .promo-banner-slide { transition: none !important; }
 }
+
+
+/* Homepage refresh: storefront-first hierarchy and responsive polish */
+.promo-banners.hero {
+  margin-top: 22px;
+  border-radius: 24px !important;
+  border-color: rgba(8, 145, 178, 0.2) !important;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+}
+.promo-banners .promo-track { height: clamp(300px, 31vw, 360px); }
+.promo-banner-slide { padding: 2.25rem 4.5rem 3rem; }
+.promo-banner-inner { max-width: 720px; gap: 0.1rem; }
+.promo-banners h1 { font-size: clamp(2rem, 4.5vw, 3.35rem); line-height: 1.35; letter-spacing: -0.035em; }
+.promo-banners .promo-banner-inner p { max-width: 39rem; margin-bottom: 1.4rem; font-size: clamp(0.95rem, 1.4vw, 1.08rem); }
+.promo-banners .promo-badge { margin-bottom: 0.9rem; padding: 0.45rem 1rem; backdrop-filter: blur(10px); }
+.promo-cta-main, .promo-cta-ghost { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; }
+.promo-banners .promo-dots { bottom: 1rem; }
+.categories-section { margin-top: 38px !important; padding: 26px; border: 1px solid #E2E8F0; border-radius: 22px; background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); box-shadow: 0 12px 32px rgba(15, 23, 42, 0.045); }
+.categories-section .section-heading { margin-bottom: 20px; }
+.categories-section .section-heading h2, .listings-section .section-heading h2, .stores-section .section-heading h2 { letter-spacing: -0.035em; }
+.category-grid { grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; }
+.category-tile { min-height: 118px; border-radius: 16px; color: #334155; font-size: 0.9rem; box-shadow: 0 3px 12px rgba(15, 23, 42, 0.025); }
+.category-tile.active { background: #ECFEFF; border-color: #0891B2; color: #0E7490; box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1); transform: translateY(-2px); }
+.listings-section { margin-top: 42px !important; }
+.listings-section .section-heading { align-items: center; margin-bottom: 18px; }
+.listings-search { max-width: 100% !important; margin-bottom: 12px !important; padding: 8px !important; border-radius: 18px !important; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.055) !important; }
+.listings-popular { margin-bottom: 22px !important; }
+.listing-grid { gap: 18px; }
+.listing-card { border-radius: 18px; }
+.stores-section { margin-top: 62px !important; }
+.seller-banner { margin-top: 56px !important; border-radius: 24px !important; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12); }
+@media (max-width: 700px) {
+  .promo-banners.hero { margin-top: 12px; border-radius: 18px !important; }
+  .promo-banners .promo-track { height: 350px; }
+  .promo-banner-slide { padding: 1.5rem 2.65rem 3rem; }
+  .promo-banners h1 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+  .promo-banners .promo-banner-inner p { font-size: 0.92rem; line-height: 1.8; }
+  .categories-section { margin-top: 26px !important; padding: 18px 14px; border-radius: 18px; }
+  .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .category-tile { min-height: 105px; font-size: 0.82rem; }
+  .listings-section { margin-top: 32px !important; }
+  .listing-grid { gap: 10px; }
+}
