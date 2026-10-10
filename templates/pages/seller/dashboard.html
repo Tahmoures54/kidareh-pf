@@ -98,8 +98,7 @@
         <div><h2>ویترین فروشگاه</h2><p>اطلاعاتی که مشتری برای شناخت و پیدا کردن فروشگاهت می‌بیند.</p></div>
       </div>
       <div id="sellerStatus" class="status-panel">در حال بررسی حساب…</div>
-      <datalist id="iranCityOptions"></datalist>
-      <form id="storeCreateForm" class="stack-form" hidden>
+          <form id="storeCreateForm" class="stack-form" hidden>
         <div class="seller-empty-hint">فقط نام فروشگاه و شهر را وارد کن؛ بعد از ساخت ویترین می‌توانی کالاهایت را اضافه کنی.</div>
         <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
         <label>صنف فروشگاه<select name="category"><option value="">انتخاب صنف (اختیاری)</option>{% for group in trade_groups %}<optgroup label="{{ group.group }}">{% for item in group.items %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
