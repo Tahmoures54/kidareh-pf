@@ -144,7 +144,8 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     searched = client.get("/api/locations?kind=city&q=تهران")
     assert searched.status_code == 200
     assert any(item["name"] == "تهران" for item in searched.get_json()["items"])
-    assert all(item["type"] == "city" for item in searched.get_json()["items"])
+    assert any(item["type"] == "city" for item in searched.get_json()["items"])
+    assert all(item["type"] in {"city", "urban_zone", "important_point"} for item in searched.get_json()["items"])
 
     # Villages are intentionally excluded; practical urban areas and centers remain searchable.
     assert client.get("/api/locations?kind=village&q=تهران").get_json()["items"] == []
