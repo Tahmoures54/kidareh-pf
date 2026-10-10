@@ -14,6 +14,7 @@
   const feedback = document.querySelector("#authFeedback");
   const tokenMeta = document.querySelector('meta[name="csrf-token"]');
   const sellerDetails = document.querySelector("#sellerDetails");
+  const buyerDetails = document.querySelector("#buyerDetails");
   const stepsIndicator = document.querySelector(
     mode === "register" ? "#registerStepsIndicator" : "#loginStepsIndicator"
   );
@@ -110,6 +111,9 @@
     if (!sellerDetails) return;
     const isSeller = selectedRole() === "seller";
     sellerDetails.hidden = !isSeller;
+    if (buyerDetails) buyerDetails.hidden = isSeller;
+    const buyerCity = form.elements.city;
+    if (buyerCity) buyerCity.required = !isSeller;
     ["store_name", "store_city"].forEach((name) => {
       const el = form.elements[name];
       if (el) el.required = isSeller;
@@ -200,6 +204,7 @@
         const payload = {
           name: (form.elements.name?.value || "").trim(),
           role,
+          city: (form.elements.city?.value || "").trim(),
           store_name: (form.elements.store_name?.value || "").trim(),
           store_category: (form.elements.store_category?.value || "").trim(),
           store_city: (form.elements.store_city?.value || "").trim(),
