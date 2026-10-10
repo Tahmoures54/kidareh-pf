@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
-from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS, get_villages
+from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS
 
 bp = Blueprint("listings", __name__)
 
@@ -73,17 +73,15 @@ def categories():
 
 @bp.get("/api/locations")
 def locations():
-    """Search canonical cities by default; villages are available only when explicitly requested."""
+    """Search cities, urban zones, and important administrative centers; villages are excluded."""
     query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
     kind = request.args.get("kind", "city").strip().lower()
-    if kind not in {"city", "village"}:
+    if kind not in {"city", "point"}:
         kind = "city"
     provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
     counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
     candidates = []
     if len(query) < 2:
-        # Populate the closed-by-default combobox with familiar choices from the
-        # canonical Iranian city directory. Full city/village search stays server-side.
         if query or kind != "city":
             return jsonify({"items": []})
         popular_names = [
@@ -113,16 +111,46 @@ def locations():
                     "province": provinces.get(item["province_id"], ""),
                     "county": counties.get(item["county_id"], ""),
                 })
-    if kind == "village":
-        for item in get_villages():
-            name = item.get("name", "").replace("ي", "ی").replace("ك", "ک")
+        for item in IRAN_LOCATIONS.get("urban_zones", []):
+            name = item["name"].replace("ي", "ی").replace("ك", "ک")
             if query in name:
                 candidates.append({
-                    "id": item.get("id"), "name": item.get("name", ""), "type": "village",
-                    "province": provinces.get(item.get("province_id"), ""),
-                    "county": counties.get(item.get("county_id"), ""),
+                    "id": item["id"], "name": item["name"], "type": "urban_zone",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": counties.get(item["county_id"], ""),
+                    "parent_city_id": item.get("city_id"),
                 })
-    candidates.sort(key=lambda item: (not item["name"].replace("ي", "ی").replace("ك", "ک").startswith(query), item["type"] != "city", item["name"]))
+        for item in IRAN_LOCATIONS.get("county_centers", []):
+            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item["county_id"], "name": item["center_name"], "type": "important_point",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": item["county_name"],
+                })
+    else:
+        for item in IRAN_LOCATIONS.get("county_centers", []):
+            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item["county_id"], "name": item["center_name"], "type": "important_point",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": item["county_name"],
+                    "latitude": item.get("latitude"), "longitude": item.get("longitude"),
+                })
+        for item in IRAN_LOCATIONS.get("province_capitals", []):
+            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item["province_id"], "name": item["center_name"], "type": "province_capital",
+                    "province": item["province_name"], "county": "",
+                    "latitude": item.get("latitude"), "longitude": item.get("longitude"),
+                })
+    candidates.sort(key=lambda item: (
+        not item["name"].replace("ي", "ی").replace("ك", "ک").startswith(query),
+        {"city": 0, "urban_zone": 1, "important_point": 2, "province_capital": 3}.get(item["type"], 4),
+        item["name"],
+    ))
     seen, items = set(), []
     for item in candidates:
         key = (item["name"], item["type"], item["province"], item["county"])
@@ -132,8 +160,13 @@ def locations():
         items.append(item)
         if len(items) >= 25:
             break
-    return jsonify({"items": items, "count": len(items), "source_year": IRAN_LOCATIONS["source_year"],
-                    "villages_available": bool(get_villages())})
+    return jsonify({
+        "items": items,
+        "count": len(items),
+        "source_year": IRAN_LOCATIONS["source_year"],
+        "urban_zones_available": len(IRAN_LOCATIONS.get("urban_zones", [])),
+        "important_points_available": len(IRAN_LOCATIONS.get("county_centers", [])),
+    })
 
 
 @bp.get("/api/trades")
