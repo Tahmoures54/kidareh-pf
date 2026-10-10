@@ -28,7 +28,11 @@
   {% block head %}{% endblock %}
 </head>
 <body class="inner-page">
-  <div class="announcement">ویترینت را آنلاین کن — منتظر نمان؛ مشتری را به فروشگاهت بکش</div>
+  <div class="market-ticker" id="marketTicker" aria-label="پیام‌های راهنمای کی‌داره">
+    <span class="market-ticker-mark" aria-hidden="true">✦</span>
+    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+    <a class="market-ticker-link" id="marketTickerLink" href="/#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
+  </div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی‌داره؟ حضوری بگیر!</small></span></a>
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
@@ -60,5 +64,51 @@
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
   {% block scripts %}{% endblock %}
+  <script>
+    (() => {
+      const root = document.getElementById("marketTicker");
+      const message = document.getElementById("marketTickerMessage");
+      const link = document.getElementById("marketTickerLink");
+      if (!root || !message || !link) return;
+      const items = [
+        { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "/#listings" },
+        { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
+        { text: "دنبال کالای خاصی هستی؟ جست‌وجو و دسته‌بندی‌ها کمکت می‌کنند زودتر پیدایش کنی.", label: "جست‌وجو", href: "/search" },
+        { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
+        { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "/#marketCityCombobox" }
+      ];
+      let index = 0;
+      let timer = null;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function show(next) {
+        index = (next + items.length) % items.length;
+        message.textContent = items[index].text;
+        link.href = items[index].href;
+        link.innerHTML = "";
+        link.append(document.createTextNode(items[index].label + " "));
+        const arrow = document.createElement("span");
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "←";
+        link.append(arrow);
+      }
+      function stop() {
+        if (timer !== null) window.clearInterval(timer);
+        timer = null;
+      }
+      function start() {
+        stop();
+        if (!reduceMotion && !document.hidden) timer = window.setInterval(() => show(index + 1), 5000);
+      }
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", start);
+      root.addEventListener("focusin", stop);
+      root.addEventListener("focusout", (event) => {
+        if (!root.contains(event.relatedTarget)) start();
+      });
+      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+      show(0);
+      start();
+    })();
+  </script>
 </body>
 </html>
