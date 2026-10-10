@@ -153,24 +153,6 @@
       <div class="center-action"><button class="button button-outline" id="showAllButton" type="button">نمایش همهٔ کالاها <span>←</span></button></div>
     </section>
 
-    <section class="trust-strip" aria-label="مزیت‌های کی‌داره">
-      <div><span class="trust-icon">⌖</span><span><b>کشف فروشگاه‌های محلی</b><small>ویترین فروشگاه‌های شهر</small></span></div>
-      <div><span class="trust-icon">⌕</span><span><b>سریع پیدا کن</b><small>محصولات و خدمات متنوع</small></span></div>
-      <div><span class="trust-icon">♡</span><span><b>بعد حضوری خرید کن</b><small>پیش از مراجعه انتخاب کن</small></span></div>
-    </section>
-
-    <section class="section stores-section" id="stores">
-      <div class="section-heading">
-        <div><span class="section-kicker">از محله تا شهر</span><h2>ویترین فروشگاه‌ها</h2><p class="section-subtitle">فروشگاه‌ها را کشف کن، محصولاتشان را ببین و برای خرید حضوری برنامه‌ریزی کن.</p></div>
-        <span class="results-count" id="storesCount">در حال بارگذاری…</span>
-      </div>
-      <div class="store-search-row">
-        <label class="store-search"><span aria-hidden="true">⌕</span><input id="storeSearchInput" type="search" placeholder="نام فروشگاه یا شهر را جست‌وجو کن…" autocomplete="off"></label>
-        <button class="button button-outline" id="showAllStores" type="button">همه فروشگاه‌ها</button>
-      </div>
-      <div class="store-grid" id="storeGrid" aria-live="polite"><div class="loading-card">ویترین‌ها در حال آماده‌شدن هستند…</div></div>
-    </section>
-
     <section class="seller-banner" id="how-it-works">
       <div class="seller-art" aria-hidden="true"><div class="seller-circle">＋</div><span class="seller-emoji">📦</span><span class="seller-spark">✦</span></div>
       <div class="seller-copy"><span class="section-kicker">صاحب فروشگاهی؟</span><h2>ویترینت را به مشتری‌های شهر نشان بده.</h2><p>فروشگاهت را معرفی کن و محصولات و خدماتت را در یک ویترین آنلاین در دسترس قرار بده.</p></div>
@@ -191,6 +173,14 @@
       </form>
     </section>
   </main>
+
+  <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
+    <a class="mobile-nav-item" href="/" aria-label="خانه"><span aria-hidden="true">⌂</span><small>خانه</small></a>
+    <a class="mobile-nav-item" href="/#listings" aria-label="کالاها"><span aria-hidden="true">▦</span><small>کالاها</small></a>
+    <a class="mobile-nav-item" href="/stores" aria-label="فروشگاه‌ها"><span aria-hidden="true">⌕</span><small>فروشگاه‌ها</small></a>
+    <a class="mobile-nav-item" href="/saved" aria-label="ذخیره‌ها"><span aria-hidden="true">♡</span><small>ذخیره‌ها</small></a>
+    <a class="mobile-nav-item" href="/seller" aria-label="ویترین من"><span aria-hidden="true">＋</span><small>ویترین من</small></a>
+  </nav>
 
   <footer class="site-footer">
     <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span></a>
