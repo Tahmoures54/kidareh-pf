@@ -244,7 +244,7 @@ def complete_profile():
     session.clear()
     session["user_id"] = user_id
     session["csrf_token"] = uuid.uuid4().hex
-    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role}, "store": store, "csrf_token": session["csrf_token"]})
+    return jsonify({"user": {"id": user_id, "name": name.strip(), "phone": phone, "role": role, "city": profile_city if role == "buyer" else values["city"]}, "store": store, "csrf_token": session["csrf_token"]})
 
 
 @bp.post("/signup")
