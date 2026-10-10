@@ -507,3 +507,33 @@ input:focus, textarea:focus, select:focus,
   body { padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
   .site-footer { margin-bottom: 10px; }
 }
+
+
+/* Mobile-first finishing pass: stable product cards, compact header and PWA install prompt. */
+.pwa-install-card[hidden] { display: none !important; }
+.pwa-install-card { position: fixed; z-index: 1100; inset-inline: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 12px; max-width: 560px; margin-inline: auto; padding: 13px; border: 1px solid rgba(8,145,178,.2); border-radius: 18px; background: rgba(255,255,255,.98); box-shadow: 0 18px 50px rgba(15,23,42,.2); backdrop-filter: blur(18px); }
+.pwa-install-icon { flex: 0 0 42px; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(145deg,#0891B2,#0E7490); color: white; font-size: 23px; font-weight: 800; }
+.pwa-install-copy { flex: 1; min-width: 0; } .pwa-install-copy strong { display: block; color: #0F172A; font-size: .88rem; } .pwa-install-copy p { margin: 3px 0 0; color: #64748B; font-size: .73rem; line-height: 1.6; }
+.pwa-install-action { min-height: 42px; padding-inline: 14px; }
+.pwa-install-close, .pwa-help-close { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 0; border-radius: 10px; background: #F1F5F9; color: #475569; font-size: 23px; }
+.pwa-install-help { width: min(92vw,420px); padding: 25px; border: 1px solid #E2E8F0; border-radius: 22px; color: #0F172A; text-align: right; box-shadow: 0 24px 70px rgba(15,23,42,.25); }
+.pwa-install-help::backdrop { background: rgba(15,23,42,.52); backdrop-filter: blur(3px); } .pwa-install-help .pwa-help-close { float: left; } .pwa-install-help .pwa-install-icon { margin: 8px 0 14px; } .pwa-install-help h2 { margin: 0 0 12px; font-size: 1.2rem; } .pwa-install-help p { color: #475569; font-size: .9rem; line-height: 1.9; } .pwa-install-help .pwa-help-done { width: 100%; margin-top: 5px; }
+@media (max-width: 760px) {
+  html { scroll-padding-top: 18px; } .announcement { padding: 5px 12px; text-align: center; line-height: 1.5; }
+  .site-header { width: calc(100% - 24px); height: 64px; gap: 6px; } .brand { gap: 7px; } .brand-mark { width: 35px; height: 35px; border-radius: 11px; font-size: 20px; } .brand-copy strong { font-size: 15px; } .brand-copy small { max-width: 125px; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .header-actions { flex: 0 0 auto; } .header-actions .button { min-height: 36px; padding-inline: 9px; font-size: 10px; } .header-actions a[href="/messages"], .header-actions a[href="/saved"] { display: none; }
+  .promo-banners .promo-track { height: 330px; } .promo-banner-slide { padding: 1.2rem 2.35rem 2.8rem; } .promo-banners h1 { font-size: clamp(1.65rem,7.2vw,2.2rem); line-height: 1.42; } .promo-banners .promo-banner-inner p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 4; margin-bottom: 1rem; font-size: .88rem; line-height: 1.75; }
+  .promo-cta-row { gap: 8px; } .promo-cta-main, .promo-cta-ghost { min-height: 42px; padding-inline: 10px; font-size: .76rem; }
+  .categories-section .section-heading { align-items: flex-start; gap: 8px; } .categories-section .section-heading h2, .listings-section .section-heading h2 { font-size: 1.18rem; } .categories-section .section-heading .text-link { flex-shrink: 0; font-size: .7rem; }
+  .listings-section .section-heading { align-items: flex-start; } .listings-section .section-subtitle { max-width: 38ch; font-size: .76rem; }
+  .listings-search { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; } .listings-search .search-field { grid-column: 1 / -1; min-height: 44px; } .listings-search .city-field { grid-column: 1; min-height: 42px; flex-basis: auto; } .listings-search .button-search { grid-column: 2; grid-row: 2; min-height: 42px; }
+  .listings-popular { gap: 6px; margin-bottom: 15px !important; } .listings-popular > span { width: 100%; } .listings-popular button { min-height: 34px; padding: 5px 12px; font-size: .76rem; }
+  .listing-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .listing-card { min-width: 0; border-radius: 14px; } .listing-image { height: auto; aspect-ratio: 1 / .82; } .listing-body, .listing-details { min-width: 0; padding: 10px; }
+  .listing-card h3, .listing-details h3 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-height: 2.8em; font-size: .82rem; line-height: 1.5; white-space: normal; }
+  .listing-card p, .listing-details p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-height: 0; margin-bottom: 9px; font-size: .72rem; line-height: 1.6; }
+  .listing-meta { flex-wrap: wrap; gap: 4px; font-size: .64rem; } .listing-footer { flex-wrap: wrap; padding-top: 8px; } .listing-footer strong { font-size: .76rem; overflow-wrap: anywhere; }
+  .seller-banner { width: calc(100% - 24px); margin-top: 36px !important; padding: 22px 18px; flex-wrap: wrap; gap: 14px; } .seller-art { flex-basis: 78px; width: 78px; height: 78px; } .seller-emoji { font-size: 38px; } .seller-copy h2 { font-size: 1.1rem; } .seller-actions { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; } .seller-actions .button { flex: 1 1 145px; white-space: normal; }
+  .pwa-install-card { inset-inline: 10px; bottom: calc(80px + env(safe-area-inset-bottom,0px)); gap: 8px; padding: 10px; border-radius: 15px; } .pwa-install-icon { flex-basis: 36px; width: 36px; height: 36px; font-size: 20px; } .pwa-install-copy strong { font-size: .76rem; } .pwa-install-copy p { font-size: .66rem; } .pwa-install-action { min-height: 38px; padding-inline: 10px; font-size: .72rem; }
+}
+@media (max-width: 390px) { .pwa-install-card { flex-wrap: wrap; } .pwa-install-copy { flex-basis: calc(100% - 92px); } .pwa-install-action { margin-inline-start: 48px; } .promo-banners .promo-track { height: 350px; } }
+@media (prefers-reduced-motion: reduce) { .mobile-nav-item, .listing-card, .button { transition: none !important; } }
