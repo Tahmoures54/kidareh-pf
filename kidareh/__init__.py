@@ -67,6 +67,20 @@ def create_app(test_config=None):
         response.headers["Cache-Control"] = "no-cache"
         return response
 
+    @app.after_request
+    def static_cache_headers(response):
+        """Cache static assets: fonts and icons for a week, CSS/JS revalidated every time.
+
+        CSS/JS files are not fingerprinted yet, so they must not be cached long; ETag
+        revalidation keeps them cheap (304) while still picking up new releases.
+        """
+        if request.path.startswith("/static/") and not request.path.startswith("/static/uploads/"):
+            if request.path.endswith((".woff2", ".png", ".svg", ".ico")):
+                response.headers["Cache-Control"] = "public, max-age=604800"
+            elif request.path.endswith((".css", ".js", ".webmanifest", ".html")):
+                response.headers["Cache-Control"] = "public, max-age=0, must-revalidate"
+        return response
+
     @app.get("/static/uploads/<path:filename>")
     def uploaded_image(filename):
         """Serve only files from the configured uploads directory.

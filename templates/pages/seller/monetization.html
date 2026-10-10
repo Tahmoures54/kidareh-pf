@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
      if (!response.ok) throw new Error(data.message || (data.error === "authentication_required" ? "ابتدا وارد حساب شوید." : "امکان شروع پرداخت وجود ندارد."));
      if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
      window.location.assign(data.redirect_url);
-   } catch (error) { say(error.message || "خطای ارتباط؛ دوباره تلاش کنید."); button.disabled = false; }
+   } catch (error) { say(error.message || "ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟"); button.disabled = false; }
  }));
  async function loadOrders() {
    try {

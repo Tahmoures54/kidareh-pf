@@ -283,3 +283,19 @@ def test_no_console_log_or_debug_true_in_shipped_code():
 def test_secret_key_is_read_from_environment():
     init = read("kidareh/__init__.py")
     assert 'os.environ.get("SECRET_KEY"' in init
+
+
+def test_static_cache_headers_split_long_cache_and_revalidation(client):
+    font = client.get("/static/fonts/Vazirmatn-Variable.woff2")
+    assert font.headers["Cache-Control"] == "public, max-age=604800"
+    script = client.get("/static/js/ui.js")
+    assert script.headers["Cache-Control"] == "public, max-age=0, must-revalidate"
+    assert "ETag" in script.headers or script.get_etag()[0] is not None
+
+
+def test_user_facing_messages_avoid_generic_error_copy():
+    for name in ("static/js/app.js", "static/js/seller.js", "static/js/auth.js", "static/js/auth-pages.js"):
+        text = read(name)
+        assert "خطایی رخ داد" not in text, name
+        assert '"خطا در دریافت کالاها"' not in text, name
+    assert "آگهی‌ات منتشر شد" in read("static/js/seller.js")

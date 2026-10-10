@@ -121,7 +121,7 @@
     try {
       const res = await fetch("/api/listings?" + params.toString());
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "خطا");
+      if (!res.ok) throw new Error(data.error || "ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟");
       const items = data.items || [];
       renderListings(items, Boolean(opts.append));
       if (count && data.count != null) count.textContent = numberFormat.format(data.count) + " نتیجه";
@@ -141,7 +141,7 @@
         grid.innerHTML = '<div class="loading-card listing-load-error"><p>بارگذاری کالاها ممکن نشد. اتصال اینترنت را بررسی کنید.</p><button class="button button-outline" id="retryListings" type="button">تلاش دوباره</button></div>';
         grid.querySelector("#retryListings")?.addEventListener("click", () => loadListings());
         if (empty) empty.hidden = true;
-        if (count) count.textContent = "خطا در دریافت کالاها";
+        if (count) count.textContent = "کالاها الان نمایش داده نشدند؛ دوباره تلاش می‌کنیم؟";
       }
       showToast("بارگذاری کالاها ممکن نشد.", "error");
     }
@@ -173,7 +173,7 @@
     try {
       const res = await fetch("/api/stores?" + params.toString());
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "خطا");
+      if (!res.ok) throw new Error(data.error || "ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟");
       renderStores(data.items || []);
       if (storesCount && data.count != null) storesCount.textContent = numberFormat.format(data.count) + " فروشگاه";
     } catch (err) {
@@ -411,7 +411,7 @@
         citySelect.value = createdCity;
         saveMarketCity();
       }
-      showToast("کالا با موفقیت ثبت شد.", "success");
+      showToast("آگهی‌ات منتشر شد 🎉", "success");
       userCoords = null;
       await loadListings();
       document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -150,7 +150,7 @@
     let ids=[];try{ids=JSON.parse(localStorage.getItem(savedKey)||"[]").map(String)}catch{}
     const set=new Set(ids);const key=String(id);if(set.has(key))set.delete(key);else set.add(key);
     try{localStorage.setItem(savedKey,JSON.stringify([...set]));}catch{notify("ذخیره محلی در این مرورگر در دسترس نیست.");return false;}
-    notify(set.has(key)?"کالا ذخیره شد.":"کالا از ذخیره‌ها حذف شد.");if(page.type==="saved")await initSaved();return set.has(key);
+    notify(set.has(key)?"کالا به ذخیره‌ها اضافه شد ♡":"کالا از ذخیره‌ها برداشته شد.");if(page.type==="saved")await initSaved();return set.has(key);
   }
   async function initSaved(){
     const target=document.querySelector("#pageListings");if(!target)return;

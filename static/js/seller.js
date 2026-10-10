@@ -202,7 +202,7 @@
               longitude: editForm.longitude?.value || "",
             }),
           });
-          notify("اطلاعات ویترین ذخیره شد.");
+          notify("ویترینت به‌روز شد ✓");
           location.reload();
         } catch (err) {
           notify(err.message);
@@ -235,7 +235,7 @@
           });
           const data = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(data.message || data.error || "ثبت کالا انجام نشد.");
-          notify("کالا ثبت شد.");
+          notify("آگهی‌ات منتشر شد 🎉");
           productForm.reset();
           if (productFeedback) {
             productFeedback.textContent = "کالا با موفقیت به ویترین اضافه شد.";
