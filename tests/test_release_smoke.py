@@ -152,3 +152,65 @@ def test_profile_update_changes_name_for_authenticated_user(client, app):
     )
     assert response.status_code == 200
     assert response.json["user"]["name"] == "Updated Name"
+
+
+
+@pytest.mark.parametrize(("role", "expected_name"), [
+    ("seller", "فروشگاه‌دار"),
+    ("buyer", "خریدار"),
+])
+def test_new_signup_creates_account_immediately_after_otp(
+    app, client, monkeypatch, role, expected_name
+):
+    import re
+    import kidareh.routes.auth as auth_routes
+
+    monkeypatch.setattr(auth_routes, "_send_kavenegar_otp", lambda phone, code: True)
+    app.config["TESTING_OTP_CODE"] = True
+
+    with client.session_transaction() as session:
+        session["csrf_token"] = "signup-test-csrf"
+
+    challenge = client.get("/api/auth/challenge").get_json()["question"]
+    numbers = re.search(r"(\d+)\s*\+\s*(\d+)", challenge)
+    assert numbers
+    answer = str(int(numbers.group(1)) + int(numbers.group(2)))
+
+    requested = client.post(
+        "/api/auth/request-otp",
+        json={
+            "phone": "09123456789",
+            "captcha_answer": answer,
+            "terms_accepted": True,
+            "registering": True,
+            "role": role,
+        },
+        headers={"X-CSRF-Token": "signup-test-csrf"},
+    )
+    assert requested.status_code == 200
+    code = requested.get_json()["test_code"]
+
+    verified = client.post(
+        "/api/auth/verify-otp",
+        json={"code": code},
+        headers={"X-CSRF-Token": "signup-test-csrf"},
+    )
+    assert verified.status_code == 200
+    payload = verified.get_json()
+    assert payload["existing_user"] is True
+    assert payload["new_user"] is True
+    assert payload["user"]["role"] == role
+    assert payload["user"]["name"] == expected_name
+
+    with client.session_transaction() as session:
+        assert session["user_id"] == payload["user"]["id"]
+        assert "verified_phone" not in session
+
+    if role == "seller":
+        assert client.get("/seller").status_code == 200
+        with app.app_context():
+            from kidareh.core import get_connection
+            with get_connection() as connection:
+                assert connection.execute(
+                    "SELECT 1 FROM stores WHERE owner_id = ?", (payload["user"]["id"],)
+                ).fetchone() is None
