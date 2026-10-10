@@ -120,7 +120,16 @@
           editForm.name.value = store.name || "";
           editForm.city.value = store.city || "";
           editForm.description.value = store.description || "";
-          if (editForm.category) editForm.category.value = store.category || "";
+          if (editForm.category) {
+          const existingCategory = store.category || "";
+          if (existingCategory && !Array.from(editForm.category.options).some((option) => option.value === existingCategory)) {
+            const legacyOption = document.createElement("option");
+            legacyOption.value = existingCategory;
+            legacyOption.textContent = existingCategory + " (صنف قبلی)";
+            editForm.category.appendChild(legacyOption);
+          }
+          editForm.category.value = existingCategory;
+        }
           if (editForm.address) editForm.address.value = store.address || "";
           if (editForm.latitude) editForm.latitude.value = store.latitude ?? "";
           if (editForm.longitude) editForm.longitude.value = store.longitude ?? "";
