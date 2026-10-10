@@ -76,11 +76,33 @@ def locations():
     """Search all bundled cities and villages without sending the directory to every visitor."""
     query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
     kind = request.args.get("kind", "all").strip().lower()
-    if len(query) < 2:
-        return jsonify({"items": []})
     provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
     counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
     candidates = []
+    if len(query) < 2:
+        # Populate the closed-by-default combobox with familiar choices from the
+        # canonical Iranian city directory. Full city/village search stays server-side.
+        if query or kind not in {"all", "city"}:
+            return jsonify({"items": []})
+        popular_names = [
+            "تهران", "مشهد", "اصفهان", "کرج", "شیراز", "تبریز", "قم",
+            "اهواز", "کرمانشاه", "رشت", "کرمان", "یزد", "ساری", "بندرعباس", "اراک",
+        ]
+        city_by_name = {
+            item["name"].replace("ي", "ی").replace("ك", "ک"): item
+            for item in IRAN_LOCATIONS["cities"]
+        }
+        for popular_name in popular_names:
+            item = city_by_name.get(popular_name)
+            if item:
+                candidates.append({
+                    "id": item["id"], "name": item["name"], "type": "city",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": counties.get(item["county_id"], ""),
+                })
+        return jsonify({"items": candidates, "count": len(candidates),
+                        "source_year": IRAN_LOCATIONS["source_year"],
+                        "villages_available": bool(get_villages())})
     if kind in {"all", "city"}:
         for item in IRAN_LOCATIONS["cities"]:
             name = item["name"].replace("ي", "ی").replace("ك", "ک")
