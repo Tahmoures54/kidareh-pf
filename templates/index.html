@@ -7,7 +7,7 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="description" content="کی‌داره؛ نرم‌افزار ویترین آنلاین فروش حضوری — مشتری را تا فروشگاهت بیاور.">
+  <meta name="description" content="کی‌داره؛ ببین کی‌داره، حضوری بگیر — ویترین آنلاین فروش حضوری بدون هزینهٔ ارسال.">
   <title>کی‌داره | ویترین آنلاین فروش حضوری</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
 </head>
 <body>
-  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> نرم‌افزار ویترین فروش حضوری — مشتری را تا مغازه‌ات بیاور</div>
+  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> ببین کی‌داره؟ حضوری بگیر! — بدون هزینهٔ ارسال</div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
       <span class="brand-mark">ک</span>
@@ -40,55 +40,55 @@
         <article class="promo-banner-slide active" data-slide="0">
           <div class="promo-banner-inner">
             <span class="promo-badge"><span aria-hidden="true">✦</span> ویترین آنلاین فروش حضوری</span>
-            <h1>فروشگاهت را آنلاین کن.<br><span>مشتری را تا درِ مغازه‌ات بیاور.</span></h1>
-            <p>کی‌داره نرم‌افزار پیشرفتهٔ ویترین فروش حضوری است: جست‌وجوی محلی، ویترین فروشگاه، مسیریابی با نشان و بلد، و ابزار رشد فروش — بدون پیچیدگی بازارچه‌های عمومی.</p>
+            <h1>ببین کی‌داره؟<br><span>حضوری بگیر!</span></h1>
+            <p>کالای نزدیکت را پیدا کن، مسیر بگیر، همان‌جا تحویل بگیر — بدون انتظار پیک و هزینهٔ ارسال.</p>
             <div class="promo-cta-row">
-              <a class="button button-primary" href="/seller">چیدن ویترین فروشگاه ←</a>
+              <a class="button button-primary" href="#listings">شروع جست‌وجو ←</a>
               <a class="button button-outline promo-cta-ghost" href="/stores">گشت در فروشگاه‌ها</a>
             </div>
           </div>
         </article>
         <article class="promo-banner-slide" data-slide="1">
           <div class="promo-banner-inner">
-            <span class="promo-badge"><span aria-hidden="true">⌂</span> ویترین</span>
-            <h1>فروشگاه آنلاین تو</h1>
-            <p>ویترین اختصاصی بساز، کالاها را بچین و بدون پیچیدگی بازارچه‌های عمومی، مشتری را مستقیم به مغازه‌ات برسان.</p>
+            <span class="promo-badge"><span aria-hidden="true">✕</span> خرید اینترنتی؟</span>
+            <h1>ارسال دارد. علافی دارد.</h1>
+            <p>ببین کی‌داره — همین‌جا بگیر. حضوری، فوری، بدون هزینهٔ ارسال و بدون انتظار.</p>
             <div class="promo-cta-row">
-              <a class="button button-primary" href="/seller">چیدن ویترین فروشگاه ←</a>
-              <a class="button button-outline promo-cta-ghost" href="/stores">گشت در فروشگاه‌ها</a>
+              <a class="button button-primary" href="#listings">ببین کی‌داره ←</a>
+              <a class="button button-outline promo-cta-ghost" href="/stores">فروشگاه‌های نزدیک</a>
             </div>
           </div>
         </article>
         <article class="promo-banner-slide" data-slide="2">
           <div class="promo-banner-inner">
-            <span class="promo-badge"><span aria-hidden="true">⌖</span> مسیریابی</span>
-            <h1>نشان · بلد · گوگل</h1>
-            <p>مشتری با یک ضربه مسیر تا فروشگاه را در نشان، بلد یا گوگل‌مپ باز می‌کند — از جست‌وجو تا مراجعه حضوری.</p>
+            <span class="promo-badge"><span aria-hidden="true">⌂</span> برای فروشنده</span>
+            <h1>ویترینت را آنلاین کن</h1>
+            <p>مشتری از قبل می‌بیند چه داری؛ مسیر تا مغازه‌ات را باز می‌کند و حضوری می‌آید خرید کند.</p>
             <div class="promo-cta-row">
-              <a class="button button-primary" href="/stores">گشت در فروشگاه‌ها</a>
-              <a class="button button-outline promo-cta-ghost" href="/seller">چیدن ویترین فروشگاه ←</a>
+              <a class="button button-primary" href="/seller">چیدن ویترین ←</a>
+              <a class="button button-outline promo-cta-ghost" href="/stores">نمونه ویترین‌ها</a>
             </div>
           </div>
         </article>
         <article class="promo-banner-slide" data-slide="3">
           <div class="promo-banner-inner">
-            <span class="promo-badge"><span aria-hidden="true">✦</span> رشد فروش</span>
-            <h1>تگ و پیشنهاد ویژه</h1>
-            <p>با تگ حراج، فروش ویژه و پیشنهاد ویژه بیشتر دیده شو — انتشار پایه همچنان رایگان است.</p>
+            <span class="promo-badge"><span aria-hidden="true">⌖</span> مسیر تا فروشگاه</span>
+            <h1>نشان · بلد · گوگل‌مپ</h1>
+            <p>یک ضربه تا مسیر؛ از صفحهٔ کالا مستقیم به درِ مغازه — خرید حضوری، بدون سردرگمی.</p>
             <div class="promo-cta-row">
-              <a class="button button-primary" href="/seller/tags">تگ‌های فروش ←</a>
-              <a class="button button-outline promo-cta-ghost" href="/seller">شروع ویترین</a>
+              <a class="button button-primary" href="/stores">فروشگاه‌ها ←</a>
+              <a class="button button-outline promo-cta-ghost" href="#listings">جست‌وجوی کالا</a>
             </div>
           </div>
         </article>
         <article class="promo-banner-slide" data-slide="4">
           <div class="promo-banner-inner">
-            <span class="promo-badge"><span aria-hidden="true">⌕</span> جست‌وجوی محلی</span>
-            <h1>پیدا کن، نزدیکت باشه</h1>
-            <p>بدون ثبت‌نام بین کالاها بگرد، شهر را فیلتر کن و برای خرید حضوری مستقیم با فروشنده هماهنگ شو.</p>
+            <span class="promo-badge"><span aria-hidden="true">⌕</span> محلی و سریع</span>
+            <h1>نزدیکت هست؟ همین امروز بگیر</h1>
+            <p>جست‌وجوی محلی، فیلتر شهر، و تماس مستقیم با فروشنده — کی‌داره یعنی ببین کی‌داره، حضوری بگیر.</p>
             <div class="promo-cta-row">
-              <a class="button button-primary" href="#listings">شروع جست‌وجو ←</a>
-              <a class="button button-outline promo-cta-ghost" href="/stores">فروشگاه‌ها</a>
+              <a class="button button-primary" href="#listings">کالاهای امروز ←</a>
+              <a class="button button-outline promo-cta-ghost" href="/seller">فروشنده شو</a>
             </div>
           </div>
         </article>
