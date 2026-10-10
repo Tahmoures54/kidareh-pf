@@ -117,26 +117,7 @@
       <div class="center-action"><button class="button button-outline" id="showAllButton" type="button">نمایش همهٔ کالاها <span>←</span></button></div>
     </section>
 
-    <section class="seller-banner" id="how-it-works">
-      <div class="seller-art" aria-hidden="true"><div class="seller-circle">＋</div><span class="seller-emoji">📦</span><span class="seller-spark">✦</span></div>
-      <div class="seller-copy"><span class="section-kicker">صاحب فروشگاهی؟</span><h2>ویترینت را به مشتری‌های شهر نشان بده.</h2><p>فروشگاهت را معرفی کن و محصولات و خدماتت را در یک ویترین آنلاین در دسترس قرار بده.</p></div>
-      <div class="seller-actions"><button class="button button-light" id="openStoreForm" type="button">چیدن ویترین فروشگاه <span>←</span></button><button class="button button-light" id="openListingForm" type="button">افزودن کالا به ویترین <span>＋</span></button><a class="seller-tags-link" href="/seller/tags">🏷️ تگ‌های فروش کالا</a></div>
-      <form class="listing-submit-form" id="listingSubmitForm" hidden>
-        <div class="tag-selling-prompt"><span class="tag-prompt-icon">✦</span><div><strong>کالایت رایگان منتشر می‌شود؛ می‌خواهی بیشتر به چشم بیاید؟</strong><p>بعد از ثبت کالا می‌توانی تگ‌هایی مثل «حراج» یا «فروش ویژه» بخری. این کار اختیاری است و انتشار رایگان را متوقف نمی‌کند.</p><a href="/seller/tags">دیدن تگ‌های کالا و قیمت‌ها ←</a></div></div>
-        <label>عنوان کالا<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
-        <label>دسته‌بندی<select name="category" required>{{ category_options(category_tree, include_empty=true, empty_label="انتخاب دسته‌بندی") }}</select></label>
-        <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا"></label>
-        <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
-        <label>شماره همراه فروشنده (اختیاری)<input name="seller_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="مثلاً 09123456789" aria-describedby="sellerPhoneHelp"></label>
-        <p class="form-note" id="sellerPhoneHelp">برای هماهنگی بازدید حضوری است و فقط در صفحه جزئیات کالا نمایش داده می‌شود.</p>
-        <label class="listing-description-field">توضیحات<textarea name="description" maxlength="1000" rows="3" placeholder="جزئیات مهم کالا را بنویسید"></textarea></label>
-        <label class="listing-image-field">عکس کالا (اختیاری، حداکثر ۴ مگابایت)<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
-        <div class="image-preview-wrap" id="imagePreviewWrap" hidden><img id="imagePreview" alt="پیش‌نمایش عکس کالا"><button class="button button-quiet" id="removeImagePreview" type="button">حذف عکس</button></div>
-        <button class="button button-primary" type="submit">افزودن کالا به ویترین</button>
-        <p class="form-note">برای ثبت کالا باید وارد حساب شوید.</p>
-      </form>
-    </section>
-  </main>
+    </main>
 
   <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
     <a class="mobile-nav-item" href="/" aria-label="خانه"><span aria-hidden="true">⌂</span><small>خانه</small></a>
