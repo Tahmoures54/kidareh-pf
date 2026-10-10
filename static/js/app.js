@@ -5,26 +5,24 @@
   const searchForm = document.querySelector("#searchForm");
   const searchInput = document.querySelector("#searchInput");
   const citySelect = document.querySelector("#citySelect");
-  const toast = document.querySelector("#toast");
   const showAllButton = document.querySelector("#showAllButton");
   const clearFilters = document.querySelector("#clearFilters");
+  const toast = document.querySelector("#toast");
   const storeGrid = document.querySelector("#storeGrid");
+  const storesCount = document.querySelector("#storesCount");
   const storeSearchInput = document.querySelector("#storeSearchInput");
-
-  if (!grid || !searchForm || !searchInput) return;
-
-  let activeCategory = "all";
-  let toastTimeout;
-  let nearbyPosition = null;
-  let listingsCursor = null;
-  let listingsHasMore = false;
-  let listingsLoadingMore = false;
-  let listingsCache = [];
-  let storeCursor = null;
-  let storeHasMore = false;
-  let storeCache = [];
-
   const numberFormat = new Intl.NumberFormat("fa-IR");
+  let currentFilter = "all";
+  let userCoords = null;
+
+  const categoryNames = {
+    home: "خانه و زندگی",
+    digital: "دیجیتال",
+    fashion: "پوشاک",
+    vehicle: "خودرو و حمل‌ونقل",
+    services: "خدمات"
+  };
+
   const escapeHTML = (value) => {
     const map = {
       "&": "&" + "amp;",
@@ -36,281 +34,189 @@
     return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
   };
 
+  const categoryName = (id) => categoryNames[id] || id || "سایر";
+
   function showToast(message) {
     if (!toast) return;
     toast.textContent = message;
-    toast.classList.add("visible");
-    window.clearTimeout(toastTimeout);
-    toastTimeout = window.setTimeout(() => toast.classList.remove("visible"), 2800);
-  }
-
-  function categoryName(id) {
-    const names = { home: "خانه و زندگی", digital: "دیجیتال", fashion: "پوشاک", vehicle: "خودرو", services: "خدمات", other: "سایر" };
-    return names[id] || "آگهی";
+    toast.classList.add("show");
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => toast.classList.remove("show"), 2800);
   }
 
   function renderListings(items) {
-    if (count) count.textContent = `${numberFormat.format(items.length)} کالا`;
-    if (empty) empty.hidden = items.length !== 0;
-    grid.hidden = items.length === 0;
+    if (!grid) return;
     if (!items.length) {
       grid.innerHTML = "";
+      if (empty) empty.hidden = false;
+      if (count) count.textContent = "۰ نتیجه";
       return;
     }
+    if (empty) empty.hidden = true;
+    if (count) count.textContent = numberFormat.format(items.length) + " نتیجه";
     grid.innerHTML = items.map((item) => {
-      const price = item.price > 0 ? `${numberFormat.format(item.price)} تومان` : "توافقی";
       return `
-        <article class="listing-card">
+        <a class="listing-card" href="/listing/${escapeHTML(item.id)}">
           <div class="listing-image category-art-${escapeHTML(item.category)}">
             ${item.image_path ? '<img class="listing-photo" src="' + escapeHTML(item.image_path) + '" alt="' + escapeHTML(item.title) + '" loading="lazy">' : '<span class="listing-emoji" aria-hidden="true">' + escapeHTML(item.emoji || "🛍️") + '</span>'}
-            ${item.featured ? '<span class="featured-label">پیشنهاد ویژه</span>' : ""}
             ${item.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(item.paid_tag.type) + '">' + escapeHTML(item.paid_tag.label) + '</span>' : ""}
           </div>
-          <div class="listing-details">
+          <div class="listing-body">
             <div class="listing-meta"><span>${escapeHTML(item.city)}</span><span class="meta-dot"></span><span>${escapeHTML(categoryName(item.category))}</span>${item.distance_km != null ? `<span class="meta-dot"></span><span>${numberFormat.format(item.distance_km)} کیلومتر</span>` : ""}</div>
             <h3>${escapeHTML(item.title)}</h3>
             <p>${escapeHTML(item.description || "")}</p>
-            <div class="listing-footer"><strong>${price}</strong><a class="listing-more" href="/product/${item.id}">جزئیات ←</a></div>
+            <div class="listing-footer"><strong>${item.price ? numberFormat.format(item.price) + " تومان" : "توافقی"}</strong></div>
           </div>
-        </article>`;
+        </a>`;
     }).join("");
   }
 
-  function ensureLoadMoreButton() {
-    let btn = document.querySelector("#loadMoreListings");
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.id = "loadMoreListings";
-      btn.type = "button";
-      btn.className = "button button-outline";
-      btn.style.display = "none";
-      btn.style.margin = "1rem auto";
-      btn.textContent = "نمایش کالاهای بیشتر";
-      grid.insertAdjacentElement("afterend", btn);
-      btn.addEventListener("click", () => loadListings({ append: true }));
-    }
-    return btn;
-  }
-
-  async function loadListings(options = {}) {
-    const append = Boolean(options.append);
-    if (append && (listingsLoadingMore || !listingsHasMore)) return;
+  async function loadListings(opts = {}) {
     const params = new URLSearchParams();
-    const query = searchInput.value.trim();
-    const city = citySelect ? citySelect.value : "";
-    if (query) params.set("q", query);
+    const q = (searchInput?.value || "").trim();
+    const city = citySelect?.value || "";
+    if (q) params.set("q", q);
     if (city) params.set("city", city);
-    if (activeCategory !== "all") params.set("category", activeCategory);
-    params.set("limit", "50");
-    if (append && listingsCursor) params.set("before_id", String(listingsCursor));
-    if (nearbyPosition) {
-      params.set("lat", nearbyPosition.latitude);
-      params.set("lon", nearbyPosition.longitude);
+    if (currentFilter && currentFilter !== "all") params.set("category", currentFilter);
+    if (userCoords) {
+      params.set("lat", String(userCoords.lat));
+      params.set("lng", String(userCoords.lng));
       params.set("radius_km", "25");
     }
-    grid.hidden = false;
-    if (empty) empty.hidden = true;
-    const loadMoreBtn = ensureLoadMoreButton();
-    if (!append) {
-      listingsCursor = null;
-      listingsHasMore = false;
-      listingsCache = [];
-      grid.innerHTML = '<div class="loading-card">داریم آگهی‌ها رو پیدا می‌کنیم…</div>';
-      loadMoreBtn.style.display = "none";
-    } else {
-      listingsLoadingMore = true;
-      loadMoreBtn.disabled = true;
-      loadMoreBtn.textContent = "در حال بارگذاری…";
-    }
+    if (opts.cursor) params.set("cursor", opts.cursor);
     try {
-      const response = await fetch(`/api/listings?${params.toString()}`, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("Request failed");
-      const data = await response.json();
-      const items = data.items || [];
-      listingsCache = append ? listingsCache.concat(items) : items;
-      listingsHasMore = Boolean(data.has_more);
-      listingsCursor = data.next_before_id || (items.length ? items[items.length - 1].id : null);
-      renderListings(listingsCache);
-      loadMoreBtn.style.display = listingsHasMore && !nearbyPosition ? "block" : "none";
-      loadMoreBtn.disabled = false;
-      loadMoreBtn.textContent = "نمایش کالاهای بیشتر";
-    } catch (_error) {
-      if (!append) {
-        grid.innerHTML = '<div class="loading-card error-card">دریافت آگهی‌ها با مشکل روبه‌رو شد. صفحه را دوباره بارگذاری کن.</div>';
-        if (count) count.textContent = "خطا در دریافت";
-      }
-      loadMoreBtn.disabled = false;
-      loadMoreBtn.textContent = "تلاش دوباره برای کالاهای بیشتر";
-    } finally {
-      listingsLoadingMore = false;
+      const res = await fetch("/api/listings?" + params.toString());
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "خطا");
+      renderListings(data.items || []);
+    } catch (err) {
+      if (grid) grid.innerHTML = '<div class="loading-card">بارگذاری آگهی‌ها ممکن نشد.</div>';
+      showToast("بارگذاری آگهی‌ها ممکن نشد.");
     }
   }
 
   function renderStores(items) {
-    const storesCount = document.querySelector("#storesCount");
-    if (storesCount) storesCount.textContent = numberFormat.format(items.length) + " فروشگاه";
     if (!storeGrid) return;
     if (!items.length) {
-      storeGrid.innerHTML = '<div class="loading-card">فروشگاهی با این مشخصات پیدا نشد.</div>';
+      storeGrid.innerHTML = '<div class="loading-card">فروشگاهی پیدا نشد.</div>';
+      if (storesCount) storesCount.textContent = "۰ فروشگاه";
       return;
     }
-    storeGrid.innerHTML = items.map((store) =>
-      '<a class="store-card" href="/store/' + store.id + '">' +
+    if (storesCount) storesCount.textContent = numberFormat.format(items.length) + " فروشگاه";
+    storeGrid.innerHTML = items.map((store) => {
+      return '<a class="store-card" href="/store/' + escapeHTML(store.id) + '">' +
       '<span class="store-card-mark">⌂</span><span class="store-card-copy"><strong>' + escapeHTML(store.name) +
-      (store.blue_tick_active ? ' <span class="store-paid-badge">✓ تیک آبی</span>' : '') + '</strong><small>' +
+      '</strong><small>' +
       escapeHTML(store.city) + ' · ' + numberFormat.format(store.product_count || 0) +
       ' کالا</small><span>' + escapeHTML(store.description || "برای دیدن کالاها وارد ویترین شو.") +
-      '</span></span></a>'
-    ).join("");
+      '</span></span></a>';
+    }).join("");
   }
 
-  function ensureStoreLoadMore() {
-    if (!storeGrid) return null;
-    let btn = document.querySelector("#loadMoreStores");
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.id = "loadMoreStores";
-      btn.type = "button";
-      btn.className = "button button-outline";
-      btn.style.display = "none";
-      btn.style.margin = "1rem auto";
-      btn.textContent = "نمایش فروشگاه‌های بیشتر";
-      storeGrid.insertAdjacentElement("afterend", btn);
-      btn.addEventListener("click", () => loadStores(storeSearchInput ? storeSearchInput.value : "", { append: true }));
-    }
-    return btn;
-  }
-
-  async function loadStores(query = "", options = {}) {
+  async function loadStores() {
     if (!storeGrid) return;
-    const append = Boolean(options.append);
-    if (append && !storeHasMore) return;
     const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    params.set("limit", "50");
-    if (append && storeCursor) params.set("before_id", String(storeCursor));
-    const btn = ensureStoreLoadMore();
-    if (!append) {
-      storeCache = [];
-      storeCursor = null;
-      storeHasMore = false;
-      storeGrid.innerHTML = '<div class="loading-card">ویترین‌ها در حال بارگذاری‌اند…</div>';
-      if (btn) btn.style.display = "none";
-    }
+    const q = (storeSearchInput?.value || "").trim();
+    if (q) params.set("q", q);
     try {
-      const response = await fetch("/api/stores?" + params.toString(), { headers: { Accept: "application/json" } });
-      const data = await response.json();
-      if (!response.ok) throw new Error("بارگذاری فروشگاه‌ها ناموفق بود.");
-      const items = data.items || [];
-      storeCache = append ? storeCache.concat(items) : items;
-      storeHasMore = Boolean(data.has_more);
-      storeCursor = data.next_before_id || (items.length ? items[items.length - 1].id : null);
-      renderStores(storeCache);
-      if (btn) {
-        btn.style.display = storeHasMore ? "block" : "none";
-        btn.disabled = false;
-        btn.textContent = "نمایش فروشگاه‌های بیشتر";
-      }
-    } catch (_error) {
-      if (!append) storeGrid.innerHTML = '<div class="loading-card error-card">دریافت فروشگاه‌ها انجام نشد. دوباره تلاش کن.</div>';
+      const res = await fetch("/api/stores?" + params.toString());
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "خطا");
+      renderStores(data.items || []);
+    } catch (err) {
+      storeGrid.innerHTML = '<div class="loading-card">بارگذاری فروشگاه‌ها ممکن نشد.</div>';
     }
   }
 
-  if (searchForm) {
-    const nearbyButton = document.createElement("button");
-    nearbyButton.type = "button";
-    nearbyButton.className = "button button-outline";
-    nearbyButton.textContent = "کالاهای نزدیک من";
-    searchForm.insertAdjacentElement("afterend", nearbyButton);
-    nearbyButton.addEventListener("click", () => {
-      if (nearbyPosition) {
-        nearbyPosition = null;
-        nearbyButton.textContent = "کالاهای نزدیک من";
-        loadListings();
-        return;
-      }
-      if (!navigator.geolocation) {
-        showToast("موقعیت‌یابی در این مرورگر پشتیبانی نمی‌شود.");
-        return;
-      }
-      nearbyButton.disabled = true;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          nearbyPosition = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-          nearbyButton.textContent = "نمایش همه شهرها";
-          nearbyButton.disabled = false;
-          loadListings();
-        },
-        () => {
-          showToast("اجازه موقعیت داده نشد؛ شهر را انتخاب کنید.");
-          nearbyButton.disabled = false;
-        },
-        { timeout: 8000, maximumAge: 300000 }
-      );
-    });
-  }
-
-  searchForm.addEventListener("submit", (event) => {
-    event.preventDefault();
+  searchForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
     loadListings();
-    document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  citySelect?.addEventListener("change", () => loadListings());
-
-  document.querySelectorAll("[data-search]").forEach((button) => {
-    button.addEventListener("click", () => {
-      searchInput.value = button.dataset.search;
+  document.querySelectorAll("[data-search]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (searchInput) searchInput.value = btn.dataset.search || "";
       loadListings();
     });
   });
 
-  document.querySelectorAll("[data-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeCategory = button.dataset.category;
-      document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === activeCategory));
+  document.querySelectorAll(".filter-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("selected"));
+      chip.classList.add("selected");
+      currentFilter = chip.dataset.filter || "all";
       loadListings();
     });
   });
 
-  document.querySelectorAll("[data-filter]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeCategory = button.dataset.filter;
-      document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip === button));
+  document.querySelectorAll("[data-category]").forEach((tile) => {
+    tile.addEventListener("click", () => {
+      const cat = tile.dataset.category;
+      currentFilter = cat || "all";
+      document.querySelectorAll(".filter-chip").forEach((c) => {
+        c.classList.toggle("selected", (c.dataset.filter || "") === currentFilter || (currentFilter === "all" && c.dataset.filter === "all"));
+      });
+      document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth" });
       loadListings();
     });
   });
 
   showAllButton?.addEventListener("click", () => {
-    activeCategory = "all";
     if (searchInput) searchInput.value = "";
     if (citySelect) citySelect.value = "";
-    nearbyPosition = null;
-    document.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.toggle("selected", chip.dataset.filter === "all"));
+    currentFilter = "all";
+    document.querySelectorAll(".filter-chip").forEach((c) => c.classList.toggle("selected", c.dataset.filter === "all"));
     loadListings();
-    loadStores();
   });
 
   clearFilters?.addEventListener("click", () => showAllButton?.click());
 
-  let storeSearchTimeout;
+  // Nearby button
+  if (searchForm && navigator.geolocation) {
+    const nearbyButton = document.createElement("button");
+    nearbyButton.type = "button";
+    nearbyButton.className = "button button-outline nearby-btn";
+    nearbyButton.textContent = "کالاهای نزدیک من";
+    nearbyButton.addEventListener("click", () => {
+      nearbyButton.disabled = true;
+      nearbyButton.textContent = "در حال یافتن موقعیت…";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          nearbyButton.textContent = "نزدیک من ✓";
+          nearbyButton.disabled = false;
+          loadListings();
+        },
+        () => {
+          nearbyButton.textContent = "کالاهای نزدیک من";
+          nearbyButton.disabled = false;
+          showToast("دسترسی به موقعیت ممکن نشد.");
+        },
+        { enableHighAccuracy: false, timeout: 10000 }
+      );
+    });
+    searchForm.insertAdjacentElement("afterend", nearbyButton);
+  }
+
   storeSearchInput?.addEventListener("input", () => {
-    window.clearTimeout(storeSearchTimeout);
-    storeSearchTimeout = window.setTimeout(() => loadStores(storeSearchInput.value), 280);
+    window.clearTimeout(storeSearchInput._t);
+    storeSearchInput._t = window.setTimeout(loadStores, 280);
   });
   document.querySelector("#showAllStores")?.addEventListener("click", () => {
     if (storeSearchInput) storeSearchInput.value = "";
     loadStores();
   });
 
-  // MaterialHub-style promo banner carousel
+  // Large promo banners — fast rotation for lively feel
   (function initPromoBanner() {
-    const slides = Array.from(document.querySelectorAll("#promoSlides .promo-slide"));
+    const root = document.querySelector("#promoBanner");
+    const slides = Array.from(document.querySelectorAll("#promoSlides .promo-banner-slide"));
     const dots = Array.from(document.querySelectorAll("#promoDots .promo-dot"));
     if (slides.length < 2) return;
     let index = 0;
     let timer = null;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const INTERVAL_MS = 2200;
 
     function goTo(next) {
       const prev = index;
@@ -328,7 +234,7 @@
     function start() {
       if (reduceMotion) return;
       stop();
-      timer = window.setInterval(() => goTo(index + 1), 4200);
+      timer = window.setInterval(() => goTo(index + 1), INTERVAL_MS);
     }
     function stop() {
       if (timer) window.clearInterval(timer);
@@ -340,9 +246,18 @@
         start();
       });
     });
-    const visual = document.querySelector(".hero-visual");
-    visual?.addEventListener("mouseenter", stop);
-    visual?.addEventListener("mouseleave", start);
+    document.querySelector("#promoPrev")?.addEventListener("click", () => {
+      goTo(index - 1);
+      start();
+    });
+    document.querySelector("#promoNext")?.addEventListener("click", () => {
+      goTo(index + 1);
+      start();
+    });
+    root?.addEventListener("mouseenter", stop);
+    root?.addEventListener("mouseleave", start);
+    root?.addEventListener("focusin", stop);
+    root?.addEventListener("focusout", start);
     start();
   })();
 
