@@ -171,7 +171,7 @@ def _should_seed_demo_data() -> bool:
     return configured.strip().lower() in {"1", "true", "yes"}
 
 
-def initialize_database() -> None:
+def _initialize_schema_v1() -> None:
     with get_connection() as connection:
         connection.execute("PRAGMA journal_mode = WAL")
         connection.execute(
@@ -371,3 +371,43 @@ def csrf_valid():
     expected = session.get("csrf_token", "")
     supplied = request.headers.get("X-CSRF-Token", "")
     return bool(expected and supplied and __import__("hmac").compare_digest(expected, supplied))
+
+
+# Incremental, recoverable schema migrations. Version 1 adopts the existing
+# idempotent initializers as the baseline for both fresh and legacy databases.
+SCHEMA_VERSION = 1
+SCHEMA_MIGRATIONS = ((1, _initialize_schema_v1),)
+
+
+def initialize_database() -> None:
+    """Apply each schema migration once and record it only after success.
+
+    The migration ledger is intentionally separate from feature tables so a
+    failed initialization is retried on the next startup instead of being
+    marked as complete. Existing databases are safely adopted by migration 1.
+    """
+    with get_connection() as connection:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS schema_migrations (
+                version INTEGER PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
+        applied = connection.execute(
+            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations"
+        ).fetchone()[0]
+
+    if applied > SCHEMA_VERSION:
+        raise RuntimeError(
+            f"Database schema version {applied} is newer than this application supports "
+            f"(maximum {SCHEMA_VERSION})."
+        )
+
+    for version, migration in SCHEMA_MIGRATIONS:
+        if version <= applied:
+            continue
+        migration()
+        with get_connection() as connection:
+            connection.execute(
+                "INSERT INTO schema_migrations (version) VALUES (?)", (version,)
+            )

@@ -105,6 +105,9 @@ def test_database_initialization_is_repeatable_and_uses_app_config(monkeypatch, 
                 "listing_tags",
             } <= tables
             assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
+            assert connection.execute(
+                "SELECT MAX(version) FROM schema_migrations"
+            ).fetchone()[0] == 1
 
     assert database_path.exists()
 
@@ -136,3 +139,46 @@ def test_health_endpoint_rejects_an_uninitialized_database(tmp_path):
     assert response.status_code == 503
     assert response.get_json()["ok"] is False
     assert response.get_json()["database"] == "schema_incomplete"
+
+
+def test_database_migration_is_recorded_only_after_success(monkeypatch, tmp_path):
+    import pytest
+
+    from kidareh import core
+
+    app, database_path, _ = make_app(tmp_path)
+
+    def fail_migration():
+        raise RuntimeError("simulated schema migration failure")
+
+    monkeypatch.setattr(core, "_initialize_schema_v1", fail_migration)
+    monkeypatch.setattr(core, "SCHEMA_MIGRATIONS", ((1, fail_migration),))
+
+    with app.app_context():
+        with pytest.raises(RuntimeError, match="simulated schema migration failure"):
+            core.initialize_database()
+        with core.get_connection() as connection:
+            assert connection.execute(
+                "SELECT COUNT(*) FROM schema_migrations"
+            ).fetchone()[0] == 0
+
+    assert database_path.exists()
+
+
+def test_database_migration_does_not_repeat_after_success(monkeypatch, tmp_path):
+    import pytest
+
+    from kidareh import core
+
+    monkeypatch.setenv("KIDAREH_SEED_DEMO_DATA", "0")
+    app, _, _ = make_app(tmp_path)
+
+    with app.app_context():
+        core.initialize_database()
+
+        def unexpected_rerun():
+            pytest.fail("completed schema migration was executed again")
+
+        monkeypatch.setattr(core, "_initialize_schema_v1", unexpected_rerun)
+        monkeypatch.setattr(core, "SCHEMA_MIGRATIONS", ((1, unexpected_rerun),))
+        core.initialize_database()
