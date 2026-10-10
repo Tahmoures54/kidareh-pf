@@ -75,3 +75,14 @@ def following_stores_page():
 @bp.get("/terms")
 def terms_page():
     return render_marketplace_page("pages/terms.html")
+
+
+@bp.get("/login")
+def login_page():
+    return render_marketplace_page("pages/auth/login.html")
+
+
+@bp.get("/register")
+@bp.get("/signup")
+def register_page():
+    return render_marketplace_page("pages/auth/register.html")
