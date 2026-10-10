@@ -7,11 +7,39 @@ from pathlib import Path
 from typing import Any
 from flask import current_app, has_app_context, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 INSTANCE_DIR = BASE_DIR / "instance"
-DATABASE_PATH = Path(os.environ.get("DATABASE_PATH", str(INSTANCE_DIR / "kidareh.sqlite3")))
-UPLOAD_FOLDER = Path(os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "static" / "uploads")))
+
+# --- Database path resolution -------------------------------------------------
+# Priority:
+#   1. DATABASE_PATH (explicit)
+#   2. DB_PATH (legacy / Vercel dashboard name)
+#   3. On Vercel: /tmp/instance/kidareh.sqlite3 (only writable location)
+#   4. Local dev: <project>/instance/kidareh.sqlite3
+def _resolve_database_path() -> Path:
+    for key in ("DATABASE_PATH", "DB_PATH"):
+        value = os.environ.get(key, "").strip()
+        if value:
+            return Path(value)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/instance/kidareh.sqlite3")
+    return INSTANCE_DIR / "kidareh.sqlite3"
+
+
+def _resolve_upload_folder() -> Path:
+    value = os.environ.get("UPLOAD_FOLDER", "").strip()
+    if value:
+        return Path(value)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/uploads")
+    return BASE_DIR / "static" / "uploads"
+
+
+DATABASE_PATH = _resolve_database_path()
+UPLOAD_FOLDER = _resolve_upload_folder()
 MAX_IMAGE_BYTES = 4 * 1024 * 1024
+
 CATEGORIES = [
     {"id": "home", "name": "خانه و زندگی", "icon": "⌂"},
     {"id": "digital", "name": "دیجیتال", "icon": "▣"},
@@ -20,6 +48,7 @@ CATEGORIES = [
     {"id": "services", "name": "خدمات", "icon": "⚒"},
     {"id": "other", "name": "سایر", "icon": "＋"},
 ]
+
 DEMO_LISTINGS = [
     ("گوشی سامسونگ تمیز و سالم", "digital", "تهران", 12800000, "گوشی سالم با حافظه مناسب؛ امکان بررسی حضوری.", "📱", 1),
     ("میز کار چوبی مینیمال", "home", "تبریز", 2450000, "میز مرتب و خوش‌ساخت، مناسب خانه و دفتر کار.", "🪑", 1),
@@ -31,9 +60,15 @@ DEMO_LISTINGS = [
     ("کوله‌پشتی روزانه", "fashion", "کرج", 890000, "جادار و مناسب دانشگاه و استفاده روزانه.", "🎒", 0),
 ]
 
+
 def get_connection() -> sqlite3.Connection:
     database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
-    database_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        # Fallback to /tmp if the configured path is not writable (e.g. Vercel)
+        database_path = Path("/tmp/instance/kidareh.sqlite3")
+        database_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(database_path, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
@@ -300,6 +335,7 @@ def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[s
     item["can_edit"] = bool(session.get("user_id") and item.get("owner_id") == session.get("user_id"))
     return item
 
+
 def current_user():
     user_id = session.get("user_id")
     if not user_id:
@@ -310,6 +346,7 @@ def current_user():
         session.clear()
         return None
     return dict(row)
+
 
 def csrf_valid():
     expected = session.get("csrf_token", "")
