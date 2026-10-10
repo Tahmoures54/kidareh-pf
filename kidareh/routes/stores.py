@@ -1,9 +1,9 @@
-import re
 import sqlite3
 from datetime import datetime, timezone
 from typing import Any
 from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection, serialize_listing
+from ..services import rate_limits
 from ..data_catalog import is_city_name, normalize_location_name
 
 bp = Blueprint("stores", __name__)
@@ -34,7 +34,7 @@ def _store_payload(row):
     result = dict(row)
     result.pop("social_url", None)
     badge_until = str(result.get("badge_until") or "")
-    result["blue_tick_active"] = bool(badge_until and badge_until > __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat())
+    result["blue_tick_active"] = bool(badge_until and badge_until > datetime.now(timezone.utc).isoformat())
     return result
 
 
@@ -45,12 +45,17 @@ def list_stores():
     page_size = min(100, max(1, request.args.get("limit", default=50, type=int) or 50))
     before_id = request.args.get("before_id", type=int)
 
+    # Counters use correlated sub-queries on purpose. A LEFT JOIN + GROUP BY
+    # has to aggregate every listing and follow row of every store before it can
+    # apply LIMIT, which turns a 50-row page into a full scan once the catalogue
+    # reaches hundreds of thousands of stores. With (store_id, id) indexes each
+    # counter is a small index range count, and the outer query stops after one
+    # page because it walks the primary key in order.
     sql = """
-        SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
-               COUNT(DISTINCT f.user_id) AS follower_count
+        SELECT s.*,
+               (SELECT COUNT(*) FROM listings l WHERE l.store_id = s.id) AS product_count,
+               (SELECT COUNT(*) FROM store_follows f WHERE f.store_id = s.id) AS follower_count
         FROM stores s
-        LEFT JOIN listings l ON l.store_id = s.id
-        LEFT JOIN store_follows f ON f.store_id = s.id
         WHERE 1=1
     """
     params: list[Any] = []
@@ -64,7 +69,7 @@ def list_stores():
     if before_id is not None and before_id > 0:
         sql += " AND s.id < ?"
         params.append(before_id)
-    sql += " GROUP BY s.id ORDER BY s.id DESC LIMIT ?"
+    sql += " ORDER BY s.id DESC LIMIT ?"
     params.append(page_size + 1)
 
     with get_connection() as connection:
@@ -99,6 +104,10 @@ def create_store():
         return jsonify({"error": "seller_account_required", "message": "برای ساخت ویترین با نوع حساب فروشنده وارد شوید."}), 403
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
+    try:
+        rate_limits.enforce("store_create", user, limit=5, window_seconds=3600)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "ساخت ویترین موقتاً محدود شده است؛ کمی بعد دوباره تلاش کنید.")
     payload = request.get_json(silent=True) or {}
     name, city, description = payload.get("name", ""), normalize_location_name(payload.get("city", "")), payload.get("description", "")
     category = payload.get("category", "")
@@ -195,12 +204,11 @@ def update_store(store_id: int):
 def store_detail(store_id: int):
     with get_connection() as connection:
         store = connection.execute("""
-            SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
-                   COUNT(DISTINCT f.user_id) AS follower_count
+            SELECT s.*,
+                   (SELECT COUNT(*) FROM listings l WHERE l.store_id = s.id) AS product_count,
+                   (SELECT COUNT(*) FROM store_follows f WHERE f.store_id = s.id) AS follower_count
             FROM stores s
-            LEFT JOIN listings l ON l.store_id = s.id
-            LEFT JOIN store_follows f ON f.store_id = s.id
-            WHERE s.id = ? GROUP BY s.id
+            WHERE s.id = ?
         """, (store_id,)).fetchone()
         if store is None:
             return jsonify({"error": "store_not_found"}), 404
@@ -262,13 +270,14 @@ def followed_stores():
         return jsonify({"error": "authentication_required"}), 401
     with get_connection() as connection:
         rows = connection.execute("""
-            SELECT s.*, COUNT(DISTINCT l.id) AS product_count,
-                   COUNT(DISTINCT f2.user_id) AS follower_count
+            SELECT s.*,
+                   (SELECT COUNT(*) FROM listings l WHERE l.store_id = s.id) AS product_count,
+                   (SELECT COUNT(*) FROM store_follows f2 WHERE f2.store_id = s.id) AS follower_count
             FROM store_follows f
             JOIN stores s ON s.id = f.store_id
-            LEFT JOIN listings l ON l.store_id = s.id
-            LEFT JOIN store_follows f2 ON f2.store_id = s.id
-            WHERE f.user_id = ? GROUP BY s.id ORDER BY f.created_at DESC
+            WHERE f.user_id = ?
+            ORDER BY f.created_at DESC
+            LIMIT 200
         """, (user["id"],)).fetchall()
     return jsonify({"items": [dict(row) for row in rows]})
 

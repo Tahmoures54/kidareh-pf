@@ -1,31 +1,63 @@
 import math
 import re
+import sqlite3
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
-from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
-from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS
+from ..core import (
+    CATEGORIES,
+    MAX_IMAGE_BYTES,
+    UPLOAD_URL_PREFIX,
+    current_user,
+    csrf_valid,
+    delete_uploaded_image,
+    get_connection,
+    serialize_listing,
+    upload_relative_path,
+)
+from ..data_catalog import (
+    CATEGORY_ALLOWED_IDS,
+    CATEGORY_GROUPS,
+    CATEGORY_TREE,
+    IRAN_LOCATIONS,
+    LOCATION_INDEX,
+    LOCATION_TYPE_RANK,
+    POPULAR_CITIES,
+    TRADE_GROUPS,
+    normalize_location_name,
+)
+from ..services import rate_limits
 
 bp = Blueprint("listings", __name__)
 
 
-def _delete_listing_image(image_path: str) -> None:
-    """Remove an uploaded listing image from disk if it lives under UPLOAD_FOLDER."""
-    if not image_path or not isinstance(image_path, str):
+# Paid "featured" placements expire on a timer. The sweep runs on the listing
+# read path, so it is throttled per process: expiring a placement a minute late
+# is invisible to users, while writing on every request would fight with real
+# writes for SQLite's single writer lock.
+FEATURED_SWEEP_INTERVAL_SECONDS = 60.0
+_last_featured_sweep = 0.0
+
+# How many full-text matches are considered for a single search. Raising this
+# widens recall for very popular terms; the cost is roughly linear.
+FTS_SEARCH_WINDOW = 5000
+
+
+def _expire_featured_promotions(connection) -> None:
+    """Clear expired featured flags at most once per process per minute."""
+    global _last_featured_sweep
+    now_monotonic = time.monotonic()
+    if now_monotonic - _last_featured_sweep < FEATURED_SWEEP_INTERVAL_SECONDS:
         return
-    if not image_path.startswith("/static/uploads/"):
-        return
-    filename = image_path.rsplit("/", 1)[-1]
-    if not filename or ".." in filename or "/" in filename or "\\" in filename:
-        return
-    target = Path(current_app.config["UPLOAD_FOLDER"]) / filename
-    try:
-        if target.is_file():
-            target.unlink()
-    except OSError:
-        pass
+    _last_featured_sweep = now_monotonic
+    now = datetime.now(timezone.utc).isoformat()
+    connection.execute(
+        "UPDATE listings SET featured=0 WHERE featured_until<>'' AND featured_until<?",
+        (now,),
+    )
 
 
 def _attach_active_tags(items):
@@ -73,86 +105,33 @@ def categories():
 
 @bp.get("/api/locations")
 def locations():
-    """Search cities, urban zones, and important administrative centers; villages are excluded."""
-    query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
+    """Search cities, urban zones, and important administrative centers; villages are excluded.
+
+    The catalogue is normalized once at import (see data_catalog.LOCATION_INDEX),
+    so a keystroke only walks pre-normalized entries instead of rebuilding every
+    province/county map and re-normalizing every name on each request.
+    """
+    query = normalize_location_name(request.args.get("q", ""))[:80]
     kind = request.args.get("kind", "city").strip().lower()
     if kind == "village":
         return jsonify({"items": [], "count": 0})
     if kind not in {"city", "point"}:
         kind = "city"
-    provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
-    counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
-    candidates = []
+
     if len(query) < 2:
         if query or kind != "city":
             return jsonify({"items": []})
-        popular_names = [
-            "تهران", "مشهد", "اصفهان", "کرج", "شیراز", "تبریز", "قم",
-            "اهواز", "کرمانشاه", "رشت", "کرمان", "یزد", "ساری", "بندرعباس", "اراک",
-        ]
-        city_by_name = {
-            item["name"].replace("ي", "ی").replace("ك", "ک"): item
-            for item in IRAN_LOCATIONS["cities"]
-        }
-        for popular_name in popular_names:
-            item = city_by_name.get(popular_name)
-            if item:
-                candidates.append({
-                    "id": item["id"], "name": item["name"], "type": "city",
-                    "province": provinces.get(item["province_id"], ""),
-                    "county": counties.get(item["county_id"], ""),
-                })
-        return jsonify({"items": candidates, "count": len(candidates),
+        items = list(POPULAR_CITIES)
+        return jsonify({"items": items, "count": len(items),
                         "source_year": IRAN_LOCATIONS["source_year"]})
-    if kind == "city":
-        for item in IRAN_LOCATIONS["cities"]:
-            name = item["name"].replace("ي", "ی").replace("ك", "ک")
-            if query in name:
-                candidates.append({
-                    "id": item["id"], "name": item["name"], "type": "city",
-                    "province": provinces.get(item["province_id"], ""),
-                    "county": counties.get(item["county_id"], ""),
-                })
-        for item in IRAN_LOCATIONS.get("urban_zones", []):
-            name = item["name"].replace("ي", "ی").replace("ك", "ک")
-            if query in name:
-                candidates.append({
-                    "id": item["id"], "name": item["name"], "type": "urban_zone",
-                    "province": provinces.get(item["province_id"], ""),
-                    "county": counties.get(item["county_id"], ""),
-                    "parent_city_id": item.get("city_id"),
-                })
-        for item in IRAN_LOCATIONS.get("county_centers", []):
-            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
-            if query in name:
-                candidates.append({
-                    "id": item["county_id"], "name": item["center_name"], "type": "important_point",
-                    "province": provinces.get(item["province_id"], ""),
-                    "county": item["county_name"],
-                })
-    else:
-        for item in IRAN_LOCATIONS.get("county_centers", []):
-            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
-            if query in name:
-                candidates.append({
-                    "id": item["county_id"], "name": item["center_name"], "type": "important_point",
-                    "province": provinces.get(item["province_id"], ""),
-                    "county": item["county_name"],
-                    "latitude": item.get("latitude"), "longitude": item.get("longitude"),
-                })
-        for item in IRAN_LOCATIONS.get("province_capitals", []):
-            name = item["center_name"].replace("ي", "ی").replace("ك", "ک")
-            if query in name:
-                candidates.append({
-                    "id": item["province_id"], "name": item["center_name"], "type": "province_capital",
-                    "province": item["province_name"], "county": "",
-                    "latitude": item.get("latitude"), "longitude": item.get("longitude"),
-                })
+
+    candidates = [payload for normalized, payload in LOCATION_INDEX[kind] if query in normalized]
     candidates.sort(key=lambda item: (
-        not item["name"].replace("ي", "ی").replace("ك", "ک").startswith(query),
-        {"city": 0, "urban_zone": 1, "important_point": 2, "province_capital": 3}.get(item["type"], 4),
+        not normalize_location_name(item["name"]).startswith(query),
+        LOCATION_TYPE_RANK.get(item["type"], 4),
         item["name"],
     ))
+
     seen, items = set(), []
     for item in candidates:
         key = (item["name"], item["type"], item["province"], item["county"])
@@ -191,13 +170,25 @@ def listings():
     fts_match = _fts_match_query(query) if query else None
 
     if fts_match:
+        # The candidate window is bounded on purpose. A popular term can match
+        # hundreds of thousands of rows, and joining every match back onto the
+        # listings table only to throw all but one page away costs ~200 ms on a
+        # million listings. Taking the newest FTS_SEARCH_WINDOW matches first
+        # caps the work (3 ms at the same scale) and, because FTS walks rowids in
+        # order, still yields the newest page the user asked for.
         sql = """
             SELECT listings.*
             FROM listings
-            INNER JOIN listings_fts ON listings_fts.rowid = listings.id
-            WHERE listings_fts MATCH ?
+            INNER JOIN (
+                SELECT rowid AS candidate_id
+                FROM listings_fts
+                WHERE listings_fts MATCH ?
+                ORDER BY rowid DESC
+                LIMIT ?
+            ) candidates ON candidates.candidate_id = listings.id
+            WHERE 1=1
         """
-        parameters.append(fts_match)
+        parameters.extend([fts_match, FTS_SEARCH_WINDOW])
     else:
         sql = "SELECT * FROM listings WHERE 1=1"
 
@@ -232,34 +223,33 @@ def listings():
     parameters.append(fetch_limit)
 
     with get_connection() as connection:
-        now = datetime.now(timezone.utc).isoformat()
-        connection.execute(
-            "UPDATE listings SET featured=0 WHERE featured=1 AND featured_until<>'' AND featured_until<?",
-            (now,),
-        )
+        _expire_featured_promotions(connection)
         try:
             rows = connection.execute(sql, parameters).fetchall()
-        except Exception:
-            # If FTS is unavailable on a legacy DB, fall back to bounded LIKE once.
-            if fts_match:
-                fallback_sql = "SELECT * FROM listings WHERE 1=1"
-                fallback_params: list[Any] = []
-                term = f"%{query}%"
-                fallback_sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
-                fallback_params.extend([term, term, term])
-                if category and category != "all":
-                    category_ids = list(dict.fromkeys([category, *CATEGORY_GROUPS.get(category, [])]))
-                    placeholders = ",".join("?" for _ in category_ids)
-                    fallback_sql += " AND category IN (" + placeholders + ")"
-                    fallback_params.extend(category_ids)
-                if city and city != "همه شهرها":
-                    fallback_sql += " AND city = ?"
-                    fallback_params.append(city)
-                fallback_sql += " ORDER BY featured DESC, id DESC LIMIT ?"
-                fallback_params.append(fetch_limit)
-                rows = connection.execute(fallback_sql, fallback_params).fetchall()
-            else:
+        except sqlite3.OperationalError as error:
+            # A legacy database without the FTS index can still be searched once
+            # with LIKE. Any other failure (a malformed MATCH expression, say) is
+            # a bug and must surface rather than quietly trigger a table scan:
+            # on millions of rows an unanchored LIKE is a disaster, not a fallback.
+            if not fts_match:
                 raise
+            current_app.logger.warning("FTS search unavailable (%s); using LIKE fallback", error)
+            fallback_sql = "SELECT * FROM listings WHERE 1=1"
+            fallback_params: list[Any] = []
+            term = f"%{query}%"
+            fallback_sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
+            fallback_params.extend([term, term, term])
+            if category and category != "all":
+                category_ids = list(dict.fromkeys([category, *CATEGORY_GROUPS.get(category, [])]))
+                placeholders = ",".join("?" for _ in category_ids)
+                fallback_sql += " AND category IN (" + placeholders + ")"
+                fallback_params.extend(category_ids)
+            if city and city != "همه شهرها":
+                fallback_sql += " AND city = ?"
+                fallback_params.append(city)
+            fallback_sql += " ORDER BY featured DESC, id DESC LIMIT ?"
+            fallback_params.append(fetch_limit)
+            rows = connection.execute(fallback_sql, fallback_params).fetchall()
 
     items = _attach_active_tags([serialize_listing(row) for row in rows])
     if use_nearby:
@@ -317,6 +307,10 @@ def create_listing():
         return jsonify({"error": "authentication_required", "message": "برای ثبت آگهی ابتدا وارد حساب شوید."}), 401
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
+    try:
+        rate_limits.enforce("listing_create", user, limit=60, window_seconds=3600, cooldown_seconds=2)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "تعداد آگهی‌های ثبت‌شده از سقف ساعتی گذشته است؛ کمی بعد دوباره تلاش کنید.")
     is_multipart = bool(request.content_type and request.content_type.startswith("multipart/form-data"))
     payload = request.form if is_multipart else request.get_json(silent=True)
     if payload is None or not hasattr(payload, "get"):
@@ -372,10 +366,13 @@ def create_listing():
     if image_content:
         binary, extension = image_content
         filename = f"{uuid.uuid4().hex}{extension}"
-        target_folder = Path(current_app.config["UPLOAD_FOLDER"])
-        target_folder.mkdir(parents=True, exist_ok=True)
-        (target_folder / filename).write_bytes(binary)
-        image_path = f"/static/uploads/{filename}"
+        # Sharded into two-character directories: one flat folder with millions
+        # of images makes every lookup (and backup) slower than it needs to be.
+        relative_path = upload_relative_path(filename)
+        target = Path(current_app.config["UPLOAD_FOLDER"]) / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(binary)
+        image_path = f"{UPLOAD_URL_PREFIX}{relative_path}"
 
     with get_connection() as connection:
         store = connection.execute("SELECT id FROM stores WHERE owner_id = ?", (user["id"],)).fetchone()
@@ -457,7 +454,7 @@ def manage_listing(listing_id: int):
             updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
             return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
     if request.method == "DELETE":
-        _delete_listing_image(image_path)
+        delete_uploaded_image(image_path)
         return jsonify({"ok": True})
     return jsonify({"error": "method_not_allowed"}), 405
 

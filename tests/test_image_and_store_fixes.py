@@ -48,8 +48,7 @@ def test_delete_listing_removes_image_file_from_disk(monkeypatch, tmp_path):
     assert created.status_code == 201
     item = created.get_json()["item"]
     listing_id = item["id"]
-    filename = item["image_path"].rsplit("/", 1)[-1]
-    saved = upload_folder / filename
+    saved = upload_folder / item["image_path"].replace("/static/uploads/", "", 1)
     assert saved.is_file()
     assert saved.read_bytes() == png
 

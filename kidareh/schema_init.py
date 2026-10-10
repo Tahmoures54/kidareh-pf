@@ -7,10 +7,21 @@ are intentionally idempotent so existing deployments can be upgraded safely.
 
 
 def initialize_feature_schemas() -> None:
-    """Initialize schemas for messaging/support and seller monetization."""
+    """Initialize every feature-owned table before requests are served.
+
+    Every initializer is idempotent, so this runs on each startup: databases
+    that are already at the latest schema version still pick up tables added by
+    a feature module after their last migration.
+    """
     # Import lazily to avoid route imports while the core module is being loaded.
+    from .services import rate_limits
+    from .routes.auth import ensure_tables as initialize_auth
     from .routes.communications import ensure_tables as initialize_communications
+    from .routes.moderation import ensure_tables as initialize_moderation
     from .routes.monetization import ensure_tables as initialize_monetization
 
+    rate_limits.ensure_tables()
+    initialize_auth()
     initialize_communications()
+    initialize_moderation()
     initialize_monetization()

@@ -1,6 +1,5 @@
 """Versioned category, trade, and Iranian administrative-location catalogs."""
 import json
-from functools import lru_cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -35,6 +34,112 @@ CITY_NAMES = {
 def is_city_name(value):
     """Return whether a value matches a city in the canonical Iranian directory."""
     return normalize_location_name(value) in CITY_NAMES
+
+
+# --- Location search index ---------------------------------------------------
+# The city picker queries this catalogue on every keystroke, so entries are
+# normalized once at import time instead of per request. `iran_locations.json`
+# stays the single source of truth; this is only a pre-computed view of it.
+LOCATION_TYPE_RANK = {"city": 0, "urban_zone": 1, "important_point": 2, "province_capital": 3}
+
+# Offered when the picker opens with an empty query.
+POPULAR_CITY_NAMES = (
+    "تهران", "مشهد", "اصفهان", "کرج", "شیراز", "تبریز", "قم",
+    "اهواز", "کرمانشاه", "رشت", "کرمان", "یزد", "ساری", "بندرعباس", "اراک",
+)
+
+
+def _build_location_index() -> dict[str, list[tuple[str, dict]]]:
+    provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
+    counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
+
+    def entry(name, identifier, kind, province="", county="", extra=None):
+        payload = {
+            "id": identifier,
+            "name": name,
+            "type": kind,
+            "province": province,
+            "county": county,
+        }
+        if extra:
+            payload.update(extra)
+        return (normalize_location_name(name), payload)
+
+    cities: list[tuple[str, dict]] = []
+    for item in IRAN_LOCATIONS["cities"]:
+        cities.append(
+            entry(
+                item["name"],
+                item["id"],
+                "city",
+                provinces.get(item["province_id"], ""),
+                counties.get(item["county_id"], ""),
+            )
+        )
+    for item in IRAN_LOCATIONS.get("urban_zones", []):
+        cities.append(
+            entry(
+                item["name"],
+                item["id"],
+                "urban_zone",
+                provinces.get(item["province_id"], ""),
+                counties.get(item["county_id"], ""),
+                {"parent_city_id": item.get("city_id")},
+            )
+        )
+
+    points: list[tuple[str, dict]] = []
+    for item in IRAN_LOCATIONS.get("county_centers", []):
+        # County centres are searchable as places and selectable as map points.
+        cities.append(
+            entry(
+                item["center_name"],
+                item["county_id"],
+                "important_point",
+                provinces.get(item["province_id"], ""),
+                item["county_name"],
+            )
+        )
+        points.append(
+            entry(
+                item["center_name"],
+                item["county_id"],
+                "important_point",
+                provinces.get(item["province_id"], ""),
+                item["county_name"],
+                {"latitude": item.get("latitude"), "longitude": item.get("longitude")},
+            )
+        )
+    for item in IRAN_LOCATIONS.get("province_capitals", []):
+        points.append(
+            entry(
+                item["center_name"],
+                item["province_id"],
+                "province_capital",
+                item["province_name"],
+                "",
+                {"latitude": item.get("latitude"), "longitude": item.get("longitude")},
+            )
+        )
+
+    return {"city": cities, "point": points}
+
+
+LOCATION_INDEX = _build_location_index()
+
+# Only genuine cities, so the "popular cities" shortcut cannot resolve to an
+# urban zone or county centre that happens to share a name.
+CITY_INDEX_BY_NAME = {
+    normalized: payload
+    for normalized, payload in LOCATION_INDEX["city"]
+    if payload["type"] == "city"
+}
+POPULAR_CITIES = [
+    CITY_INDEX_BY_NAME[normalize_location_name(name)]
+    for name in POPULAR_CITY_NAMES
+    if normalize_location_name(name) in CITY_INDEX_BY_NAME
+]
+
 
 CATEGORIES = [
     {"id": group["id"], "name": group["group"], "icon": group.get("icon", "▦"),

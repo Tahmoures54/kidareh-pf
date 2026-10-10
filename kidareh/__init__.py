@@ -1,27 +1,47 @@
 """Application factory for the Kidareh marketplace."""
 import os
+import secrets
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
-from .core import BASE_DIR, CATEGORIES, DATABASE_PATH, MAX_IMAGE_BYTES, UPLOAD_FOLDER
+from .core import (
+    CATEGORIES,
+    DATABASE_PATH,
+    MAX_IMAGE_BYTES,
+    UPLOAD_FOLDER,
+    close_request_connection,
+)
 from .data_catalog import CATEGORY_TREE, TRADE_GROUPS
-
-_DEFAULT_SECRET = "dev-only-change-this-key"
 
 
 def create_app(test_config=None):
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
-    secret_key = os.environ.get("SECRET_KEY", _DEFAULT_SECRET)
     is_production = (
         os.environ.get("FLASK_ENV", "").lower() == "production"
         or os.environ.get("ENV", "").lower() == "production"
         or os.environ.get("LIARA_APP_ID")  # Liara sets this in production
     )
-    if test_config is None and is_production and secret_key == _DEFAULT_SECRET:
-        raise RuntimeError(
-            "SECRET_KEY must be set to a strong random value in production. "
-            "Do not use the development default."
+
+    # Resolve the signing key from the environment first, then from an explicit
+    # test configuration, and only then fall back to a generated value.
+    secret_key = (os.environ.get("SECRET_KEY") or "").strip()
+    if test_config:
+        secret_key = str(test_config.get("SECRET_KEY") or secret_key or "")
+    if not secret_key:
+        if is_production:
+            raise RuntimeError(
+                "SECRET_KEY must be set to a strong random value in production. "
+                "Do not use the development default."
+            )
+        # Never fall back to a publicly known key: a deployment that forgets
+        # SECRET_KEY would otherwise sign sessions with a value from the source
+        # tree, letting anyone forge a session cookie. An ephemeral random key
+        # is safe; it only means sessions do not survive a restart.
+        secret_key = secrets.token_urlsafe(64)
+        app.logger.warning(
+            "SECRET_KEY is not configured; generated an ephemeral key. "
+            "Sessions will be invalidated on restart. Set SECRET_KEY before deploying."
         )
     app.config.from_mapping(
         SECRET_KEY=secret_key,
@@ -67,6 +87,23 @@ def create_app(test_config=None):
         response.headers["Cache-Control"] = "no-cache"
         return response
 
+    @app.teardown_appcontext
+    def close_database(_error):
+        """Release the request-scoped SQLite connection, if one was opened."""
+        close_request_connection()
+
+    @app.after_request
+    def security_headers(response):
+        """Send baseline hardening headers with every response."""
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        if is_production and request.scheme == "https":
+            response.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
+        return response
+
     @app.after_request
     def static_cache_headers(response):
         """Cache static assets: fonts and icons for a week, CSS/JS revalidated every time.
@@ -106,7 +143,6 @@ def create_app(test_config=None):
     def not_found(_error):
         if request.path.startswith("/api/"):
             return jsonify({"error": "not_found"}), 404
-        from .core import CATEGORIES
         return render_template("index.html", categories=CATEGORIES, category_tree=CATEGORY_TREE, trade_groups=TRADE_GROUPS), 404
 
     return app

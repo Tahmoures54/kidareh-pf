@@ -1,4 +1,6 @@
-from flask import Blueprint, Response, render_template, request, session, url_for
+import time
+
+from flask import Blueprint, Response, render_template, request, session
 from xml.sax.saxutils import escape as xml_escape
 from urllib.parse import urljoin
 import uuid
@@ -136,27 +138,44 @@ def robots_txt():
         f"Sitemap: {base}/sitemap.xml",
         "",
     ])
-    return Response(body, mimetype="text/plain")
+    response = Response(body, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+# Crawlers ask for the sitemap constantly and the newest pages barely change, so
+# the document is rebuilt at most once every ten minutes per process instead of
+# on every request (a full sitemap is a 10k-row query and ~1 MB of XML).
+SITEMAP_CACHE_SECONDS = 600
+_sitemap_cache: dict[str, tuple[float, str]] = {}
 
 
 @bp.get("/sitemap.xml")
 def sitemap_xml():
     base = request.url_root.rstrip("/")
-    urls = [("/", None), ("/search", None), ("/stores", None), ("/help", None), ("/guide", None),
-            ("/safety", None), ("/terms", None), ("/privacy", None)]
-    with get_connection() as connection:
-        for row in connection.execute("SELECT id, created_at FROM stores ORDER BY id DESC LIMIT 5000"):
-            urls.append((f"/store/{row['id']}", row["created_at"]))
-        for row in connection.execute("SELECT id, created_at FROM listings ORDER BY id DESC LIMIT 5000"):
-            urls.append((f"/product/{row['id']}", row["created_at"]))
-    entries = []
-    for path, lastmod in urls:
-        lastmod_xml = f"<lastmod>{xml_escape(str(lastmod)[:10])}</lastmod>" if lastmod else ""
-        entries.append(f"  <url><loc>{xml_escape(base + path)}</loc>{lastmod_xml}</url>")
-    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + "\n".join(entries) + "\n</urlset>\n")
-    return Response(xml, mimetype="application/xml")
+    now = time.monotonic()
+    cached = _sitemap_cache.get(base)
+    if cached and now - cached[0] < SITEMAP_CACHE_SECONDS:
+        xml = cached[1]
+    else:
+        urls = [("/", None), ("/search", None), ("/stores", None), ("/help", None), ("/guide", None),
+                ("/safety", None), ("/terms", None), ("/privacy", None)]
+        with get_connection() as connection:
+            for row in connection.execute("SELECT id, created_at FROM stores ORDER BY id DESC LIMIT 5000"):
+                urls.append((f"/store/{row['id']}", row["created_at"]))
+            for row in connection.execute("SELECT id, created_at FROM listings ORDER BY id DESC LIMIT 5000"):
+                urls.append((f"/product/{row['id']}", row["created_at"]))
+        entries = []
+        for path, lastmod in urls:
+            lastmod_xml = f"<lastmod>{xml_escape(str(lastmod)[:10])}</lastmod>" if lastmod else ""
+            entries.append(f"  <url><loc>{xml_escape(base + path)}</loc>{lastmod_xml}</url>")
+        xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+               + "\n".join(entries) + "\n</urlset>\n")
+        _sitemap_cache[base] = (now, xml)
+    response = Response(xml, mimetype="application/xml")
+    response.headers["Cache-Control"] = "public, max-age=600"
+    return response
 
 
 @bp.get("/seller")
@@ -173,7 +192,14 @@ def seller_tags_page():
 
 @bp.get("/monetization")
 def monetization_page():
-    return render_marketplace_page("pages/seller/monetization.html")
+    # Imported lazily: the monetization module owns the package catalogue.
+    from .monetization import PACKAGES, TAG_PACKAGES
+
+    return render_marketplace_page(
+        "pages/seller/monetization.html",
+        packages=PACKAGES,
+        tag_packages=TAG_PACKAGES,
+    )
 
 
 @bp.get("/account")

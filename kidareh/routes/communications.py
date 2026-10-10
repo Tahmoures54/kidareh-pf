@@ -1,7 +1,8 @@
 """Buyer/seller conversations, customer support tickets, and admin overview."""
 import os
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection
+from ..services import rate_limits
 
 bp = Blueprint("communications", __name__)
 
@@ -101,6 +102,10 @@ def start_conversation():
         return error
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
+    try:
+        rate_limits.enforce("conversation_create", user, limit=30, window_seconds=3600)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "تعداد گفت‌وگوهای جدید شما از سقف مجاز گذشته است؛ کمی بعد دوباره تلاش کنید.")
     payload = request.get_json(silent=True) or {}
     listing_id = payload.get("listing_id")
     if not isinstance(listing_id, int) or listing_id < 1:
@@ -144,6 +149,10 @@ def send_conversation_message(conversation_id):
         return error
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
+    try:
+        rate_limits.enforce("message_send", user, limit=120, window_seconds=3600, cooldown_seconds=1)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "ارسال پیام موقتاً محدود شده است؛ چند ثانیه صبر کنید.")
     payload = request.get_json(silent=True) or {}
     body = payload.get("body")
     if not isinstance(body, str) or not body.strip() or len(body.strip()) > 2000:
@@ -187,10 +196,11 @@ def support_create():
         return jsonify({"error": "invalid_message", "message": "شرح درخواست باید بین ۱۰ تا ۴۰۰۰ نویسه باشد."}), 400
     if category not in {"general", "account", "listing", "payment", "technical", "other"}:
         return jsonify({"error": "invalid_category"}), 400
+    try:
+        rate_limits.enforce("support_ticket", user, limit=10, window_seconds=86400)
+    except rate_limits.RateLimitExceeded as error:
+        return rate_limits.error_response(error, "سقف ثبت تیکت روزانه پر شده است.")
     with get_connection() as db:
-        recent = db.execute("SELECT COUNT(*) FROM support_tickets WHERE user_id=? AND created_at>=datetime('now','-1 day')", (user["id"],)).fetchone()[0]
-        if recent >= 10:
-            return jsonify({"error": "ticket_limit", "message": "سقف ثبت تیکت روزانه پر شده است."}), 429
         cursor = db.execute("INSERT INTO support_tickets(user_id,title,category) VALUES(?,?,?)", (user["id"], title.strip(), category))
         db.execute("INSERT INTO support_messages(ticket_id,sender_id,body,is_admin_reply) VALUES(?,?,?,0)", (cursor.lastrowid, user["id"], body.strip()))
     return jsonify({"ok": True, "id": cursor.lastrowid}), 201
@@ -310,26 +320,5 @@ def admin_update_ticket(ticket_id):
         db.execute("UPDATE support_tickets SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", (status, ticket_id))
     return jsonify({"ok": True})
 
-
-@bp.get("/messages")
-def messages_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/account/messages.html", csrf_token=session["csrf_token"])
-
-
-@bp.get("/support")
-def support_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/account/support.html", csrf_token=session["csrf_token"])
-
-
-@bp.get("/admin")
-def admin_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/admin/dashboard.html", csrf_token=session["csrf_token"])
+# The /messages, /support and /admin pages are rendered by the pages blueprint
+# so that every marketplace page shares one renderer and CSRF handling.

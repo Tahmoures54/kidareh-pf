@@ -6,6 +6,7 @@ venv/
 instance/*.sqlite3
 instance/*.db
 .pytest_cache/
+.coverage
 
 # User-uploaded listing photos are runtime data, not repository content.
 static/uploads/
@@ -13,4 +14,9 @@ static/uploads/
 backups/
 *.sqlite3-wal
 *.sqlite3-shm
+
+# Start-up migration lock (a small SQLite file created beside the database)
+kidareh-migrations.lock
+kidareh-migrations.lock-wal
+kidareh-migrations.lock-shm
 
