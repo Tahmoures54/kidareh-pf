@@ -149,3 +149,24 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     assert 'id="toggleMarketCityPicker"' in html
     assert 'aria-controls="marketCityOptions"' in html
     assert 'id="citySelect" list=' not in html
+
+
+
+def test_category_options_are_shared_across_home_search_seller_and_registration(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "shared-categories.sqlite3")
+    app_module.initialize_database()
+    client = app_module.app.test_client()
+
+    pages = {
+        "/": ('id="categorySelect"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
+        "/search": ('id="pageCategory"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
+        "/seller": ('name="category"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
+        "/register": ('id="storeCategory"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
+    }
+    for path, markers in pages.items():
+        response = client.get(path)
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200, path
+        assert all(marker in html for marker in markers), path
+        assert 'value="food"' in html, path
+        assert 'value="fresh_produce"' in html, path

@@ -1,0 +1,11 @@
+{% macro category_options(category_tree, selected='', include_empty=false, empty_label='انتخاب دسته‌بندی') -%}
+{% if include_empty %}<option value="">{{ empty_label }}</option>{% endif %}
+{% for group in category_tree %}
+<option value="{{ group.id }}"{% if selected == group.id %} selected{% endif %}>{{ group.group }} — همهٔ زیر‌دسته‌ها</option>
+<optgroup label="{{ group.group }}">
+{% for item in group.types %}
+<option value="{{ item.value }}"{% if selected == item.value %} selected{% endif %}>{{ item.text }}</option>
+{% endfor %}
+</optgroup>
+{% endfor %}
+{%- endmacro %}
