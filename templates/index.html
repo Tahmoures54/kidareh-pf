@@ -34,6 +34,7 @@
     </div>
   </header>
 
+  <datalist id="iranCityOptions"></datalist>
   <main>
     <section class="hero promo-banner promo-banners" aria-label="معرفی کی‌داره" id="promoBanner">
       <div class="promo-track" id="promoSlides">
@@ -135,10 +136,7 @@
         <span class="search-divider" aria-hidden="true"></span>
         <label class="city-field">
           <span class="field-icon" aria-hidden="true">⌖</span>
-          <select id="citySelect" aria-label="انتخاب شهر">
-            <option value="">همه شهرها</option>
-            <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
-          </select>
+          <input id="citySelect" list="iranCityOptions" aria-label="انتخاب شهر یا روستا" placeholder="همه شهرها" autocomplete="off">
         </label>
         <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
       </form>
@@ -160,8 +158,8 @@
       <form class="listing-submit-form" id="listingSubmitForm" hidden>
         <div class="tag-selling-prompt"><span class="tag-prompt-icon">✦</span><div><strong>کالایت رایگان منتشر می‌شود؛ می‌خواهی بیشتر به چشم بیاید؟</strong><p>بعد از ثبت کالا می‌توانی تگ‌هایی مثل «حراج» یا «فروش ویژه» بخری. این کار اختیاری است و انتشار رایگان را متوقف نمی‌کند.</p><a href="/seller/tags">دیدن تگ‌های کالا و قیمت‌ها ←</a></div></div>
         <label>عنوان آگهی<input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی"></label>
-        <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select></label>
-        <label>شهر<input name="city" required maxlength="60" placeholder="مثلاً تبریز"></label>
+        <label>دسته‌بندی<select name="category" required><option value="">انتخاب کنید</option>{% for category in categories %}{% for group in category_tree %}<optgroup label="{{ group.group }}">{% for item in group.types %}<option value="{{ item.value }}">{{ item.text }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
+        <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا"></label>
         <label>قیمت به تومان<input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required></label>
         <label>شماره همراه فروشنده (اختیاری)<input name="seller_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="مثلاً 09123456789" aria-describedby="sellerPhoneHelp"></label>
         <p class="form-note" id="sellerPhoneHelp">برای هماهنگی بازدید حضوری است و فقط در صفحه جزئیات آگهی نمایش داده می‌شود.</p>
