@@ -3,19 +3,25 @@
   "name": "ببین کی‌داره؟ حضوری بگیر! | کی‌داره",
   "short_name": "کی‌داره",
   "description": "ببین کی‌داره؟ حضوری بگیر! کالاهای نزدیکت را پیدا کن و از فروشگاه محلی تحویل بگیر.",
-  "lang": "fa-IR",
+  "lang": "fa",
   "dir": "rtl",
-  "start_url": "/?source=pwa",
+  "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fbfdfd",
-  "theme_color": "#087f8c",
+  "orientation": "portrait",
+  "background_color": "#F1F5F9",
+  "theme_color": "#0E7490",
+  "categories": ["shopping", "business"],
   "icons": [
-    {
-      "src": "/static/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/static/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "جستجو", "short_name": "جستجو", "description": "جستجوی کالا در شهر", "url": "/search?utm_source=pwa_shortcut", "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "ثبت آگهی", "short_name": "ثبت آگهی", "description": "ساخت یا مدیریت ویترین", "url": "/seller?utm_source=pwa_shortcut", "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "پیام‌ها", "short_name": "پیام‌ها", "description": "گفت‌وگوهای شما", "url": "/messages?utm_source=pwa_shortcut", "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

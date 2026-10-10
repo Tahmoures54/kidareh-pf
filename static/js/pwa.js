@@ -1,172 +1,206 @@
+/* کی‌داره — PWA: بنر نصب هوشمند، راهنمای iOS، ثبت Service Worker و اعلان نسخهٔ جدید */
 (() => {
   "use strict";
 
-  const installButton = document.querySelector("#installAppButton");
+  const Rules = window.KidarehPwaRules;
+  const UI = window.KidarehUI;
+  if (!Rules || !UI) return;
+
   const DISMISS_KEY = "kidareh-install-dismissed-at";
-  const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000;
+  const UPDATED_KEY = "kidareh-just-updated";
+  const EVENTS_KEY = "kidareh-pwa-events";
+  const pageLoadedAt = Date.now();
+
   let installPrompt = null;
-  let installCard = null;
+  let banner = null;
+  let engagementShown = false;
 
   const isStandalone = () =>
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
+    window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 
-  const wasDismissedRecently = () => {
-    try {
-      const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || 0);
-      return dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_FOR_MS;
-    } catch {
-      return false;
-    }
-  };
-
-  function dismissCard() {
-    if (installCard) installCard.hidden = true;
-    try {
-      localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    } catch {
-      // Storage may be unavailable in private browsing; dismissal still works for this view.
-    }
+  function readDismissedAt() {
+    try { return Number(localStorage.getItem(DISMISS_KEY) || 0); } catch { return 0; }
   }
 
-  function createInstallCard() {
-    if (installCard) return installCard;
+  function dismiss() {
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* private mode */ }
+    if (banner) banner.hidden = true;
+  }
 
-    installCard = document.createElement("aside");
-    installCard.className = "pwa-install-card";
-    installCard.hidden = true;
-    installCard.setAttribute("aria-label", "نصب اپ کی‌داره");
-    installCard.innerHTML = `
+  // Analytics: رویدادها به dataLayer (اگر وجود داشته باشد) و یک CustomEvent ارسال می‌شوند.
+  function track(name, detail = {}) {
+    const payload = { event: name, ...detail, at: new Date().toISOString() };
+    if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
+    window.dispatchEvent(new CustomEvent("kidareh:analytics", { detail: payload }));
+  }
+
+  function createBanner(text, actionLabel, onAction) {
+    if (banner) banner.remove();
+    banner = document.createElement("aside");
+    banner.className = "pwa-install-card";
+    banner.setAttribute("role", "region");
+    banner.setAttribute("aria-label", "نصب اپ کی‌داره");
+    banner.innerHTML = `
       <span class="pwa-install-icon" aria-hidden="true">ک</span>
-      <div class="pwa-install-copy">
-        <strong>کی‌داره همیشه دم دستت باشد</strong>
-        <p>برای دسترسی سریع‌تر، نسخهٔ اپ را به صفحهٔ اصلی گوشی اضافه کن.</p>
-      </div>
-      <button class="button button-primary pwa-install-action" type="button">نصب اپ</button>
-      <button class="pwa-install-close" type="button" aria-label="بعداً">×</button>`;
-
-    document.body.appendChild(installCard);
-    installCard.querySelector(".pwa-install-action").addEventListener("click", handleInstallClick);
-    installCard.querySelector(".pwa-install-close").addEventListener("click", dismissCard);
-    return installCard;
+      <div class="pwa-install-copy"><strong>کی‌داره رو نصب کن، سریع‌تر باز می‌شه</strong><p>${text}</p></div>
+      <button class="button button-primary pwa-install-action" type="button"></button>
+      <button class="pwa-install-close button button-ghost" type="button">بعداً</button>`;
+    banner.querySelector(".pwa-install-action").textContent = actionLabel;
+    banner.querySelector(".pwa-install-action").addEventListener("click", onAction);
+    banner.querySelector(".pwa-install-close").addEventListener("click", () => {
+      track("pwa_install_dismissed");
+      dismiss();
+    });
+    document.body.appendChild(banner);
+    return banner;
   }
 
-  function showInstallHelp() {
-    let help = document.querySelector("#pwaInstallHelp");
-    if (!help) {
-      help = document.createElement("dialog");
-      help.id = "pwaInstallHelp";
-      help.className = "pwa-install-help";
-      help.setAttribute("aria-labelledby", "pwaInstallHelpTitle");
-      help.innerHTML = `
-        <button class="pwa-help-close" type="button" aria-label="بستن">×</button>
-        <span class="pwa-install-icon" aria-hidden="true">ک</span>
-        <h2 id="pwaInstallHelpTitle">نصب کی‌داره روی گوشی</h2>
-        <p class="pwa-help-android"><strong>اندروید:</strong> منوی سه‌نقطهٔ مرورگر را باز کن و «Install app» یا «افزودن به صفحهٔ اصلی» را بزن.</p>
-        <p class="pwa-help-ios"><strong>آیفون:</strong> در Safari روی دکمهٔ اشتراک‌گذاری بزن و «Add to Home Screen» را انتخاب کن.</p>
-        <p class="pwa-help-generic"><strong>مرورگر:</strong> از منو گزینهٔ «افزودن به صفحهٔ اصلی» یا «نصب برنامه» را انتخاب کن.</p>
-        <button class="button button-primary pwa-help-done" type="button">متوجه شدم</button>`;
-      document.body.appendChild(help);
-      help.querySelectorAll(".pwa-help-close, .pwa-help-done").forEach(button => {
-        button.addEventListener("click", () => help.close());
-      });
-      help.addEventListener("click", event => {
-        if (event.target === help) help.close();
-      });
-      help.addEventListener("keydown", event => {
-        if (event.key === "Escape") help.close();
-      });
-    }
-
-    const ua = navigator.userAgent || "";
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
-    help.querySelector(".pwa-help-ios").hidden = !isIOS;
-    help.querySelector(".pwa-help-android").hidden = !isAndroid;
-    help.querySelector(".pwa-help-generic").hidden = isIOS || isAndroid;
-
-    if (typeof help.showModal === "function") help.showModal();
-    else window.alert("از منوی مرورگر گزینهٔ «افزودن به صفحهٔ اصلی» را انتخاب کن.");
-  }
-
-  async function handleInstallClick() {
-    if (!installPrompt) {
-      showInstallHelp();
-      return;
-    }
-
+  async function nativeInstall() {
+    if (!installPrompt) return;
+    const promptEvent = installPrompt;
+    installPrompt = null;
     try {
-      await installPrompt.prompt();
-      const choice = await installPrompt.userChoice;
-      if (choice && choice.outcome === "accepted") {
-        if (installCard) installCard.hidden = true;
-        if (installButton) installButton.hidden = true;
-      }
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      track("pwa_install_choice", { outcome: choice?.outcome || "unknown" });
     } catch {
-      showInstallHelp();
-    } finally {
-      installPrompt = null;
+      UI.toast("نصب الان ممکن نشد؛ بعداً دوباره امتحان کن.", { kind: "error" });
+    }
+    if (banner) banner.hidden = true;
+  }
+
+  function showIosGuide() {
+    let guide = document.querySelector("#pwaIosGuide");
+    if (!guide) {
+      guide = document.createElement("aside");
+      guide.id = "pwaIosGuide";
+      guide.className = "pwa-install-card";
+      guide.setAttribute("role", "region");
+      guide.setAttribute("aria-label", "راهنمای نصب در iOS");
+      guide.innerHTML = `
+        <span class="pwa-install-icon" aria-hidden="true">⬆</span>
+        <div class="pwa-install-copy"><strong>نصب کی‌داره روی آیفون</strong>
+          <p>دکمهٔ <span aria-hidden="true">⬆</span> «اشتراک‌گذاری» را بزن و «Add to Home Screen» را انتخاب کن.</p></div>
+        <button class="pwa-install-close button button-ghost" type="button">بعداً</button>`;
+      guide.querySelector("button").addEventListener("click", () => {
+        track("pwa_ios_guide_dismissed");
+        dismiss();
+      });
+      document.body.appendChild(guide);
+    }
+    banner = guide;
+    guide.hidden = false;
+  }
+
+  function offerInstall() {
+    if (engagementShown) return;
+    const path = Rules.installPath({ hasNativePrompt: Boolean(installPrompt), userAgent: navigator.userAgent });
+    if (path === "native") {
+      engagementShown = true;
+      createBanner("برای دسترسی سریع‌تر، کی‌داره را به صفحهٔ اصلی گوشی اضافه کن.", "نصب", nativeInstall);
+      track("pwa_install_offered", { path });
+    } else if (path === "ios-guide") {
+      engagementShown = true;
+      showIosGuide();
+      track("pwa_install_offered", { path });
     }
   }
 
-  function maybeShowInstallCard() {
-    if (isStandalone() || wasDismissedRecently()) return;
-    createInstallCard().hidden = false;
-    if (installButton) installButton.hidden = false;
+  // محرک‌ها: ۱۵ ثانیه ماندن، اسکرول ۵۰٪، یا کلیک روی صفحهٔ محصول
+  function maybeOfferOnEngagement(extra = {}) {
+    if (!Rules.canOfferInstall({ isStandalone: isStandalone(), dismissedAt: readDismissedAt(), now: Date.now() })) return;
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollRatio = scrollable > 0 ? window.scrollY / scrollable : 1;
+    if (Rules.isEngagementTriggered({ residenceMs: Date.now() - pageLoadedAt, scrollRatio, ...extra })) {
+      offerInstall();
+    }
   }
 
-  function markCurrentMobileNav() {
-    const path = window.location.pathname.replace(/\/$/, "") || "/";
-    document.querySelectorAll(".mobile-nav-item").forEach(link => {
-      const href = link.getAttribute("href") || "";
-      const target = href.split("#")[0].replace(/\/$/, "") || "/";
-      const isCurrent = target === path || (target === "/" && path === "/");
-      if (isCurrent) link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
+  function wireEngagement() {
+    const timer = window.setInterval(() => {
+      maybeOfferOnEngagement();
+      if (engagementShown) window.clearInterval(timer);
+    }, 1000);
+    window.addEventListener("scroll", () => maybeOfferOnEngagement(), { passive: true });
+    document.addEventListener("click", event => {
+      const link = event.target.closest?.('a[href^="/product/"]');
+      if (link) maybeOfferOnEngagement({ clickedProduct: true });
     });
   }
 
+  // ---------- Service Worker + اعلان نسخهٔ جدید ----------
+  function announceUpdate(registration) {
+    UI.toast("نسخه‌ی جدید آماده است، بروزرسانی کنم؟", {
+      kind: "info",
+      duration: 12000,
+      action: {
+        label: "بروزرسانی",
+        onClick: () => registration.waiting?.postMessage({ type: "SKIP_WAITING" }),
+      },
+    });
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    if (!(location.protocol === "https:" || location.hostname === "localhost")) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
+        .then(registration => {
+          if (registration.waiting && navigator.serviceWorker.controller) announceUpdate(registration);
+          registration.addEventListener("updatefound", () => {
+            const worker = registration.installing;
+            worker?.addEventListener("statechange", () => {
+              if (worker.state === "installed" && navigator.serviceWorker.controller) announceUpdate(registration);
+            });
+          });
+          return registration.update();
+        })
+        .catch(() => { /* سایت بدون Service Worker هم کار می‌کند */ });
+    });
+    let reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloading) return;
+      reloading = true;
+      try { localStorage.setItem(UPDATED_KEY, "1"); } catch { /* ignore */ }
+      window.location.reload();
+    });
+  }
+
+  function announceFreshInstallIfAny() {
+    try {
+      if (localStorage.getItem(UPDATED_KEY) === "1") {
+        localStorage.removeItem(UPDATED_KEY);
+        UI.toast("نسخه‌ی جدید نصب شد 🎉", { kind: "success" });
+      }
+    } catch { /* ignore */ }
+  }
+
+  // ---------- Install events ----------
   window.addEventListener("beforeinstallprompt", event => {
-    // Keep the native prompt until the signed-in user sees the install offer.
-    event.preventDefault();
+    event.preventDefault(); // بنر پیش‌فرض مرورگر را پنهان کن؛ بنر خودمان را نشان می‌دهیم
     installPrompt = event;
+    track("pwa_install_prompt_captured");
   });
 
   window.addEventListener("appinstalled", () => {
-    if (installButton) installButton.hidden = true;
-    if (installCard) installCard.hidden = true;
     installPrompt = null;
+    if (banner) banner.hidden = true;
+    track("pwa_installed");
+    UI.toast("کی‌داره نصب شد. حالا از صفحهٔ اصلی گوشی باز کن! 🎉", { kind: "success" });
   });
 
-  installButton?.addEventListener("click", handleInstallClick);
-  markCurrentMobileNav();
+  document.querySelector("#installAppButton")?.addEventListener("click", () => {
+    if (installPrompt) nativeInstall();
+    else showIosGuide();
+  });
 
-  async function checkSignedInAndOfferInstall() {
-    if (isStandalone() || wasDismissedRecently()) return;
-    try {
-      const response = await fetch("/api/auth/me", {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-        cache: "no-store"
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      if (data && data.user) window.setTimeout(maybeShowInstallCard, 1800);
-    } catch {
-      // Installation is optional and must never block page usage.
-    }
-  }
+  document.querySelectorAll(".mobile-nav-item").forEach(link => {
+    const path = window.location.pathname.replace(/\/$/, "") || "/";
+    const target = (link.getAttribute("href") || "").split("#")[0].replace(/\/$/, "") || "/";
+    if (target === path) link.setAttribute("aria-current", "page");
+  });
 
-  checkSignedInAndOfferInstall();
-
-  if ("serviceWorker" in navigator &&
-      (location.protocol === "https:" || location.hostname === "localhost")) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
-        .then(registration => registration.update())
-        .catch(() => {
-          // The site remains usable when service-worker installation is unavailable.
-        });
-    });
-  }
+  announceFreshInstallIfAny();
+  wireEngagement();
+  registerServiceWorker();
 })();
