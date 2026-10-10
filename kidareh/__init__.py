@@ -28,6 +28,9 @@ def create_app(test_config=None):
         MAX_CONTENT_LENGTH=MAX_IMAGE_BYTES + 256 * 1024,
         DATABASE_PATH=str(DATABASE_PATH),
         UPLOAD_FOLDER=str(UPLOAD_FOLDER),
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SECURE=bool(is_production),
+        SESSION_COOKIE_SAMESITE="Lax",
     )
     if test_config:
         app.config.update(test_config)
