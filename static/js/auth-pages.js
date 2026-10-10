@@ -70,7 +70,7 @@
     if (!stepsIndicator) return;
     const order =
       mode === "register"
-        ? ["role", "phone", "code", "profile"]
+        ? ["role", "phone", "code"]
         : ["phone", "code"];
     const idx = order.indexOf(step);
     stepsIndicator.querySelectorAll(".step-dot").forEach((dot) => {
