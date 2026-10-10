@@ -370,3 +370,15 @@ gunicorn main:app
 نرم‌افزار پیشرفته جذب مشتری برای فروش حضوری 🇮🇷
 
 </div>
+
+
+---
+
+## 🚀 نسخهٔ عمومی و PWA (پیش‌نویس v1.0.0)
+
+- **فونت:** Vazirmatn به‌صورت self-hosted در `static/fonts/` (بدون Google Fonts).
+- **طراحی:** توکن‌های یکپارچه در `static/css/style.css`، کامپوننت‌ها در `static/css/components.css`، dark mode خودکار.
+- **نصب اپ:** بنر نصب سفارشی پس از ۱۵ ثانیه، اسکرول ۵۰٪ یا کلیک روی کالا؛ راهنمای iOS؛ میانبرهای جستجو، ثبت آگهی و پیام‌ها.
+- **بروزرسانی:** Service Worker با `CACHE_VERSION` و Toast تأیید بروزرسانی.
+- **SEO:** `/sitemap.xml`، `/robots.txt` و JSON-LD برای کالا و ویترین.
+- جزئیات انتشار و وضعیت هر مورد: [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md)

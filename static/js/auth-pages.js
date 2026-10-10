@@ -222,7 +222,7 @@
         return;
       }
     } catch (error) {
-      message(error.message || "خطایی رخ داد؛ دوباره تلاش کنید.", true);
+      message(error.message || "ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟", true);
       if (
         currentStep === "phone" &&
         /محاسبه|captcha|پاسخ/i.test(error.message || "")

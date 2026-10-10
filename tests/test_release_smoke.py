@@ -82,7 +82,7 @@ def test_pwa_manifest_is_valid_and_installable(client):
     assert response.status_code == 200
     manifest = json.loads(response.get_data(as_text=True))
     assert manifest["display"] == "standalone"
-    assert manifest["start_url"] == "/?source=pwa"
+    assert manifest["start_url"] == "/?utm_source=pwa"
     assert manifest["scope"] == "/"
     assert manifest["icons"]
 
@@ -97,9 +97,9 @@ def test_pwa_shell_assets_and_offline_fallback_are_available(client):
         assert response.status_code == 200, path
 
     worker = client.get("/static/sw.js").get_data(as_text=True)
-    assert "kidareh-shell-v3" in worker
+    assert "kidareh-shell-" in worker and "CACHE_VERSION = \"v4\"" in worker
     assert "/static/offline.html" in worker
-    assert "isPrivatePath" in worker
+    assert "PRIVATE_PATH" in worker
 
 
 def test_home_and_inner_pages_include_mobile_navigation_and_install_script(client):
@@ -116,7 +116,7 @@ def test_service_worker_is_available_at_root_scope(client):
     response = client.get("/sw.js")
     assert response.status_code == 200
     assert response.headers.get("Service-Worker-Allowed") == "/"
-    assert "kidareh-shell-v3" in response.get_data(as_text=True)
+    assert "kidareh-shell-" in response.get_data(as_text=True)
 
 
 def test_profile_page_has_editable_profile_controls(client):

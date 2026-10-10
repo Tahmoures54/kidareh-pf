@@ -5,7 +5,7 @@
 <style>
   .seller-console{--seller-accent:#0E7490;--seller-ink:#0F172A;--seller-muted:#64748B}
   .seller-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:22px;margin:10px 0 20px;padding:clamp(22px,4vw,36px);border:1px solid #A5F3FC;border-radius:22px;background:linear-gradient(115deg,#ECFEFF 0%,#F0F9FF 58%,#fff 100%)}
-  .seller-hero:after{content:"";position:absolute;left:-52px;top:-100px;width:250px;height:250px;border:1px solid #0E749018;border-radius:50%;box-shadow:0 0 0 28px #0E749008,0 0 0 58px #0E749006;pointer-events:none}
+  .seller-hero:after{content:"";position:absolute;inset-inline-start:-52px;top:-100px;width:250px;height:250px;border:1px solid #0E749018;border-radius:50%;box-shadow:0 0 0 28px #0E749008,0 0 0 58px #0E749006;pointer-events:none}
   .seller-hero-copy{position:relative;z-index:1;min-width:0}
   .seller-eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border-radius:999px;background:#fff;border:1px solid #A5F3FC;color:#0E7490;font-size:11px;font-weight:800}
   .seller-hero h1{margin:12px 0 7px;font-size:clamp(25px,3.5vw,36px);line-height:1.5;color:#0F172A}
@@ -54,7 +54,7 @@
     .seller-dashboard-grid>.page-panel{padding:17px}
     .seller-console .stack-form button{width:100%}
   }
-  @media(max-width:380px){.seller-metrics{grid-template-columns:1fr}.seller-metric{display:flex;text-align:right}.seller-metric-icon{margin:0}.seller-hero-actions{grid-template-columns:1fr}}
+  @media(max-width:380px){.seller-metrics{grid-template-columns:1fr}.seller-metric{display:flex;text-align:end}.seller-metric-icon{margin:0}.seller-hero-actions{grid-template-columns:1fr}}
 </style>
 {% endblock %}
 {% block content %}

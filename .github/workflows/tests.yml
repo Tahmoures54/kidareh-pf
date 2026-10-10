@@ -32,5 +32,8 @@ jobs:
           node --check static/js/reports.js
           node --check static/js/pwa.js
           node --check static/sw.js
+          node --check static/js/ui.js
+          node --check static/js/pwa-rules.js
+          node --check static/js/onboarding.js
       - name: Run tests
         run: python -m pytest -q

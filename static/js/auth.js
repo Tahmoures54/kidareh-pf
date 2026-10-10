@@ -31,7 +31,7 @@
         const payload={name:form.elements.name.value.trim(),role:form.elements.role.value,store_name:form.elements.store_name?.value.trim()||"",store_category:form.elements.store_category?.value.trim()||"",store_city:form.elements.store_city?.value.trim()||"",contact_name:form.elements.contact_name?.value.trim()||"",store_address:form.elements.store_address?.value.trim()||""};
         const data=await api("complete-profile",payload);if(tokenMeta&&data.csrf_token)tokenMeta.content=data.csrf_token;message("حساب شما ساخته شد؛ خوش آمدید!");window.location.assign(payload.role==="seller"?"/seller":"/account");return;
       }
-    }catch(error){message(error.message||"خطایی رخ داد؛ دوباره تلاش کنید.",true);if(!phoneStep.hidden&&/محاسبه|captcha|پاسخ/i.test(error.message||"")){captchaInput.value="";await loadChallenge();}}
+    }catch(error){message(error.message||"ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟",true);if(!phoneStep.hidden&&/محاسبه|captcha|پاسخ/i.test(error.message||"")){captchaInput.value="";await loadChallenge();}}
     finally{busy=false;buttons.forEach((button,i)=>{button.disabled=false;button.textContent=labels[i];});}
   });
   loadChallenge();

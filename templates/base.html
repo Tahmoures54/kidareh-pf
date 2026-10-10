@@ -7,6 +7,11 @@
   <meta name="theme-color" content="#0E7490">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="کی‌داره">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
   <title>{% block title %}ببین کی داره؟ حضوری بگیر!{% endblock %}</title>
   <meta name="description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالای دلخواهت را پیدا کن و از فروشگاه محلی حضوری تحویل بگیر.' }}">
   <meta property="og:site_name" content="کی‌داره">
@@ -16,16 +21,17 @@
   <meta property="og:description" content="{{ meta_description or 'ببین کی‌داره؟ حضوری بگیر! کالاهای نزدیکت را پیدا کن و حضوری تحویل بگیر.' }}">
   <link rel="canonical" href="{{ request.url_root.rstrip('/') ~ request.path }}">
   <meta property="og:url" content="{{ request.url_root.rstrip('/') ~ request.path }}">
-  {% if meta_image %}<meta property="og:image" content="{{ meta_image }}">{% endif %}
-  <meta name="twitter:card" content="{{ 'summary_large_image' if meta_image else 'summary' }}">
+  <meta property="og:image" content="{{ meta_image or (request.url_root.rstrip('/') ~ url_for('static', filename='icons/icon-512.png')) }}">
+  <meta property="og:image:alt" content="لوگوی کی‌داره">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ meta_title or 'ببین کی داره؟ حضوری بگیر!' }}">
   <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Vazirmatn-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
 </head>
 <body class="inner-page">
@@ -48,19 +54,8 @@
   <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
     <a class="mobile-nav-item" href="/" aria-label="خانه"><span aria-hidden="true">⌂</span><small>خانه</small></a>
     <a class="mobile-nav-item" href="/search" aria-label="جست‌وجو"><span aria-hidden="true">⌕</span><small>جست‌وجو</small></a>
-    <a class="mobile-nav-item" href="/stores" aria-label="فروشگاه‌ها"><span aria-hidden="true">▤</span><small>فروشگاه‌ها</small></a>
-    <a class="mobile-nav-item" href="/seller" aria-label="ویترین من"><span aria-hidden="true">＋</span><small>ویترین من</small></a>
-    <details class="mobile-nav-more">
-      <summary class="mobile-nav-item" aria-label="بیشتر"><span aria-hidden="true">☰</span><small>بیشتر</small></summary>
-      <div class="mobile-nav-menu" aria-label="پیوندهای بیشتر">
-        <a href="/saved"><span aria-hidden="true">♡</span> ذخیره‌ها</a>
-        <a href="/help"><span aria-hidden="true">؟</span> مرکز راهنما</a>
-        <a href="/guide"><span aria-hidden="true">☷</span> راهنمای کاربر</a>
-        <a href="/safety"><span aria-hidden="true">✓</span> خرید امن</a>
-        <a href="/terms"><span aria-hidden="true">§</span> قوانین استفاده</a>
-        <a href="/privacy"><span aria-hidden="true">♧</span> حریم خصوصی</a>
-      </div>
-    </details>
+    <a class="mobile-nav-item" href="/seller" aria-label="ثبت آگهی"><span aria-hidden="true">＋</span><small>ثبت</small></a>
+    <a class="mobile-nav-item" href="/account" aria-label="پروفایل"><span aria-hidden="true">☺</span><small>پروفایل</small></a>
   </nav>
 
   <footer class="site-footer inner-footer">
@@ -69,9 +64,11 @@
     <p>دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید.</p>
   </footer>
   <div id="pageToast" class="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/location-picker.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pages.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa-rules.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
   {% block scripts %}{% endblock %}

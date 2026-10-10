@@ -6,24 +6,56 @@
   <meta name="theme-color" content="#0E7490">
   <title>اتصال برقرار نیست | کی‌داره</title>
   <style>
-    :root { color-scheme: light; font-family: Tahoma, Arial, sans-serif; background: #F1F5F9; color: #0F172A; }
+    @font-face { font-family: "Vazirmatn"; src: url("/static/fonts/Vazirmatn-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+    :root { color-scheme: light dark; --surface: #FFFFFF; --page: #F1F5F9; --ink: #0F172A; --muted: #475569; --line: #CBD5E1; --primary: #0E7490; --on-primary: #FFFFFF; }
+    @media (prefers-color-scheme: dark) {
+      :root { --surface: #111B2A; --page: #0B1322; --ink: #E2E8F0; --muted: #B6C2D2; --line: #334155; --primary: #22D3EE; --on-primary: #042F3A; }
+    }
     * { box-sizing: border-box; }
-    body { min-height: 100svh; margin: 0; padding: 24px; display: grid; place-items: center; }
-    main { width: min(100%, 420px); padding: 28px; border: 1px solid #CBD5E1; border-radius: 24px; background: #FFFFFF; text-align: center; box-shadow: 0 18px 50px rgba(15,23,42,.08); }
-    .mark { width: 64px; height: 64px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 20px; background: #0E7490; color: white; font-size: 34px; font-weight: 800; }
+    body { min-height: 100svh; margin: 0; padding: 24px; display: grid; place-items: center; background: var(--page); color: var(--ink); font-family: "Vazirmatn", Tahoma, sans-serif; }
+    main { width: min(100%, 420px); padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); text-align: center; box-shadow: 0 12px 32px rgba(15,23,42,.12); }
+    .mark { width: 64px; height: 64px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 20px; background: var(--primary); color: var(--on-primary); font-size: 34px; font-weight: 800; }
     h1 { margin: 0 0 12px; font-size: 1.35rem; }
-    p { margin: 0 0 22px; color: #64748B; line-height: 1.9; }
-    button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 0 20px; border: 0; border-radius: 12px; background: #0E7490; color: white; font: inherit; font-weight: 700; cursor: pointer; }
-    small { display: block; margin-top: 18px; color: #64748B; }
+    p { margin: 0 0 22px; color: var(--muted); line-height: 1.9; }
+    button, .link { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 20px; border: 0; border-radius: 12px; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; transition: all .2s ease; }
+    button:focus-visible, .link:focus-visible, a:focus-visible { outline: 3px solid #0891B2; outline-offset: 2px; }
+    .cached { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .cached a { display: block; padding: 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); text-decoration: none; font-weight: 600; }
+    .cached:empty, .cached-title[hidden] { display: none; }
+    .cached-title { margin: 22px 0 8px; font-size: .95rem; color: var(--muted); }
+    small { display: block; margin-top: 18px; color: var(--muted); }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
   <main>
     <div class="mark" aria-hidden="true">ک</div>
     <h1>فعلاً به اینترنت دسترسی نداریم</h1>
-    <p>صفحه‌ها و امکانات فروشگاه برای دریافت اطلاعات تازه به اینترنت نیاز دارند. اتصال را بررسی کن و دوباره تلاش کن.</p>
-    <button type="button" onclick="window.location.reload()">تلاش دوباره</button>
+    <p>ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟ صفحه‌هایی که قبلاً باز کرده‌ای، در دسترس‌اند.</p>
+    <button type="button" id="retryButton">تلاش دوباره</button>
+    <p class="cached-title" id="cachedTitle" hidden>صفحه‌های ذخیره‌شده</p>
+    <ul class="cached" id="cachedList" aria-label="صفحه‌های ذخیره‌شده"></ul>
     <small>کی‌داره؛ ببین کی‌داره؟ حضوری بگیر!</small>
   </main>
+  <script>
+    document.getElementById("retryButton").addEventListener("click", () => window.location.reload());
+    (async () => {
+      if (!("caches" in window)) return;
+      const pages = [["/", "خانه"], ["/search", "جست‌وجوی کالا"], ["/stores", "فروشگاه‌ها"]];
+      const list = document.getElementById("cachedList");
+      const title = document.getElementById("cachedTitle");
+      for (const [path, label] of pages) {
+        const hit = await caches.match(path);
+        if (!hit) continue;
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = path;
+        link.textContent = label;
+        item.append(link);
+        list.append(item);
+      }
+      title.hidden = list.children.length === 0;
+    })();
+  </script>
 </body>
 </html>

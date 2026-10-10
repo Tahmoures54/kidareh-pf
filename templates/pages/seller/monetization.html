@@ -8,9 +8,9 @@
 .money-card{border:1px solid #dce8eb;border-radius:20px;padding:22px;background:#fff;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 26px #1234}
 .money-card h2{font-size:1.12rem;margin:0}.money-icon{font-size:2rem}.money-tag{align-self:flex-start;background:#e6f7f5;color:#087f8c;padding:5px 10px;border-radius:999px;font-size:.8rem;font-weight:700}
 .money-price{font-size:1.45rem;font-weight:900;color:#073b4c}.money-price small{font-size:.8rem;font-weight:500;color:#657780}
-.money-card p{line-height:1.9;color:#5d6e76;margin:0}.money-card ul{padding-right:20px;margin:0;color:#40555e;line-height:2;flex:1}
+.money-card p{line-height:1.9;color:#5d6e76;margin:0}.money-card ul{padding-inline-end:20px;margin:0;color:#40555e;line-height:2;flex:1}
 .money-note{background:#fff8e7;border:1px solid #f0dfb5;border-radius:16px;padding:16px;line-height:1.9;margin:20px 0;color:#6c541a}
-.money-status{margin-top:18px;line-height:1.9}.money-orders{margin-top:28px}.money-orders table{width:100%;border-collapse:collapse}.money-orders th,.money-orders td{text-align:right;padding:12px;border-bottom:1px solid #e4ecef}
+.money-status{margin-top:18px;line-height:1.9}.money-orders{margin-top:28px}.money-orders table{width:100%;border-collapse:collapse}.money-orders th,.money-orders td{text-align:end;padding:12px;border-bottom:1px solid #e4ecef}
 @media(max-width:600px){.money-orders{overflow-x:auto}.money-orders table{min-width:480px}}
 </style>
 {% endblock %}
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
      if (!response.ok) throw new Error(data.message || (data.error === "authentication_required" ? "ابتدا وارد حساب شوید." : "امکان شروع پرداخت وجود ندارد."));
      if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
      window.location.assign(data.redirect_url);
-   } catch (error) { say(error.message || "خطای ارتباط؛ دوباره تلاش کنید."); button.disabled = false; }
+   } catch (error) { say(error.message || "ارتباط برقرار نشد، دوباره امتحان می‌کنیم؟"); button.disabled = false; }
  }));
  async function loadOrders() {
    try {
