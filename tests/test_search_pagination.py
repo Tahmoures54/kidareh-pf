@@ -57,7 +57,18 @@ def test_listings_cursor_before_id_skips_newer_rows(monkeypatch, tmp_path):
 def test_fts_table_is_populated_on_initialize(monkeypatch, tmp_path):
     setup_test_database(monkeypatch, tmp_path)
     with app_module.get_connection() as connection:
-        fts_count = connection.execute("SELECT COUNT(*) FROM listings_fts").fetchone()[0]
         listing_count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
+        # External-content FTS COUNT(*) mirrors content rows even if the index is empty.
+        # Verify the inverted index via fts5vocab (and a Persian MATCH).
+        connection.execute(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS _test_fts_vocab USING fts5vocab(listings_fts, 'row')"
+        )
+        term_count = connection.execute("SELECT COUNT(*) FROM _test_fts_vocab").fetchone()[0]
+        connection.execute("DROP TABLE IF EXISTS _test_fts_vocab")
+        matched = connection.execute(
+            "SELECT COUNT(*) FROM listings_fts WHERE listings_fts MATCH ?",
+            ('"گوشی"',),
+        ).fetchone()[0]
     assert listing_count > 0
-    assert fts_count == listing_count
+    assert term_count > 0
+    assert matched >= 1
