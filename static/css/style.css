@@ -209,3 +209,27 @@ h1, h2, h3, p { margin-top: 0; }
   .seller-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
   .site-footer { width: calc(100% - 24px); flex-direction: column; text-align: center; min-height: 0; padding: 20px 0; }
 }
+
+
+/* Privacy-first city identity and compact catalog search */
+.market-location-bar { width: min(1100px, calc(100% - 48px)); margin: 20px auto 16px; padding: 14px 18px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; border: 1px solid #CFE8ED; border-radius: 14px; background: linear-gradient(105deg, #FFFFFF, #F0FDFF); }
+.market-location-copy { display: flex; align-items: center; gap: 10px; min-width: 150px; }
+.market-location-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: #DFF8FB; color: #0E7490; font-size: 23px; }
+.market-location-caption { display: block; color: #64748B; font-size: 10px; line-height: 1.4; }
+.market-location-copy strong { display: block; color: #0F172A; font-size: 14px; }
+.market-location-pulse { width: 7px; height: 7px; border-radius: 50%; background: #0891B2; box-shadow: 0 0 0 0 #0891B266; animation: pulse 1.8s infinite; }
+.market-location-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-inline-start: auto; }
+.market-location-action { min-height: 37px; padding-inline: 12px; font-size: 10px; }
+.market-privacy-note { flex-basis: 100%; margin: -4px 0 0; color: #64748B; font-size: 10px; }
+.listings-search .category-field { display: flex; align-items: center; gap: 8px; flex: 0 1 190px; min-width: 135px; padding: 0 10px; }
+.category-field select { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #334155; font-size: 11px; }
+.category-field select:focus-visible { outline: 2px solid #0891B2; outline-offset: 4px; border-radius: 4px; }
+@media (max-width: 700px) {
+  .market-location-bar { width: calc(100% - 24px); margin: 16px auto 12px; padding: 13px; gap: 10px; }
+  .market-location-copy { min-width: 0; flex: 1 1 100%; }
+  .market-location-actions { width: 100%; margin-inline-start: 0; display: grid; grid-template-columns: 1fr; }
+  .market-location-action { width: 100%; min-height: 40px; }
+  .market-privacy-note { margin-top: 0; }
+  .listings-search .category-field { grid-column: 1 / -1; min-height: 40px; border-top: 1px solid #E2E8F0; flex-basis: auto; }
+  .listings-search .button-search { grid-column: 1 / -1; grid-row: auto; }
+}
