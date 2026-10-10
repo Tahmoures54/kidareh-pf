@@ -41,22 +41,6 @@
           <div class="eyebrow promo-badge"><span class="eyebrow-icon">✦</span> ویترین آنلاین فروش حضوری</div>
           <h1>فروشگاهت را آنلاین کن.<br><span>مشتری را تا درِ مغازه‌ات بیاور.</span></h1>
           <p class="hero-description">کی‌داره نرم‌افزار پیشرفتهٔ ویترین فروش حضوری است: جست‌وجوی محلی، ویترین فروشگاه، مسیریابی با نشان و بلد، و ابزار رشد فروش — بدون پیچیدگی بازارچه‌های عمومی.</p>
-          <form class="search-panel" id="searchForm" role="search">
-            <label class="search-field">
-              <span class="field-icon" aria-hidden="true">⌕</span>
-              <input id="searchInput" name="q" type="search" placeholder="چی لازم داری؟ مثلاً گوشی، میز، تعمیرکار..." autocomplete="off">
-            </label>
-            <span class="search-divider" aria-hidden="true"></span>
-            <label class="city-field">
-              <span class="field-icon" aria-hidden="true">⌖</span>
-              <select id="citySelect" aria-label="انتخاب شهر">
-                <option value="">همه شهرها</option>
-                <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
-              </select>
-            </label>
-            <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
-          </form>
-          <div class="popular-searches"><span>جست‌وجوهای محبوب:</span><button type="button" data-search="گوشی">گوشی</button><button type="button" data-search="میز">میز</button><button type="button" data-search="خدمات">خدمات</button></div>
           <div class="hero-meta" aria-label="قابلیت‌های کلیدی">
             <div><strong>ویترین</strong><span>فروشگاه آنلاین تو</span></div>
             <div><strong>مسیریابی</strong><span>نشان · بلد · گوگل</span></div>
@@ -110,6 +94,49 @@
       </div>
     </section>
 
+    <section class="section listings-section" id="listings">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">کالاها</span>
+          <h2>جست‌وجو و انتخاب</h2>
+          <p class="section-subtitle">برای دیدن و جست‌وجو نیازی به ثبت‌نام نیست.</p>
+        </div>
+        <span class="results-count" id="resultsCount">در حال بارگذاری…</span>
+      </div>
+      <form class="search-panel listings-search" id="searchForm" role="search">
+        <label class="search-field">
+          <span class="field-icon" aria-hidden="true">⌕</span>
+          <input id="searchInput" name="q" type="search" placeholder="چی لازم داری؟ مثلاً گوشی، میز، تعمیرکار..." autocomplete="off">
+        </label>
+        <span class="search-divider" aria-hidden="true"></span>
+        <label class="city-field">
+          <span class="field-icon" aria-hidden="true">⌖</span>
+          <select id="citySelect" aria-label="انتخاب شهر">
+            <option value="">همه شهرها</option>
+            <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
+          </select>
+        </label>
+        <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
+      </form>
+      <div class="popular-searches listings-popular">
+        <span>جست‌وجوهای محبوب:</span>
+        <button type="button" data-search="گوشی">گوشی</button>
+        <button type="button" data-search="میز">میز</button>
+        <button type="button" data-search="خدمات">خدمات</button>
+      </div>
+      <div class="filter-row" aria-label="فیلتر آگهی‌ها">
+        <button class="filter-chip selected" type="button" data-filter="all">همه</button>
+        <button class="filter-chip" type="button" data-filter="home">خانه و زندگی</button>
+        <button class="filter-chip" type="button" data-filter="digital">دیجیتال</button>
+        <button class="filter-chip" type="button" data-filter="fashion">پوشاک</button>
+        <button class="filter-chip" type="button" data-filter="vehicle">خودرو و حمل‌ونقل</button>
+        <button class="filter-chip" type="button" data-filter="services">خدمات</button>
+      </div>
+      <div class="listing-grid" id="listingGrid" aria-live="polite"><div class="loading-card">داریم آگهی‌ها رو آماده می‌کنیم…</div></div>
+      <div class="empty-state" id="emptyState" hidden><span>⌕</span><h3>چیزی پیدا نشد</h3><p>عبارت جست‌وجو یا فیلترها را تغییر بده و دوباره امتحان کن.</p><button class="button button-primary" id="clearFilters" type="button">نمایش همه آگهی‌ها</button></div>
+      <div class="center-action"><button class="button button-outline" id="showAllButton" type="button">نمایش آگهی‌ها <span>←</span></button></div>
+    </section>
+
     <section class="trust-strip" aria-label="مزیت‌های کی‌داره">
       <div><span class="trust-icon">⌖</span><span><b>محلی پیدا کن</b><small>آگهی‌های شهرهای مختلف</small></span></div>
       <div><span class="trust-icon">⌕</span><span><b>سریع جست‌وجو کن</b><small>رسیدن به گزینه‌های مرتبط</small></span></div>
@@ -137,21 +164,6 @@
         <button class="button button-outline" id="showAllStores" type="button">همه فروشگاه‌ها</button>
       </div>
       <div class="store-grid" id="storeGrid" aria-live="polite"><div class="loading-card">ویترین‌ها در حال آماده‌شدن هستند…</div></div>
-    </section>
-
-    <section class="section listings-section" id="listings">
-      <div class="section-heading"><div><span class="section-kicker">دریای کالاها</span><h2>کالاهای پیشنهادی</h2><p class="section-subtitle">برای دیدن و جست‌وجو نیازی به ثبت‌نام نیست.</p></div><span class="results-count" id="resultsCount">در حال بارگذاری…</span></div>
-      <div class="filter-row" aria-label="فیلتر آگهی‌ها">
-        <button class="filter-chip selected" type="button" data-filter="all">همه</button>
-        <button class="filter-chip" type="button" data-filter="home">خانه و زندگی</button>
-        <button class="filter-chip" type="button" data-filter="digital">دیجیتال</button>
-        <button class="filter-chip" type="button" data-filter="fashion">پوشاک</button>
-        <button class="filter-chip" type="button" data-filter="vehicle">خودرو و حمل‌ونقل</button>
-        <button class="filter-chip" type="button" data-filter="services">خدمات</button>
-      </div>
-      <div class="listing-grid" id="listingGrid" aria-live="polite"><div class="loading-card">داریم آگهی‌ها رو آماده می‌کنیم…</div></div>
-      <div class="empty-state" id="emptyState" hidden><span>⌕</span><h3>چیزی پیدا نشد</h3><p>عبارت جست‌وجو یا فیلترها را تغییر بده و دوباره امتحان کن.</p><button class="button button-primary" id="clearFilters" type="button">نمایش همه آگهی‌ها</button></div>
-      <div class="center-action"><button class="button button-outline" id="showAllButton" type="button">نمایش آگهی‌ها <span>←</span></button></div>
     </section>
 
     <section class="seller-banner" id="how-it-works">
