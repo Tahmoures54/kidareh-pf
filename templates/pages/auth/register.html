@@ -33,8 +33,6 @@
         <span class="step-dot" data-step="phone"></span>
         <span class="step-line"></span>
         <span class="step-dot" data-step="code"></span>
-        <span class="step-line"></span>
-        <span class="step-dot" data-step="profile"></span>
       </div>
 
       <form id="authPageForm" class="auth-form" novalidate>
@@ -42,20 +40,20 @@
         <div class="auth-step" id="authRoleStep" data-step="role">
           <p class="auth-role-intro">چطور می‌خواهید از کی‌داره استفاده کنید؟</p>
           <div class="auth-role-grid" role="radiogroup" aria-label="نوع حساب">
+            <label class="auth-role-card auth-role-card-priority">
+              <input type="radio" name="role" value="seller" checked>
+              <div class="role-card-inner">
+                <div class="role-icon">🏪</div>
+                <strong>فروشگاه‌دار <span class="role-recommended">پیشنهاد کی‌داره</span></strong>
+                <span>ساخت ویترین، افزودن کالا و جذب مشتری به فروشگاه حضوری</span>
+              </div>
+            </label>
             <label class="auth-role-card">
-              <input type="radio" name="role" value="buyer" checked>
+              <input type="radio" name="role" value="buyer">
               <div class="role-card-inner">
                 <div class="role-icon">🛍️</div>
                 <strong>خریدار / مشتری</strong>
                 <span>جست‌وجو، ذخیره کالا، دنبال‌کردن فروشگاه‌ها و هماهنگی حضوری</span>
-              </div>
-            </label>
-            <label class="auth-role-card">
-              <input type="radio" name="role" value="seller">
-              <div class="role-card-inner">
-                <div class="role-icon">🏪</div>
-                <strong>فروشگاه‌دار</strong>
-                <span>ساخت ویترین، افزودن کالا و جذب مشتری به فروشگاه حضوری</span>
               </div>
             </label>
           </div>

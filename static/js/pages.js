@@ -175,7 +175,24 @@
   }
   async function initAccount(){
     const status=document.querySelector("#accountStatus"),actions=document.querySelector("#accountActions");
-    try{const data=await api("/api/auth/me");if(data.user){status.innerHTML='<strong>سلام '+escapeHTML(data.user.name)+'!</strong><br>شماره: '+escapeHTML(data.user.phone);actions.innerHTML='<a class="button button-primary" href="/seller">مدیریت ویترین</a><button id="logoutButton" class="button button-outline" type="button">خروج</button>';document.querySelector("#logoutButton")?.addEventListener("click",async()=>{await api("/api/auth/logout",{method:"POST"});location.reload();});}else{status.textContent="وارد حساب نشده‌ای.";actions.innerHTML='<a class="button button-primary" href="/register">ساخت حساب</a><a class="button button-outline" href="/login">ورود</a>';}}catch(e){if(status)status.textContent="وضعیت حساب در دسترس نیست.";}
+    const form=document.querySelector("#profileEditForm"),nameInput=document.querySelector("#profileName"),phoneInput=document.querySelector("#profilePhone"),feedback=document.querySelector("#profileFeedback");
+    let user=null;
+    const showFeedback=(message,error=false)=>{if(feedback){feedback.textContent=message;feedback.style.color=error?"#B91C1C":"#0E7490";}};
+    try{
+      const data=await api("/api/auth/me");user=data.user;
+      if(user){
+        if(status)status.innerHTML='<strong>سلام '+escapeHTML(user.name||"")+'!</strong><p>پروفایل شما آماده است.</p>';
+        if(actions)actions.innerHTML='<button id="editProfileButton" class="button button-primary" type="button">ویرایش پروفایل</button><a class="button button-outline" href="'+(user.role==="seller"?"/seller":"/search")+'">'+(user.role==="seller"?"رفتن به داشبورد فروشنده":"شروع جست‌وجو")+'</a><button id="logoutButton" class="button button-outline" type="button">خروج</button>';
+        if(form){form.hidden=true;nameInput.value=user.name||"";phoneInput.value=user.phone||"";}
+        document.querySelector("#editProfileButton")?.addEventListener("click",()=>{form.hidden=false;nameInput.value=user.name||"";nameInput.focus();});
+        document.querySelector("#cancelProfileButton")?.addEventListener("click",()=>{form.hidden=true;nameInput.value=user.name||"";showFeedback("");});
+        form?.addEventListener("submit",async(event)=>{event.preventDefault();const button=document.querySelector("#saveProfileButton");button.disabled=true;try{const updated=await api("/api/auth/profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:nameInput.value.trim()})});user=updated.user;status.innerHTML='<strong>سلام '+escapeHTML(user.name)+'!</strong><p>پروفایل با موفقیت ذخیره شد.</p>';form.hidden=true;showFeedback("تغییرات ذخیره شد.");}catch(e){showFeedback(e.message||"ذخیره اطلاعات انجام نشد.",true);}finally{button.disabled=false;}});
+        document.querySelector("#logoutButton")?.addEventListener("click",async()=>{try{await api("/api/auth/logout",{method:"POST"});location.assign("/");}catch(e){notify(e.message);}});
+      }else{
+        if(status)status.textContent="برای ساخت پروفایل شخصی، فقط شماره همراهت را تأیید کن.";
+        if(actions)actions.innerHTML='<a class="button button-primary" href="/register">ثبت‌نام سریع</a><a class="button button-outline" href="/login">ورود</a>';
+      }
+    }catch(e){if(status)status.textContent="وضعیت حساب در دسترس نیست؛ صفحه را تازه‌سازی کنید.";}
   }
   document.addEventListener("click", async (e) => {
     const saveBtn = e.target.closest("[data-save]");

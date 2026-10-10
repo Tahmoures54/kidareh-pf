@@ -70,7 +70,7 @@
     if (!stepsIndicator) return;
     const order =
       mode === "register"
-        ? ["role", "phone", "code", "profile"]
+        ? ["role", "phone", "code"]
         : ["phone", "code"];
     const idx = order.indexOf(step);
     stepsIndicator.querySelectorAll(".step-dot").forEach((dot) => {
@@ -163,6 +163,8 @@
           phone,
           captcha_answer: captcha,
           terms_accepted: accepted,
+          registering: mode === "register",
+          role: selectedRole(),
         });
 
         const label = document.querySelector("#otpPhoneLabel");
@@ -177,7 +179,7 @@
           if (tokenMeta && data.csrf_token) tokenMeta.content = data.csrf_token;
           message("ورود موفق بود؛ در حال انتقال…");
           const redirect =
-            data.user.role === "seller" ? "/seller" : "/account";
+            data.user.role === "seller" ? "/seller" : "/";
           window.location.assign(redirect);
           return;
         }

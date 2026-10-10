@@ -82,6 +82,10 @@ def request_otp():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     payload = request.get_json(silent=True) or {}
     phone = _normalize_phone(payload.get("phone"))
+    register_intent = payload.get("registering") is True
+    requested_role = payload.get("role", "seller")
+    if requested_role not in {"buyer", "seller"}:
+        return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
     if not phone:
         return jsonify({"error": "invalid_phone", "message": "شماره همراه باید مانند 09123456789 باشد."}), 400
     answer = payload.get("captcha_answer", "")
@@ -120,6 +124,8 @@ def request_otp():
     session["otp_last_sent_at"] = time.time()
     session["otp_terms_accepted_at"] = datetime.now(timezone.utc).isoformat()
     session["otp_existing_user"] = exists
+    session["otp_register_intent"] = register_intent
+    session["otp_registration_role"] = requested_role if register_intent else None
     result = {"ok": True, "message": "کد تأیید ارسال شد.", "expires_in": 300}
     if current_app.testing and current_app.config.get("TESTING_OTP_CODE"):
         result["test_code"] = code
@@ -153,11 +159,28 @@ def verify_otp():
                 "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
                 (datetime.now(timezone.utc).isoformat(), accepted_at or "", user["id"]),
             )
+        elif session.get("otp_register_intent"):
+            role = session.get("otp_registration_role", "seller")
+            default_name = "فروشگاه‌دار" if role == "seller" else "خریدار"
+            try:
+                cursor = connection.execute(
+                    "INSERT INTO users (name, phone, password_hash, role, phone_verified_at, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (default_name, phone, generate_password_hash(secrets.token_urlsafe(32)), role, datetime.now(timezone.utc).isoformat(), accepted_at or ""),
+                )
+                created_user = True
+                user = connection.execute(
+                    "SELECT id, name, phone, role, is_banned FROM users WHERE id = ?", (cursor.lastrowid,)
+                ).fetchone()
+            except sqlite3.IntegrityError:
+                user = connection.execute(
+                    "SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?", (phone,)
+                ).fetchone()
+                created_user = False
     if user:
         session.clear()
         session["user_id"] = user["id"]
         session["csrf_token"] = uuid.uuid4().hex
-        return jsonify({"existing_user": True, "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
+        return jsonify({"existing_user": True, "new_user": bool(locals().get("created_user", False)), "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
     session["verified_phone"] = phone
     session["verified_terms_accepted_at"] = accepted_at
     session.pop("otp_hash", None)
@@ -276,3 +299,22 @@ def auth_logout():
         return jsonify({"error": "csrf_failed"}), 400
     session.clear()
     return jsonify({"ok": True})
+
+
+@bp.post("/profile")
+def update_profile():
+    """Update the signed-in user's basic profile without changing verified identity."""
+    user = current_user()
+    if not user:
+        return jsonify({"error": "authentication_required", "message": "ابتدا وارد حساب شوید."}), 401
+    if not csrf_valid():
+        return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
+    payload = request.get_json(silent=True) or {}
+    name = payload.get("name", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        return jsonify({"error": "invalid_name", "message": "نام و نام خانوادگی را وارد کنید."}), 400
+    name = name.strip()
+    with get_connection() as connection:
+        connection.execute("UPDATE users SET name = ? WHERE id = ?", (name, user["id"]))
+        row = connection.execute("SELECT id, name, phone, role FROM users WHERE id = ?", (user["id"],)).fetchone()
+    return jsonify({"ok": True, "user": dict(row)})
