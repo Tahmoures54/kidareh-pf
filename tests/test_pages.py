@@ -140,15 +140,27 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     assert "تهران" in [item["name"] for item in popular_data["items"]]
     assert all(item["type"] == "city" for item in popular_data["items"])
 
-    searched = client.get("/api/locations?q=تهران")
+    searched = client.get("/api/locations?kind=city&q=تهران")
     assert searched.status_code == 200
     assert any(item["name"] == "تهران" for item in searched.get_json()["items"])
+    assert all(item["type"] == "city" for item in searched.get_json()["items"])
+
+    # The default location lookup must never mix in villages or unrelated rural records.
+    default_search = client.get("/api/locations?q=کارخانه").get_json()["items"]
+    assert default_search == []
+    assert all(item["type"] == "city" for item in default_search)
+    village_search = client.get("/api/locations?kind=village&q=تهران").get_json()["items"]
+    assert all(item["type"] == "village" for item in village_search)
 
     html = client.get("/").get_data(as_text=True)
     assert 'id="marketCityOptions" role="listbox"' in html
     assert 'id="toggleMarketCityPicker"' in html
     assert 'aria-controls="marketCityOptions"' in html
     assert 'id="citySelect" list=' not in html
+    register_html = client.get("/register").get_data(as_text=True)
+    assert 'id="buyerCity" name="city"' in register_html
+    assert 'id="storeCity" name="store_city"' in register_html
+    assert 'list="registerCityOptions" data-iran-location' in register_html
 
 
 

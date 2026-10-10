@@ -235,6 +235,7 @@ def initialize_database() -> None:
                 terms_accepted_at TEXT NOT NULL DEFAULT '',
                 is_banned INTEGER NOT NULL DEFAULT 0,
                 ban_reason TEXT NOT NULL DEFAULT '',
+                city TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -249,6 +250,8 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE users ADD COLUMN is_banned INTEGER NOT NULL DEFAULT 0")
         if "ban_reason" not in user_columns:
             connection.execute("ALTER TABLE users ADD COLUMN ban_reason TEXT NOT NULL DEFAULT ''")
+        if "city" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN city TEXT NOT NULL DEFAULT ''")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS stores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -351,7 +354,7 @@ def current_user():
     if not user_id:
         return None
     with get_connection() as connection:
-        row = connection.execute("SELECT id, name, phone, role, phone_verified_at, is_banned, ban_reason FROM users WHERE id = ?", (user_id,)).fetchone()
+        row = connection.execute("SELECT id, name, phone, role, city, phone_verified_at, is_banned, ban_reason FROM users WHERE id = ?", (user_id,)).fetchone()
     if row is None or row["is_banned"]:
         session.clear()
         return None

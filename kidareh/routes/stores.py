@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection, serialize_listing
+from ..data_catalog import is_city_name, normalize_location_name
 
 bp = Blueprint("stores", __name__)
 
@@ -99,7 +100,7 @@ def create_store():
     if not csrf_valid():
         return jsonify({"error": "csrf_failed"}), 400
     payload = request.get_json(silent=True) or {}
-    name, city, description = payload.get("name", ""), payload.get("city", ""), payload.get("description", "")
+    name, city, description = payload.get("name", ""), normalize_location_name(payload.get("city", "")), payload.get("description", "")
     category = payload.get("category", "")
     contact_name = payload.get("contact_name", user.get("name", ""))
     address = payload.get("address", "")
@@ -107,8 +108,8 @@ def create_store():
     in_person = 1 if payload.get("in_person", True) else 0
     if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
         return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
-    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 100:
-        return jsonify({"error": "invalid_store_city", "message": "شهر را وارد کنید."}), 400
+    if not city or len(city) > 100 or not is_city_name(city):
+        return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را از فهرست شهرهای معتبر انتخاب کنید."}), 400
     if not isinstance(description, str) or len(description.strip()) > 500:
         return jsonify({"error": "invalid_store_description"}), 400
     for value, maximum in ((category, 80), (contact_name, 80), (address, 300), (hours, 120)):
@@ -167,8 +168,9 @@ def update_store(store_id: int):
             return jsonify({"error": "invalid_coordinates", "message": "مختصات فروشگاه معتبر نیست."}), 400
         if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
             return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه باید حداکثر ۸۰ نویسه باشد."}), 400
-        if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
-            return jsonify({"error": "invalid_store_city", "message": "شهر را درست وارد کنید."}), 400
+        city = normalize_location_name(city)
+        if not city or len(city) > 60 or not is_city_name(city):
+            return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را از فهرست شهرهای معتبر انتخاب کنید."}), 400
         if not isinstance(description, str) or len(description.strip()) > 500:
             return jsonify({"error": "invalid_store_description", "message": "توضیحات حداکثر ۵۰۰ نویسه باشد."}), 400
         for value, maximum, err in (

@@ -73,16 +73,18 @@ def categories():
 
 @bp.get("/api/locations")
 def locations():
-    """Search all bundled cities and villages without sending the directory to every visitor."""
+    """Search canonical cities by default; villages are available only when explicitly requested."""
     query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
-    kind = request.args.get("kind", "all").strip().lower()
+    kind = request.args.get("kind", "city").strip().lower()
+    if kind not in {"city", "village"}:
+        kind = "city"
     provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
     counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
     candidates = []
     if len(query) < 2:
         # Populate the closed-by-default combobox with familiar choices from the
         # canonical Iranian city directory. Full city/village search stays server-side.
-        if query or kind not in {"all", "city"}:
+        if query or kind != "city":
             return jsonify({"items": []})
         popular_names = [
             "تهران", "مشهد", "اصفهان", "کرج", "شیراز", "تبریز", "قم",
@@ -102,7 +104,7 @@ def locations():
                 })
         return jsonify({"items": candidates, "count": len(candidates),
                         "source_year": IRAN_LOCATIONS["source_year"]})
-    if kind in {"all", "city"}:
+    if kind == "city":
         for item in IRAN_LOCATIONS["cities"]:
             name = item["name"].replace("ي", "ی").replace("ك", "ک")
             if query in name:
@@ -111,7 +113,7 @@ def locations():
                     "province": provinces.get(item["province_id"], ""),
                     "county": counties.get(item["county_id"], ""),
                 })
-    if kind in {"all", "village"}:
+    if kind == "village":
         for item in get_villages():
             name = item.get("name", "").replace("ي", "ی").replace("ك", "ک")
             if query in name:
