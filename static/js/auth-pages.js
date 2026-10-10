@@ -179,7 +179,7 @@
           if (tokenMeta && data.csrf_token) tokenMeta.content = data.csrf_token;
           message("ورود موفق بود؛ در حال انتقال…");
           const redirect =
-            data.user.role === "seller" ? "/seller" : "/account";
+            data.user.role === "seller" ? "/seller" : "/";
           window.location.assign(redirect);
           return;
         }
