@@ -7,7 +7,7 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="description" content="کی‌داره؛ ساده‌تر پیدا کن، راحت‌تر انتخاب کن. خرید، فروش و خدمات در شهر شما.">
+  <meta name="description" content="کی‌داره؛ نرم‌افزار ویترین آنلاین فروش حضوری — مشتری را تا فروشگاهت بیاور.">
   <title>کی‌داره | ویترین آنلاین فروش حضوری</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
 </head>
 <body>
-  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> ویترینت را آنلاین کن — مشتری را به فروشگاهت بکش</div>
+  <div class="announcement"><span class="pulse-dot" aria-hidden="true"></span> نرم‌افزار ویترین فروش حضوری — مشتری را تا مغازه‌ات بیاور</div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
       <span class="brand-mark">ک</span>
@@ -35,34 +35,78 @@
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-content">
-        <div class="eyebrow"><span class="eyebrow-icon">✦</span> انتخاب‌های خوب، نزدیک شما</div>
-        <h1>دنبال چیزی هستی؟<br><span>شاید همین نزدیکی باشه.</span></h1>
-        <p class="hero-description">بدون ثبت‌نام بین کالاها بگرد، ویترین فروشگاه‌ها را ببین و برای خرید حضوری مستقیم با فروشنده هماهنگ شو.</p>
-        <form class="search-panel" id="searchForm" role="search">
-          <label class="search-field">
-            <span class="field-icon" aria-hidden="true">⌕</span>
-            <input id="searchInput" name="q" type="search" placeholder="چی لازم داری؟ مثلاً گوشی، میز، تعمیرکار..." autocomplete="off">
-          </label>
-          <span class="search-divider" aria-hidden="true"></span>
-          <label class="city-field">
-            <span class="field-icon" aria-hidden="true">⌖</span>
-            <select id="citySelect" aria-label="انتخاب شهر">
-              <option value="">همه شهرها</option>
-              <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
-            </select>
-          </label>
-          <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
-        </form>
-        <div class="popular-searches"><span>جست‌وجوهای محبوب:</span><button type="button" data-search="گوشی">گوشی</button><button type="button" data-search="میز">میز</button><button type="button" data-search="خدمات">خدمات</button></div>
-      </div>
-      <div class="hero-art" aria-hidden="true">
-        <div class="art-glow"></div>
-        <div class="art-card art-card-main"><div class="art-top"><span class="art-badge">پیشنهادهای نزدیک</span><span class="art-heart">♡</span></div><div class="art-illustration">🪴</div><div class="art-lines"><i></i><i></i></div><div class="art-bottom"><span>وسایل دوست‌داشتنی</span><b>از ۳۵۰ هزار تومان</b></div></div>
-        <div class="floating-chip chip-one"><span>📍</span><span><b>نزدیک خودت</b><small>محلی و در دسترس</small></span></div>
-        <div class="floating-chip chip-two"><span class="chip-check">✓</span><span><b>انتخاب راحت‌تر</b><small>جست‌وجو در یک جا</small></span></div>
-        <span class="decor decor-one">✳</span><span class="decor decor-two">✦</span>
+    <section class="hero promo-banner" aria-label="معرفی کی‌داره">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="eyebrow promo-badge"><span class="eyebrow-icon">✦</span> ویترین آنلاین فروش حضوری</div>
+          <h1>فروشگاهت را آنلاین کن.<br><span>مشتری را تا درِ مغازه‌ات بیاور.</span></h1>
+          <p class="hero-description">کی‌داره نرم‌افزار پیشرفتهٔ ویترین فروش حضوری است: جست‌وجوی محلی، ویترین فروشگاه، مسیریابی با نشان و بلد، و ابزار رشد فروش — بدون پیچیدگی بازارچه‌های عمومی.</p>
+          <form class="search-panel" id="searchForm" role="search">
+            <label class="search-field">
+              <span class="field-icon" aria-hidden="true">⌕</span>
+              <input id="searchInput" name="q" type="search" placeholder="چی لازم داری؟ مثلاً گوشی، میز، تعمیرکار..." autocomplete="off">
+            </label>
+            <span class="search-divider" aria-hidden="true"></span>
+            <label class="city-field">
+              <span class="field-icon" aria-hidden="true">⌖</span>
+              <select id="citySelect" aria-label="انتخاب شهر">
+                <option value="">همه شهرها</option>
+                <option>تهران</option><option>تبریز</option><option>شیراز</option><option>اصفهان</option><option>مشهد</option><option>کرج</option><option>رشت</option>
+              </select>
+            </label>
+            <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
+          </form>
+          <div class="popular-searches"><span>جست‌وجوهای محبوب:</span><button type="button" data-search="گوشی">گوشی</button><button type="button" data-search="میز">میز</button><button type="button" data-search="خدمات">خدمات</button></div>
+          <div class="hero-meta" aria-label="قابلیت‌های کلیدی">
+            <div><strong>ویترین</strong><span>فروشگاه آنلاین تو</span></div>
+            <div><strong>مسیریابی</strong><span>نشان · بلد · گوگل</span></div>
+            <div><strong>رشد فروش</strong><span>تگ و پیشنهاد ویژه</span></div>
+          </div>
+          <div class="hero-cta-row">
+            <a class="button button-primary" href="/seller">چیدن ویترین فروشگاه ←</a>
+            <a class="button button-outline" href="/stores">گشت در فروشگاه‌ها</a>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="امکانات کی‌داره">
+          <div class="hero-visual-bg" aria-hidden="true"></div>
+          <div class="promo-slides" id="promoSlides">
+            <article class="promo-slide active" data-slide="0">
+              <span class="promo-kicker">برای خریدار</span>
+              <strong>پیدا کن، نزدیکت باشه</strong>
+              <p>بدون ثبت‌نام بین کالاها بگرد، شهر را فیلتر کن و برای خرید حضوری مستقیم با فروشنده هماهنگ شو.</p>
+              <span class="promo-icon" aria-hidden="true">⌕</span>
+            </article>
+            <article class="promo-slide" data-slide="1">
+              <span class="promo-kicker">برای فروشنده</span>
+              <strong>ویترینت را بچین</strong>
+              <p>فروشگاهت را آنلاین کن، کالاها را اضافه کن و مشتری‌های محله و شهر را به درِ مغازه‌ات بکشان.</p>
+              <span class="promo-icon" aria-hidden="true">⌂</span>
+            </article>
+            <article class="promo-slide" data-slide="2">
+              <span class="promo-kicker">مسیریابی</span>
+              <strong>از نقشه تا فروشگاه</strong>
+              <p>با یک ضربه در نشان، بلد یا گوگل‌مپ مسیر تا فروشگاه باز می‌شود — بدون مسیریاب داخلی پیچیده.</p>
+              <span class="promo-icon" aria-hidden="true">⌖</span>
+            </article>
+            <article class="promo-slide" data-slide="3">
+              <span class="promo-kicker">رشد فروش</span>
+              <strong>بیشتر دیده شو</strong>
+              <p>تگ حراج، فروش ویژه و پیشنهاد ویژه تا کالا و ویترینت بالاتر دیده شود — انتشار پایه همچنان رایگان است.</p>
+              <span class="promo-icon" aria-hidden="true">✦</span>
+            </article>
+          </div>
+          <div class="promo-dots" id="promoDots" role="tablist" aria-label="اسلایدهای معرفی">
+            <button type="button" class="promo-dot active" role="tab" aria-selected="true" aria-label="اسلاید ۱" data-slide="0"></button>
+            <button type="button" class="promo-dot" role="tab" aria-selected="false" aria-label="اسلاید ۲" data-slide="1"></button>
+            <button type="button" class="promo-dot" role="tab" aria-selected="false" aria-label="اسلاید ۳" data-slide="2"></button>
+            <button type="button" class="promo-dot" role="tab" aria-selected="false" aria-label="اسلاید ۴" data-slide="3"></button>
+          </div>
+          <div class="hero-visual-caption">
+            <span class="lp-visual-kicker">از جست‌وجو تا مراجعه حضوری</span>
+            <h3>نرم‌افزار ویترین، نه فقط بازارچه</h3>
+            <p>مشتری پیدا می‌کند، مسیر می‌گیرد، به فروشگاهت می‌رسد.</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -137,69 +181,8 @@
     <span class="footer-note">نسخهٔ نمایشی اولیه · اطلاعات آگهی‌ها نمونه هستند</span>
   </footer>
 
-
-  <dialog class="store-dialog" id="storeDialog" aria-labelledby="storeDialogTitle">
-    <button class="dialog-close" id="closeStoreDialog" type="button" aria-label="بستن">×</button>
-    <div class="store-dialog-content">
-      <div class="store-dialog-heading"><span class="store-mark">⌂</span><div><span class="section-kicker">ویترین فروشگاه</span><h2 id="storeDialogTitle">فروشگاه</h2><p id="storeDialogMeta"></p></div></div>
-      <p id="storeDialogDescription" class="store-dialog-description"></p><button id="shareStoreDialog" class="share-button" type="button">↗ اشتراک‌گذاری ویترین</button>
-      <div class="store-dialog-actions"><button class="button button-primary" id="followStoreButton" type="button">♡ دنبال‌کردن فروشگاه</button><span id="storeFollowersCount"></span></div>
-      <h3 class="store-products-title">کالاهای این ویترین</h3>
-      <div class="store-products-grid" id="storeProductsGrid"></div>
-    </div>
-  </dialog>
-
-  <dialog class="store-create-dialog" id="storeCreateDialog" aria-labelledby="createStoreTitle">
-    <button class="dialog-close" id="closeStoreCreateDialog" type="button" aria-label="بستن">×</button>
-    <div class="auth-content"><span class="section-kicker">فروشنده هستی؟</span><h2 id="createStoreTitle">ویترین خودت را بچین</h2>
-      <form id="storeCreateForm">
-        <label>نام فروشگاه<input name="name" maxlength="80" required placeholder="مثلاً خانه‌چین"></label>
-        <label>شهر<input name="city" maxlength="60" required placeholder="مثلاً تهران"></label>
-        <label>معرفی کوتاه<textarea name="description" maxlength="500" rows="3" placeholder="چه کالاهایی در فروشگاهت پیدا می‌شود؟"></textarea></label>
-        <button class="button button-primary" type="submit">ساخت ویترین</button>
-      </form>
-      <p class="form-note">بعد از ساخت ویترین می‌توانی کالاها را به آن اضافه کنی. خریدارها برای دیدن ویترینت نیازی به ثبت‌نام ندارند.</p>
-    </div>
-  </dialog>
-
-  <dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
-    <button class="dialog-close" id="closeAuthDialog" type="button" aria-label="بستن">×</button>
-    <div class="auth-content">
-      <span class="section-kicker">ورود امن با شماره همراه</span>
-      <h2 id="authTitle">ورود یا ساخت حساب</h2>
-      <form id="authForm">
-        <section id="authPhoneStep">
-          <p class="form-note">ابتدا شماره همراه خود را وارد کنید؛ کد تأیید پیامکی برایتان ارسال می‌شود.</p>
-          <label>شماره همراه<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="09123456789"></label>
-          <label class="captcha-label"><span id="captchaQuestion">محاسبه امنیتی…</span><input name="captcha" inputmode="numeric" pattern="[0-9۰-۹٠-٩]+" required placeholder="پاسخ عددی"></label>
-          <button class="button button-primary" id="requestOtpButton" type="submit">ارسال کد تأیید</button>
-          <p class="form-note">با وارد کردن شماره و ادامه، <a href="/terms" target="_blank" rel="noopener">قوانین و مقررات کی‌داره</a> را می‌پذیرید.</p>
-        </section>
-        <section id="authCodeStep" hidden>
-          <p class="form-note">کد ارسال‌شده به <strong id="otpPhoneLabel"></strong> را وارد کنید.</p>
-          <label>کد تأیید پیامکی<input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9۰-۹٠-٩]{6}" placeholder="کد ۶ رقمی"></label>
-          <button class="button button-primary" id="verifyOtpButton" type="submit">تأیید شماره</button>
-          <button class="text-link" id="backToPhoneButton" type="button">اصلاح شماره همراه</button>
-        </section>
-        <section id="authProfileStep" hidden>
-          <p class="form-note">شماره تأیید شد. اطلاعات حساب خود را تکمیل کنید.</p>
-          <label>نام و نام خانوادگی<input name="name" maxlength="80" autocomplete="name" placeholder="نام شما"></label>
-          <label>نوع حساب<select name="role"><option value="buyer">خریدار — گشت‌وگذار و ذخیره کالا</option><option value="seller">فروشنده — ساخت ویترین</option></select></label>
-          <div id="sellerDetails" hidden>
-            <h3>اطلاعات فروشگاه</h3>
-            <label>نام فروشگاه<input name="store_name" maxlength="80" placeholder="نامی که مشتری می‌بیند"></label>
-            <label>حوزه فعالیت<input name="store_category" maxlength="80" placeholder="مثلاً لوازم خانگی، پوشاک، دیجیتال"></label>
-            <label>شهر فروشگاه<input name="store_city" maxlength="60" placeholder="شهر"></label>
-            <label>نام مسئول فروشگاه<input name="contact_name" maxlength="80" placeholder="نام پاسخ‌گو"></label>
-            <label>نشانی فروشگاه حضوری<textarea name="store_address" maxlength="300" rows="2" placeholder="نشانی برای مراجعه حضوری (در صورت وجود)"></textarea></label>
-          </div>
-          <button class="button button-primary" id="completeProfileButton" type="submit">تکمیل حساب</button>
-        </section>
-      </form>
-    </div>
-  </dialog>
-
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
 </body>
 </html>
