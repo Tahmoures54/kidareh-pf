@@ -147,8 +147,8 @@
                 <input class="auth-input" type="text" id="storeCity" name="store_city" maxlength="60" placeholder="تهران">
               </div>
               <div>
-                <label class="auth-label" for="storeCategory">دسته</label>
-                <input class="auth-input" type="text" id="storeCategory" name="store_category" maxlength="80" placeholder="مثلاً پوشاک">
+                <label class="auth-label" for="storeCategory">صنف فروشگاه</label>
+                <select class="auth-input" id="storeCategory" name="store_category" aria-label="صنف فروشگاه"><option value="">انتخاب صنف (اختیاری)</option>{% for group in category_tree %}<option value="{{ group.id }}">{{ group.group }} — همهٔ زیر‌دسته‌ها</option><optgroup label="{{ group.group }}">{% for item in group.types %}<option value="{{ item.value }}">{{ item.text }}</option>{% endfor %}</optgroup>{% endfor %}</select>
               </div>
             </div>
 
