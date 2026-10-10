@@ -278,19 +278,19 @@ h1, h2, h3, p { margin-top: 0; }
 
 /* Compact turquoise message ticker replaces the oversized homepage carousel. */
 .market-ticker {
-  width: min(1160px, calc(100% - 48px));
-  min-height: 38px;
-  margin: 0 auto 8px;
-  padding: 5px 14px;
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 8px;
+  padding: 7px max(20px, calc((100% - 1160px) / 2));
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   overflow: hidden;
-  border: 1px solid #0E7490;
-  border-radius: 9px;
-  background: #087F8C;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(100deg, #086B7D 0%, #087F8C 48%, #0891B2 100%);
   color: #fff;
-  box-shadow: 0 3px 10px rgba(8, 127, 140, .13);
+  box-shadow: 0 4px 14px rgba(8, 127, 140, .12);
 }
 .market-ticker-mark { flex: 0 0 auto; color: #CFFAFE; font-size: 16px; line-height: 1; }
 .market-ticker-message {
@@ -319,7 +319,7 @@ h1, h2, h3, p { margin-top: 0; }
 .market-ticker-link:hover { color: #fff; text-decoration: underline; }
 .market-ticker:focus-within { outline: 2px solid #67E8F9; outline-offset: 2px; }
 @media (max-width: 700px) {
-  .market-ticker { width: calc(100% - 24px); min-height: 36px; margin-bottom: 6px; padding: 4px 9px; gap: 7px; border-radius: 8px; }
+  .market-ticker { width: 100%; min-height: 38px; margin-bottom: 6px; padding: 5px 12px; gap: 8px; border-radius: 0; }
   .market-ticker-message { font-size: 10px; line-height: 1.5; }
   .market-ticker-link { max-width: 94px; padding-inline-start: 7px; font-size: 9px; }
   .market-ticker-mark { font-size: 13px; }
