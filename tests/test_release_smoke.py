@@ -56,3 +56,20 @@ def test_uploaded_image_route_serves_configured_upload_folder(app, client):
 def test_uploaded_image_route_rejects_non_image_extensions(client):
     response = client.get("/static/uploads/not-an-image.txt")
     assert response.status_code == 404
+
+
+
+def test_seller_and_paid_features_require_authentication(client):
+    assert client.get("/api/my/store").status_code == 401
+    assert client.get("/api/monetization/orders").status_code == 401
+    assert client.get("/api/support/tickets").status_code == 401
+
+
+def test_listing_creation_requires_authentication(client):
+    response = client.post("/api/listings", json={
+        "title": "آگهی آزمایشی",
+        "category": "home",
+        "city": "تهران",
+        "price": 0,
+    })
+    assert response.status_code == 401
