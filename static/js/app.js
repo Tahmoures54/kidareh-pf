@@ -5,6 +5,10 @@
   const searchForm = document.querySelector("#searchForm");
   const searchInput = document.querySelector("#searchInput");
   const citySelect = document.querySelector("#citySelect");
+  const categorySelect = document.querySelector("#categorySelect");
+  const activeMarketCity = document.querySelector("#activeMarketCity");
+  const findMyLocationButton = document.querySelector("#findMyLocationButton");
+  const nearbyListingsButton = document.querySelector("#nearbyListingsButton");
   const showAllButton = document.querySelector("#showAllButton");
   const clearFilters = document.querySelector("#clearFilters");
   const toast = document.querySelector("#toast");
@@ -94,13 +98,13 @@
   async function loadListings(opts = {}) {
     const params = new URLSearchParams();
     const q = (searchInput?.value || "").trim();
-    const city = citySelect?.value || "";
+    const city = citySelect?.value.trim() || "";
     if (q) params.set("q", q);
-    if (city) params.set("city", city);
+    if (city && !userCoords) params.set("city", city);
     if (currentFilter && currentFilter !== "all") params.set("category", currentFilter);
     if (userCoords) {
       params.set("lat", String(userCoords.lat));
-      params.set("lng", String(userCoords.lng));
+      params.set("lon", String(userCoords.lng));
       params.set("radius_km", "25");
     }
     if (opts.cursor) params.set("cursor", opts.cursor);
@@ -162,8 +166,35 @@
     }
   }
 
+  function updateMarketCity() {
+    if (activeMarketCity) activeMarketCity.textContent = citySelect?.value.trim() || "همهٔ شهرها";
+  }
+
+  function saveMarketCity() {
+    const city = citySelect?.value.trim() || "";
+    try {
+      if (city) localStorage.setItem("kidareh.marketCity", city);
+      else localStorage.removeItem("kidareh.marketCity");
+    } catch (_) { /* City selection remains usable when storage is unavailable. */ }
+    updateMarketCity();
+  }
+
+  try {
+    const savedCity = localStorage.getItem("kidareh.marketCity");
+    if (citySelect && savedCity && !citySelect.value) citySelect.value = savedCity;
+  } catch (_) { /* Private browsing or storage restrictions should not block browsing. */ }
+  updateMarketCity();
+
   searchForm?.addEventListener("submit", (e) => {
     e.preventDefault();
+    userCoords = null;
+    if (categorySelect) currentFilter = categorySelect.value || "all";
+    saveMarketCity();
+    loadListings();
+  });
+  citySelect?.addEventListener("change", updateMarketCity);
+  categorySelect?.addEventListener("change", () => {
+    currentFilter = categorySelect.value || "all";
     loadListings();
   });
 
@@ -198,8 +229,9 @@
 
   showAllButton?.addEventListener("click", () => {
     if (searchInput) searchInput.value = "";
-    if (citySelect) citySelect.value = "";
     currentFilter = "all";
+    if (categorySelect) categorySelect.value = "all";
+    userCoords = null;
     document.querySelectorAll(".category-tile").forEach((c) => c.classList.remove("active"));
     document.querySelectorAll(".filter-chip").forEach((c) => c.classList.toggle("selected", c.dataset.filter === "all"));
     loadListings();
@@ -207,32 +239,35 @@
 
   clearFilters?.addEventListener("click", () => showAllButton?.click());
 
-  // Nearby button
-  if (searchForm && navigator.geolocation) {
-    const nearbyButton = document.createElement("button");
-    nearbyButton.type = "button";
-    nearbyButton.className = "button button-outline nearby-btn";
-    nearbyButton.textContent = "کالاهای نزدیک من";
-    nearbyButton.addEventListener("click", () => {
-      nearbyButton.disabled = true;
-      nearbyButton.textContent = "در حال یافتن موقعیت…";
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          nearbyButton.textContent = "نزدیک من ✓";
-          nearbyButton.disabled = false;
-          loadListings();
-        },
-        () => {
-          nearbyButton.textContent = "کالاهای نزدیک من";
-          nearbyButton.disabled = false;
-          showToast("دسترسی به موقعیت ممکن نشد.");
-        },
-        { enableHighAccuracy: false, timeout: 10000 }
-      );
-    });
-    searchForm.insertAdjacentElement("afterend", nearbyButton);
+  // Location is requested only after an explicit user action; never on page load.
+  function requestNearbyLocation(sourceButton) {
+    if (!navigator.geolocation) {
+      showToast("مرورگر شما از مکان‌یابی پشتیبانی نمی‌کند.");
+      return;
+    }
+    const buttons = [findMyLocationButton, nearbyListingsButton].filter(Boolean);
+    buttons.forEach((button) => { button.disabled = true; });
+    if (sourceButton) sourceButton.textContent = "در حال دریافت موقعیت…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        buttons.forEach((button) => { button.disabled = false; });
+        if (findMyLocationButton) findMyLocationButton.textContent = "موقعیت پیدا شد ✓";
+        if (nearbyListingsButton) nearbyListingsButton.textContent = "کالاهای اطراف من ✓";
+        showToast("موقعیت فقط برای جست‌وجوی اطراف استفاده شد؛ شهر بازار تغییر نکرد.");
+        loadListings();
+      },
+      () => {
+        buttons.forEach((button) => { button.disabled = false; });
+        if (findMyLocationButton) findMyLocationButton.textContent = "یافتن موقعیت من";
+        if (nearbyListingsButton) nearbyListingsButton.textContent = "پیدا کردن کالاهای اطراف من";
+        showToast("موقعیت دریافت نشد؛ می‌توانید شهر را دستی انتخاب کنید.");
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
   }
+  findMyLocationButton?.addEventListener("click", () => requestNearbyLocation(findMyLocationButton));
+  nearbyListingsButton?.addEventListener("click", () => requestNearbyLocation(nearbyListingsButton));
 
   storeSearchInput?.addEventListener("input", () => {
     window.clearTimeout(storeSearchInput._t);
