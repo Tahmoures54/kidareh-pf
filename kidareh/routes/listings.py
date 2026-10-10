@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
 from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
+from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS, get_villages
 
 bp = Blueprint("listings", __name__)
 
@@ -61,13 +62,66 @@ def _fts_match_query(raw: str) -> str | None:
 
 @bp.get("/api/categories")
 def categories():
-    return jsonify({"items": CATEGORIES})
+    return jsonify({
+        "items": CATEGORIES,
+        "subcategories": [
+            {"id": item["value"], "name": item["text"], "group_id": group["id"], "group": group["group"]}
+            for group in CATEGORY_TREE for item in group["types"]
+        ],
+    })
+
+
+@bp.get("/api/locations")
+def locations():
+    """Search all bundled cities and villages without sending the directory to every visitor."""
+    query = request.args.get("q", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
+    kind = request.args.get("kind", "all").strip().lower()
+    if len(query) < 2:
+        return jsonify({"items": []})
+    provinces = {item["id"]: item["name"] for item in IRAN_LOCATIONS["provinces"]}
+    counties = {item["id"]: item["name"] for item in IRAN_LOCATIONS["counties"]}
+    candidates = []
+    if kind in {"all", "city"}:
+        for item in IRAN_LOCATIONS["cities"]:
+            name = item["name"].replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item["id"], "name": item["name"], "type": "city",
+                    "province": provinces.get(item["province_id"], ""),
+                    "county": counties.get(item["county_id"], ""),
+                })
+    if kind in {"all", "village"}:
+        for item in get_villages():
+            name = item.get("name", "").replace("ي", "ی").replace("ك", "ک")
+            if query in name:
+                candidates.append({
+                    "id": item.get("id"), "name": item.get("name", ""), "type": "village",
+                    "province": provinces.get(item.get("province_id"), ""),
+                    "county": counties.get(item.get("county_id"), ""),
+                })
+    candidates.sort(key=lambda item: (not item["name"].replace("ي", "ی").replace("ك", "ک").startswith(query), item["type"] != "city", item["name"]))
+    seen, items = set(), []
+    for item in candidates:
+        key = (item["name"], item["type"], item["province"], item["county"])
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+        if len(items) >= 25:
+            break
+    return jsonify({"items": items, "count": len(items), "source_year": IRAN_LOCATIONS["source_year"],
+                    "villages_available": bool(get_villages())})
+
+
+@bp.get("/api/trades")
+def trades():
+    return jsonify({"items": TRADE_GROUPS})
 
 @bp.get("/api/listings")
 def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
-    city = request.args.get("city", "").strip()[:60]
+    city = request.args.get("city", "").strip()[:100]
     near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
     radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
     use_nearby = near_lat is not None and near_lon is not None and -90 <= near_lat <= 90 and -180 <= near_lon <= 180
@@ -90,8 +144,12 @@ def listings():
         sql = "SELECT * FROM listings WHERE 1=1"
 
     if category and category != "all":
-        sql += " AND category = ?"
-        parameters.append(category)
+        category_ids = [category]
+        category_ids.extend(CATEGORY_GROUPS.get(category, []))
+        category_ids = list(dict.fromkeys(category_ids))
+        placeholders = ",".join("?" for _ in category_ids)
+        sql += " AND category IN (" + placeholders + ")"
+        parameters.extend(category_ids)
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
@@ -132,8 +190,10 @@ def listings():
                 fallback_sql += " AND (title LIKE ? OR description LIKE ? OR city LIKE ?)"
                 fallback_params.extend([term, term, term])
                 if category and category != "all":
-                    fallback_sql += " AND category = ?"
-                    fallback_params.append(category)
+                    category_ids = list(dict.fromkeys([category, *CATEGORY_GROUPS.get(category, [])]))
+                    placeholders = ",".join("?" for _ in category_ids)
+                    fallback_sql += " AND category IN (" + placeholders + ")"
+                    fallback_params.extend(category_ids)
                 if city and city != "همه شهرها":
                     fallback_sql += " AND city = ?"
                     fallback_params.append(city)
@@ -224,9 +284,9 @@ def create_listing():
 
     if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
         return jsonify({"error": "invalid_title", "message": "عنوان باید بین ۱ تا ۱۰۰ نویسه باشد."}), 400
-    if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+    if not isinstance(category, str) or category not in CATEGORY_ALLOWED_IDS:
         return jsonify({"error": "invalid_category"}), 400
-    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 100:
         return jsonify({"error": "invalid_city"}), 400
     if not isinstance(description, str) or len(description.strip()) > 1000:
         return jsonify({"error": "invalid_description"}), 400
@@ -314,7 +374,7 @@ def manage_listing(listing_id: int):
                 return jsonify({"error": "invalid_coordinates"}), 400
             if not isinstance(title, str) or not title.strip() or len(title.strip()) > 100:
                 return jsonify({"error": "invalid_title"}), 400
-            if not isinstance(category, str) or category not in {item["id"] for item in CATEGORIES}:
+            if not isinstance(category, str) or category not in CATEGORY_ALLOWED_IDS:
                 return jsonify({"error": "invalid_category"}), 400
             if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
                 return jsonify({"error": "invalid_city"}), 400

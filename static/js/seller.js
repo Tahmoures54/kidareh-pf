@@ -120,6 +120,7 @@
           editForm.name.value = store.name || "";
           editForm.city.value = store.city || "";
           editForm.description.value = store.description || "";
+          if (editForm.category) editForm.category.value = store.category || "";
           if (editForm.address) editForm.address.value = store.address || "";
           if (editForm.latitude) editForm.latitude.value = store.latitude ?? "";
           if (editForm.longitude) editForm.longitude.value = store.longitude ?? "";
@@ -165,6 +166,7 @@
               name: createForm.name.value.trim(),
               city: createForm.city.value.trim(),
               description: createForm.description.value.trim(),
+              category: createForm.category?.value || "",
             }),
           });
           notify("ویترین ساخته شد.");
@@ -185,6 +187,7 @@
               name: editForm.name.value.trim(),
               city: editForm.city.value.trim(),
               description: editForm.description.value.trim(),
+              category: editForm.category?.value || "",
               address: editForm.address?.value.trim() || "",
               latitude: editForm.latitude?.value || "",
               longitude: editForm.longitude?.value || "",

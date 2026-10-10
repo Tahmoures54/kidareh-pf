@@ -26,6 +26,7 @@ jobs:
         run: |
           node --check static/js/app.js
           node --check static/js/pages.js
+          node --check static/js/location-picker.js
           node --check static/js/auth.js
           node --check static/js/auth-pages.js
           node --check static/js/reports.js

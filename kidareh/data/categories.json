@@ -1,0 +1,2364 @@
+[
+  {
+    "id": "everyday_goods",
+    "slug": "everyday",
+    "group": "کالاهای روزمره و سوپرمارکت",
+    "short": "روزمره",
+    "icon": "🛒",
+    "color": "bg-amber-500 text-amber-50",
+    "gradient": "from-amber-400 to-orange-500",
+    "description": "خواربار، تازه، شوینده و خرید روزانه",
+    "aliases": [
+      "سوپرمارکت",
+      "هایپر",
+      "خواربار",
+      "خوراکی",
+      "grocery",
+      "supermarket"
+    ],
+    "types": [
+      {
+        "value": "food",
+        "text": "مواد غذایی، خواربار و خشکبار",
+        "aliases": [
+          "خوراکی",
+          "خواربار",
+          "خشکبار",
+          "grocery",
+          "مواد غذایی"
+        ]
+      },
+      {
+        "value": "fresh_produce",
+        "text": "میوه، سبزی و صیفی",
+        "aliases": [
+          "میوه",
+          "سبزی",
+          "صیفی"
+        ]
+      },
+      {
+        "value": "meat_poultry",
+        "text": "گوشت، مرغ و پروتئین",
+        "aliases": [
+          "گوشت",
+          "مرغ",
+          "قصابی",
+          "پروتئین"
+        ]
+      },
+      {
+        "value": "seafood",
+        "text": "ماهی و آبزیان",
+        "aliases": [
+          "ماهی",
+          "میگو"
+        ]
+      },
+      {
+        "value": "dairy",
+        "text": "لبنیات و محصولات محلی",
+        "aliases": [
+          "لبنیات",
+          "شیر",
+          "ماست",
+          "پنیر"
+        ]
+      },
+      {
+        "value": "bakery",
+        "text": "نان، شیرینی و قنادی",
+        "aliases": [
+          "نان",
+          "شیرینی",
+          "قنادی",
+          "bakery"
+        ]
+      },
+      {
+        "value": "beverages",
+        "text": "نوشیدنی، چای و قهوه",
+        "aliases": [
+          "نوشیدنی",
+          "چای",
+          "قهوه"
+        ]
+      },
+      {
+        "value": "snacks",
+        "text": "تنقلات، چیپس و شکلات",
+        "aliases": [
+          "تنقلات",
+          "چیپس",
+          "شکلات"
+        ]
+      },
+      {
+        "value": "canned_goods",
+        "text": "کنسرو، رب و غذای آماده",
+        "aliases": [
+          "کنسرو",
+          "رب"
+        ]
+      },
+      {
+        "value": "frozen_food",
+        "text": "غذای منجمد و یخچالی",
+        "aliases": [
+          "منجمد"
+        ]
+      },
+      {
+        "value": "organic",
+        "text": "محصولات ارگانیک",
+        "aliases": [
+          "ارگانیک"
+        ]
+      },
+      {
+        "value": "herbs",
+        "text": "گیاهان دارویی و عطاری",
+        "aliases": [
+          "عطاری",
+          "گیاهان دارویی"
+        ]
+      },
+      {
+        "value": "household_consumables",
+        "text": "شوینده و مواد مصرفی خانه",
+        "aliases": [
+          "شوینده",
+          "مایع ظرفشویی"
+        ]
+      },
+      {
+        "value": "paper_hygiene",
+        "text": "دستمال کاغذی و بهداشتی مصرفی",
+        "aliases": [
+          "دستمال"
+        ]
+      },
+      {
+        "value": "supermarket",
+        "text": "سوپرمارکت و فروشگاه زنجیره‌ای",
+        "aliases": [
+          "سوپر",
+          "هایپرمارکت"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "home_appliances_group",
+    "slug": "appliances",
+    "group": "لوازم خانگی",
+    "short": "لوازم خانگی",
+    "icon": "🧊",
+    "color": "bg-sky-500 text-sky-50",
+    "gradient": "from-sky-400 to-blue-600",
+    "description": "لوازم برقی بزرگ و کوچک خانه",
+    "aliases": [
+      "لوازم خانگی",
+      "لوازم برقی",
+      "appliances",
+      "home"
+    ],
+    "types": [
+      {
+        "value": "home_appliances",
+        "text": "لوازم برقی بزرگ (یخچال، لباسشویی)",
+        "aliases": [
+          "یخچال",
+          "لباسشویی",
+          "ظرفشویی",
+          "اجاق",
+          "appliances",
+          "لوازم خانگی"
+        ]
+      },
+      {
+        "value": "small_appliances",
+        "text": "لوازم برقی کوچک آشپزخانه",
+        "aliases": [
+          "چای‌ساز",
+          "مخلوط‌کن",
+          "مایکروویو",
+          "توستر"
+        ]
+      },
+      {
+        "value": "kitchen_appliances",
+        "text": "تجهیزات توکار (هود، سینک، گاز)",
+        "aliases": [
+          "هود",
+          "گاز رومیزی",
+          "فر توکار"
+        ]
+      },
+      {
+        "value": "climate_hvac",
+        "text": "سرمایش، گرمایش و کولر",
+        "aliases": [
+          "کولر",
+          "اسپلیت",
+          "بخاری",
+          "شوفاژ"
+        ]
+      },
+      {
+        "value": "vacuum_cleaning",
+        "text": "جاروبرقی و نظافت برقی",
+        "aliases": [
+          "جاروبرقی",
+          "بخارشوی"
+        ]
+      },
+      {
+        "value": "water_heater",
+        "text": "آبگرمکن، پکیج و تصفیه آب",
+        "aliases": [
+          "پکیج",
+          "آبگرمکن"
+        ]
+      },
+      {
+        "value": "sewing_machines",
+        "text": "چرخ خیاطی و بافندگی",
+        "aliases": [
+          "چرخ خیاطی"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "home_and_life",
+    "slug": "home",
+    "group": "خانه، مبلمان و دکوراسیون",
+    "short": "خانه",
+    "icon": "🛋️",
+    "color": "bg-orange-500 text-orange-50",
+    "gradient": "from-orange-400 to-amber-600",
+    "description": "مبلمان، فرش، ظروف و دکور",
+    "aliases": [
+      "خانه و زندگی",
+      "دکوراسیون",
+      "مبلمان",
+      "خانه"
+    ],
+    "types": [
+      {
+        "value": "furniture",
+        "text": "مبلمان و صنایع چوبی",
+        "aliases": [
+          "مبل",
+          "میز",
+          "صندلی",
+          "furniture"
+        ]
+      },
+      {
+        "value": "mattress_bedding",
+        "text": "تشک، کالای خواب و بالش",
+        "aliases": [
+          "تشک",
+          "روتختی"
+        ]
+      },
+      {
+        "value": "carpets_rugs",
+        "text": "فرش، قالی، گلیم و موکت",
+        "aliases": [
+          "فرش",
+          "قالی",
+          "گلیم"
+        ]
+      },
+      {
+        "value": "kitchenware",
+        "text": "ظروف و لوازم آشپزخانه",
+        "aliases": [
+          "ظرف",
+          "قابلمه",
+          "kitchen"
+        ]
+      },
+      {
+        "value": "glassware",
+        "text": "ظروف شیشه‌ای و بلور",
+        "aliases": [
+          "بلور",
+          "کریستال"
+        ]
+      },
+      {
+        "value": "decor",
+        "text": "لوازم تزئینی و دکوری",
+        "aliases": [
+          "دکور",
+          "تابلو"
+        ]
+      },
+      {
+        "value": "lighting",
+        "text": "لوستر، آباژور و روشنایی",
+        "aliases": [
+          "لوستر",
+          "لامپ"
+        ]
+      },
+      {
+        "value": "textiles",
+        "text": "پارچه، رومیزی و کالای نساجی",
+        "aliases": [
+          "پارچه"
+        ]
+      },
+      {
+        "value": "curtains",
+        "text": "پرده، کرکره و شید",
+        "aliases": [
+          "پرده"
+        ]
+      },
+      {
+        "value": "bathroom_accessories",
+        "text": "سرویس بهداشتی و حمام",
+        "aliases": [
+          "حمام",
+          "روشویی"
+        ]
+      },
+      {
+        "value": "storage_org",
+        "text": "باکس، قفسه و نظم‌دهنده",
+        "aliases": [
+          "قفسه"
+        ]
+      },
+      {
+        "value": "garden",
+        "text": "باغبانی، گل و فضای سبز",
+        "aliases": [
+          "گل",
+          "گیاه",
+          "باغبانی"
+        ]
+      },
+      {
+        "value": "housewares",
+        "text": "خرده ریز و لوازم عمومی خانه",
+        "aliases": [
+          "خانه"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "real_estate",
+    "slug": "real-estate",
+    "group": "املاک و مسکن",
+    "short": "مسکن",
+    "icon": "🏠",
+    "color": "bg-emerald-500 text-emerald-50",
+    "gradient": "from-emerald-400 to-teal-600",
+    "description": "خرید، فروش، رهن و اجاره ملک",
+    "aliases": [
+      "املاک",
+      "مسکن",
+      "مستغلات",
+      "آپارتمان",
+      "real estate"
+    ],
+    "types": [
+      {
+        "value": "property_sales",
+        "text": "خرید و فروش آپارتمان",
+        "aliases": [
+          "فروش آپارتمان"
+        ]
+      },
+      {
+        "value": "rent_apartment",
+        "text": "رهن و اجاره آپارتمان",
+        "aliases": [
+          "اجاره آپارتمان",
+          "رهن"
+        ]
+      },
+      {
+        "value": "villa_garden",
+        "text": "ویلا، باغ و باغ‌ویلا",
+        "aliases": [
+          "ویلا",
+          "باغ"
+        ]
+      },
+      {
+        "value": "rent_house",
+        "text": "رهن و اجاره خانه و ویلا",
+        "aliases": [
+          "اجاره خانه"
+        ]
+      },
+      {
+        "value": "old_house",
+        "text": "خانه کلنگی و کوبیدنی",
+        "aliases": [
+          "کلنگی"
+        ]
+      },
+      {
+        "value": "land",
+        "text": "زمین، کشاورزی و مسکونی",
+        "aliases": [
+          "زمین"
+        ]
+      },
+      {
+        "value": "commercial_property",
+        "text": "خرید و فروش مغازه و تجاری",
+        "aliases": [
+          "مغازه"
+        ]
+      },
+      {
+        "value": "shop_rent",
+        "text": "رهن و اجاره مغازه",
+        "aliases": [
+          "اجاره مغازه"
+        ]
+      },
+      {
+        "value": "office_sale",
+        "text": "خرید و فروش دفتر کار",
+        "aliases": [
+          "فروش دفتر"
+        ]
+      },
+      {
+        "value": "workspace",
+        "text": "رهن و اجاره دفتر و فضای کار",
+        "aliases": [
+          "دفتر کار"
+        ]
+      },
+      {
+        "value": "warehouse",
+        "text": "سوله، انبار و کارگاه",
+        "aliases": [
+          "سوله",
+          "انبار"
+        ]
+      },
+      {
+        "value": "short_stay",
+        "text": "اجاره روزانه و سوئیت",
+        "aliases": [
+          "اجاره روزانه",
+          "مسافرخانه"
+        ]
+      },
+      {
+        "value": "parking",
+        "text": "پارکینگ، انباری و مزاحم",
+        "aliases": [
+          "پارکینگ"
+        ]
+      },
+      {
+        "value": "pre_sale",
+        "text": "پیش‌فروش و مشارکت در ساخت",
+        "aliases": [
+          "پیش فروش"
+        ]
+      },
+      {
+        "value": "real_estate_services",
+        "text": "خدمات املاک و مشاوره ملک",
+        "aliases": [
+          "مشاور املاک"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vehicles",
+    "slug": "vehicles",
+    "group": "وسایل نقلیه",
+    "short": "خودرو",
+    "icon": "🚗",
+    "color": "bg-rose-500 text-rose-50",
+    "gradient": "from-rose-500 to-red-700",
+    "description": "خودرو، موتور، سنگین و قطعات",
+    "aliases": [
+      "خودرو",
+      "ماشین",
+      "اتومبیل",
+      "automotive",
+      "vehicles"
+    ],
+    "types": [
+      {
+        "value": "cars",
+        "text": "خودرو سواری",
+        "aliases": [
+          "ماشین",
+          "اتومبیل",
+          "sedan"
+        ]
+      },
+      {
+        "value": "classic_cars",
+        "text": "خودرو کلاسیک و خاص",
+        "aliases": [
+          "کلاسیک"
+        ]
+      },
+      {
+        "value": "car_rental",
+        "text": "اجاره خودرو",
+        "aliases": [
+          "کرایه ماشین"
+        ]
+      },
+      {
+        "value": "motorcycles",
+        "text": "موتورسیکلت",
+        "aliases": [
+          "موتور"
+        ]
+      },
+      {
+        "value": "bicycles",
+        "text": "دوچرخه",
+        "aliases": [
+          "دوچرخه"
+        ]
+      },
+      {
+        "value": "electric_vehicles",
+        "text": "خودرو، موتور و اسکوتر برقی",
+        "aliases": [
+          "اسکوتر برقی"
+        ]
+      },
+      {
+        "value": "atv",
+        "text": "اتومبیل آفرود، ATV و کارتینگ",
+        "aliases": [
+          "اتوی",
+          "آفرود"
+        ]
+      },
+      {
+        "value": "trucks",
+        "text": "کامیون، کامیونت و سنگین",
+        "aliases": [
+          "کامیون",
+          "خاور"
+        ]
+      },
+      {
+        "value": "bus_minibus",
+        "text": "اتوبوس، مینی‌بوس و ون",
+        "aliases": [
+          "اتوبوس",
+          "ون"
+        ]
+      },
+      {
+        "value": "agricultural_machinery",
+        "text": "تراکتور و ماشین‌آلات کشاورزی",
+        "aliases": [
+          "تراکتور"
+        ]
+      },
+      {
+        "value": "construction_vehicles",
+        "text": "ماشین‌آلات راه‌سازی",
+        "aliases": [
+          "لودر",
+          "بیل مکانیکی"
+        ]
+      },
+      {
+        "value": "boats",
+        "text": "قایق، جت‌اسکی و وسایل آبی",
+        "aliases": [
+          "قایق"
+        ]
+      },
+      {
+        "value": "trailers",
+        "text": "تریلر، یدک‌کش و کاروان",
+        "aliases": [
+          "تریلر"
+        ]
+      },
+      {
+        "value": "auto_parts",
+        "text": "قطعات یدکی خودرو",
+        "aliases": [
+          "لوازم یدکی",
+          "قطعات"
+        ]
+      },
+      {
+        "value": "heavy_parts",
+        "text": "قطعات ماشین‌آلات سنگین",
+        "aliases": [
+          "یدکی سنگین"
+        ]
+      },
+      {
+        "value": "tires_rims",
+        "text": "لاستیک و رینگ",
+        "aliases": [
+          "لاستیک",
+          "رینگ"
+        ]
+      },
+      {
+        "value": "car_accessories",
+        "text": "لوازم جانبی و اسپرت خودرو",
+        "aliases": [
+          "اسپرت"
+        ]
+      },
+      {
+        "value": "car_audio",
+        "text": "سیستم صوتی و دزدگیر خودرو",
+        "aliases": [
+          "دزدگیر"
+        ]
+      },
+      {
+        "value": "car_care",
+        "text": "مواد نگهداری و کارواش",
+        "aliases": [
+          "کارواش"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "digital_goods",
+    "slug": "digital",
+    "group": "کالای دیجیتال",
+    "short": "دیجیتال",
+    "icon": "📱",
+    "color": "bg-blue-500 text-blue-50",
+    "gradient": "from-blue-500 to-indigo-600",
+    "description": "موبایل، لپ‌تاپ، گیم و صوتی",
+    "aliases": [
+      "دیجیتال",
+      "الکترونیک",
+      "electronics",
+      "موبایل"
+    ],
+    "types": [
+      {
+        "value": "electronics",
+        "text": "موبایل، تبلت و لوازم جانبی",
+        "aliases": [
+          "گوشی",
+          "موبایل",
+          "تبلت",
+          "mobile",
+          "electronics"
+        ]
+      },
+      {
+        "value": "laptops",
+        "text": "لپ‌تاپ، کامپیوتر و قطعات",
+        "aliases": [
+          "لپ تاپ",
+          "کامپیوتر",
+          "pc"
+        ]
+      },
+      {
+        "value": "gaming",
+        "text": "کنسول بازی و گجت‌ها",
+        "aliases": [
+          "کنسول",
+          "ps5",
+          "xbox"
+        ]
+      },
+      {
+        "value": "cameras",
+        "text": "دوربین عکاسی و فیلم‌برداری",
+        "aliases": [
+          "دوربین"
+        ]
+      },
+      {
+        "value": "audio",
+        "text": "صوتی و تصویری (تلویزیون، اسپیکر)",
+        "aliases": [
+          "تلویزیون",
+          "tv",
+          "اسپیکر"
+        ]
+      },
+      {
+        "value": "smart_home",
+        "text": "خانه هوشمند",
+        "aliases": [
+          "خانه هوشمند"
+        ]
+      },
+      {
+        "value": "wearables",
+        "text": "ساعت و دستبند هوشمند",
+        "aliases": [
+          "ساعت هوشمند"
+        ]
+      },
+      {
+        "value": "printers",
+        "text": "پرینتر، اسکنر و ماشین اداری",
+        "aliases": [
+          "پرینتر"
+        ]
+      },
+      {
+        "value": "networking",
+        "text": "مودم، شبکه و تجهیزات اینترنت",
+        "aliases": [
+          "مودم",
+          "روتر"
+        ]
+      },
+      {
+        "value": "data_storage",
+        "text": "هارد، فلش و کارت حافظه",
+        "aliases": [
+          "هارد",
+          "فلش"
+        ]
+      },
+      {
+        "value": "sim_credit",
+        "text": "سیم‌کارت، خط و اینترنت",
+        "aliases": [
+          "سیم کارت"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "personal_goods",
+    "slug": "fashion",
+    "group": "پوشاک، کیف و مد",
+    "short": "مد",
+    "icon": "👗",
+    "color": "bg-fuchsia-500 text-fuchsia-50",
+    "gradient": "from-fuchsia-400 to-pink-600",
+    "description": "لباس، کفش، کیف و زیورآلات",
+    "aliases": [
+      "پوشاک",
+      "مد",
+      "لباس",
+      "fashion"
+    ],
+    "types": [
+      {
+        "value": "clothing",
+        "text": "پوشاک و لباس",
+        "aliases": [
+          "لباس",
+          "پوشاک",
+          "fashion"
+        ]
+      },
+      {
+        "value": "menswear",
+        "text": "پوشاک مردانه",
+        "aliases": [
+          "لباس مردانه"
+        ]
+      },
+      {
+        "value": "womenswear",
+        "text": "پوشاک زنانه",
+        "aliases": [
+          "لباس زنانه"
+        ]
+      },
+      {
+        "value": "sportswear",
+        "text": "لباس و کفش ورزشی",
+        "aliases": [
+          "ست ورزشی"
+        ]
+      },
+      {
+        "value": "hijab",
+        "text": "مانتو، شال، روسری و حجاب",
+        "aliases": [
+          "مانتو",
+          "روسری"
+        ]
+      },
+      {
+        "value": "traditional_clothing",
+        "text": "لباس محلی و سنتی",
+        "aliases": [
+          "لباس محلی"
+        ]
+      },
+      {
+        "value": "underwear",
+        "text": "لباس زیر و راحتی",
+        "aliases": [
+          "لباس زیر"
+        ]
+      },
+      {
+        "value": "shoes",
+        "text": "کفش",
+        "aliases": [
+          "کفش",
+          "footwear"
+        ]
+      },
+      {
+        "value": "bags",
+        "text": "کیف، کوله و چمدان",
+        "aliases": [
+          "کیف",
+          "چمدان",
+          "bags"
+        ]
+      },
+      {
+        "value": "leather",
+        "text": "محصولات چرمی",
+        "aliases": [
+          "چرم"
+        ]
+      },
+      {
+        "value": "jewelry",
+        "text": "زیورآلات، طلا و جواهرات",
+        "aliases": [
+          "طلا",
+          "جواهر"
+        ]
+      },
+      {
+        "value": "watches",
+        "text": "ساعت مچی",
+        "aliases": [
+          "ساعت"
+        ]
+      },
+      {
+        "value": "sunglasses",
+        "text": "عینک آفتابی و طبی",
+        "aliases": [
+          "عینک"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beauty_care",
+    "slug": "beauty",
+    "group": "آرایش، بهداشت و زیبایی",
+    "short": "زیبایی",
+    "icon": "💄",
+    "color": "bg-pink-500 text-pink-50",
+    "gradient": "from-pink-400 to-rose-500",
+    "description": "آرایشی، بهداشتی و مراقبت پوست",
+    "aliases": [
+      "آرایش",
+      "زیبایی",
+      "بهداشتی",
+      "beauty"
+    ],
+    "types": [
+      {
+        "value": "health_beauty",
+        "text": "آرایشی، بهداشتی و سلامت",
+        "aliases": [
+          "آرایشی بهداشتی",
+          "beauty"
+        ]
+      },
+      {
+        "value": "cosmetics",
+        "text": "لوازم آرایش",
+        "aliases": [
+          "آرایش"
+        ]
+      },
+      {
+        "value": "skincare",
+        "text": "مراقبت پوست و مو",
+        "aliases": [
+          "پوست"
+        ]
+      },
+      {
+        "value": "perfume",
+        "text": "عطر، ادکلن و اسانس",
+        "aliases": [
+          "عطر",
+          "ادکلن"
+        ]
+      },
+      {
+        "value": "personal_care",
+        "text": "بهداشت شخصی",
+        "aliases": [
+          "بهداشتی"
+        ]
+      },
+      {
+        "value": "supplements",
+        "text": "مکمل و ویتامین",
+        "aliases": [
+          "مکمل"
+        ]
+      },
+      {
+        "value": "salon_equipment",
+        "text": "تجهیزات آرایشگاه و سالن",
+        "aliases": [
+          "سالن زیبایی"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "kids_baby",
+    "slug": "mother-child",
+    "group": "مادر، کودک و سیسمونی",
+    "short": "کودک",
+    "icon": "🧸",
+    "color": "bg-cyan-500 text-cyan-50",
+    "gradient": "from-cyan-400 to-teal-500",
+    "description": "سیسمونی، اسباب‌بازی و لباس کودک",
+    "aliases": [
+      "کودک",
+      "نوزاد",
+      "سیسمونی",
+      "kids"
+    ],
+    "types": [
+      {
+        "value": "kids",
+        "text": "لوازم کودک و سیسمونی",
+        "aliases": [
+          "سیسمونی",
+          "نوزاد"
+        ]
+      },
+      {
+        "value": "kids_clothing",
+        "text": "پوشاک کودک و نوجوان",
+        "aliases": [
+          "لباس کودک"
+        ]
+      },
+      {
+        "value": "kids_shoes",
+        "text": "کفش کودک",
+        "aliases": [
+          "کفش بچه"
+        ]
+      },
+      {
+        "value": "toys",
+        "text": "اسباب‌بازی و سرگرمی کودک",
+        "aliases": [
+          "اسباب بازی"
+        ]
+      },
+      {
+        "value": "baby_gear",
+        "text": "کالسکه، صندلی خودرو و کریر",
+        "aliases": [
+          "کالسکه"
+        ]
+      },
+      {
+        "value": "strollers",
+        "text": "تخت، گهواره و اتاق کودک",
+        "aliases": [
+          "گهواره"
+        ]
+      },
+      {
+        "value": "maternity",
+        "text": "لباس و لوازم بارداری",
+        "aliases": [
+          "بارداری"
+        ]
+      },
+      {
+        "value": "school_supplies",
+        "text": "لوازم‌التحریر مدرسه",
+        "aliases": [
+          "مدرسه"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "building_materials",
+    "slug": "construction",
+    "group": "مصالح و ساختمان",
+    "short": "مصالح",
+    "icon": "🧱",
+    "color": "bg-orange-600 text-orange-50",
+    "gradient": "from-orange-500 to-stone-700",
+    "description": "سیمان، آهن، کاشی و تأسیسات بنا",
+    "aliases": [
+      "مصالح",
+      "ساختمان",
+      "سیمان",
+      "آهن آلات"
+    ],
+    "types": [
+      {
+        "value": "cement",
+        "text": "سیمان، گچ و ملات",
+        "aliases": [
+          "سیمان",
+          "گچ"
+        ]
+      },
+      {
+        "value": "concrete",
+        "text": "بتن آماده و افزودنی بتن",
+        "aliases": [
+          "بتن"
+        ]
+      },
+      {
+        "value": "bricks",
+        "text": "آجر، سفال و بلوک",
+        "aliases": [
+          "آجر",
+          "بلوک"
+        ]
+      },
+      {
+        "value": "tiles",
+        "text": "کاشی و سرامیک",
+        "aliases": [
+          "کاشی",
+          "سرامیک"
+        ]
+      },
+      {
+        "value": "steel",
+        "text": "آهن‌آلات و میلگرد",
+        "aliases": [
+          "میلگرد",
+          "تیرآهن"
+        ]
+      },
+      {
+        "value": "profiles_building",
+        "text": "پروفیل و قوطی ساختمانی",
+        "aliases": [
+          "پروفیل"
+        ]
+      },
+      {
+        "value": "wood",
+        "text": "چوب، MDF و الوار",
+        "aliases": [
+          "چوب",
+          "ام دی اف"
+        ]
+      },
+      {
+        "value": "stone",
+        "text": "سنگ ساختمانی و نما",
+        "aliases": [
+          "سنگ نما"
+        ]
+      },
+      {
+        "value": "sand_gravel",
+        "text": "شن، ماسه و پوکه",
+        "aliases": [
+          "ماسه",
+          "شن"
+        ]
+      },
+      {
+        "value": "doors_windows",
+        "text": "درب، پنجره و شیشه",
+        "aliases": [
+          "درب",
+          "پنجره"
+        ]
+      },
+      {
+        "value": "pipes",
+        "text": "لوله و اتصالات ساختمانی",
+        "aliases": [
+          "لوله ساختمانی"
+        ]
+      },
+      {
+        "value": "plumbing",
+        "text": "شیرآلات بهداشتی و لوله‌کشی",
+        "aliases": [
+          "شیرآلات"
+        ]
+      },
+      {
+        "value": "insulation",
+        "text": "عایق، ایزوگام و رطوبتی",
+        "aliases": [
+          "ایزوگام"
+        ]
+      },
+      {
+        "value": "waterproofing",
+        "text": "آب‌بندی و عایق رطوبتی تخصصی",
+        "aliases": [
+          "آب بندی"
+        ]
+      },
+      {
+        "value": "roofing",
+        "text": "پوشش سقف و بام",
+        "aliases": [
+          "سقف شیروانی"
+        ]
+      },
+      {
+        "value": "paints",
+        "text": "رنگ، رزین و پوشش ساختمانی",
+        "aliases": [
+          "رنگ ساختمان"
+        ]
+      },
+      {
+        "value": "wires_cables",
+        "text": "سیم، کابل و برق ساختمان",
+        "aliases": [
+          "سیم برق"
+        ]
+      },
+      {
+        "value": "gypsum_board",
+        "text": "کناف، سقف کاذب و خشکه‌چینی",
+        "aliases": [
+          "کناف"
+        ]
+      },
+      {
+        "value": "facade",
+        "text": "نما، کامپوزیت و ترمووود",
+        "aliases": [
+          "کامپوزیت"
+        ]
+      },
+      {
+        "value": "elevator",
+        "text": "آسانسور، پله‌برقی و بالابر",
+        "aliases": [
+          "آسانسور"
+        ]
+      },
+      {
+        "value": "hardware_store",
+        "text": "یراق‌آلات و پیچ و رولپلاک",
+        "aliases": [
+          "یراق"
+        ]
+      },
+      {
+        "value": "scaffolding",
+        "text": "داربست، قالب و تجهیزات کارگاه",
+        "aliases": [
+          "داربست"
+        ]
+      },
+      {
+        "value": "prefab",
+        "text": "سازه‌های پیش‌ساخته و کانکس",
+        "aliases": [
+          "کانکس"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "industrial_materials",
+    "slug": "industrial",
+    "group": "متریال و تجهیزات صنعتی",
+    "short": "صنعتی",
+    "icon": "🏭",
+    "color": "bg-slate-600 text-slate-50",
+    "gradient": "from-slate-500 to-slate-800",
+    "description": "مواد اولیه، ماشین‌آلات و B2B",
+    "aliases": [
+      "صنعتی",
+      "متریال",
+      "کارخانه",
+      "industrial"
+    ],
+    "types": [
+      {
+        "value": "steel_alloys",
+        "text": "فولاد و آلیاژهای فلزی",
+        "aliases": [
+          "فولاد",
+          "آلیاژ"
+        ]
+      },
+      {
+        "value": "raw_metals",
+        "text": "فلزات غیرآهنی (مس، آلومینیوم، روی)",
+        "aliases": [
+          "مس",
+          "آلومینیوم"
+        ]
+      },
+      {
+        "value": "machinery",
+        "text": "ماشین‌آلات و خطوط تولید",
+        "aliases": [
+          "ماشین آلات"
+        ]
+      },
+      {
+        "value": "packaging_machines",
+        "text": "ماشین‌آلات بسته‌بندی",
+        "aliases": [
+          "بسته‌بندی صنعتی"
+        ]
+      },
+      {
+        "value": "piping_materials",
+        "text": "اقلام پایپینگ صنعتی",
+        "aliases": [
+          "پایپینگ"
+        ]
+      },
+      {
+        "value": "pipes_fittings",
+        "text": "لوله و اتصالات صنعتی",
+        "aliases": [
+          "فیتینگ"
+        ]
+      },
+      {
+        "value": "valves",
+        "text": "شیرآلات صنعتی",
+        "aliases": [
+          "شیر صنعتی"
+        ]
+      },
+      {
+        "value": "flanges",
+        "text": "فلنج و گسکت",
+        "aliases": [
+          "فلنج"
+        ]
+      },
+      {
+        "value": "industrial_chemicals",
+        "text": "مواد شیمیایی صنعتی",
+        "aliases": [
+          "شیمیایی"
+        ]
+      },
+      {
+        "value": "polymers_plastics",
+        "text": "پلیمر، گرانول و پلاستیک صنعتی",
+        "aliases": [
+          "گرانول"
+        ]
+      },
+      {
+        "value": "cement_refractories",
+        "text": "سیمان نسوز و مواد دیرگداز",
+        "aliases": [
+          "نسوز"
+        ]
+      },
+      {
+        "value": "pumps_compressors",
+        "text": "پمپ و کمپرسور",
+        "aliases": [
+          "پمپ صنعتی"
+        ]
+      },
+      {
+        "value": "heat_exchangers",
+        "text": "مبدل‌های حرارتی",
+        "aliases": [
+          "مبدل"
+        ]
+      },
+      {
+        "value": "tanks_vessels",
+        "text": "مخازن و مخازن تحت فشار",
+        "aliases": [
+          "مخزن"
+        ]
+      },
+      {
+        "value": "welding_consumables",
+        "text": "جوشکاری و مواد مصرفی جوش",
+        "aliases": [
+          "الکترود"
+        ]
+      },
+      {
+        "value": "welding_machines",
+        "text": "دستگاه جوش و برش صنعتی",
+        "aliases": [
+          "دستگاه جوش"
+        ]
+      },
+      {
+        "value": "corrosion_protection",
+        "text": "پوشش و ضدخوردگی",
+        "aliases": [
+          "ضدخوردگی"
+        ]
+      },
+      {
+        "value": "industrial_insulation",
+        "text": "عایق‌های صنعتی",
+        "aliases": [
+          "عایق صنعتی"
+        ]
+      },
+      {
+        "value": "lubricants",
+        "text": "روان‌کننده و روغن صنعتی",
+        "aliases": [
+          "روغن صنعتی"
+        ]
+      },
+      {
+        "value": "conveyor_systems",
+        "text": "تسمه نقاله و انتقال مواد",
+        "aliases": [
+          "نقاله"
+        ]
+      },
+      {
+        "value": "bearings",
+        "text": "بلبرینگ و یاتاقان",
+        "aliases": [
+          "بلبرینگ"
+        ]
+      },
+      {
+        "value": "fasteners",
+        "text": "پیچ و مهره صنعتی",
+        "aliases": [
+          "پیچ مهره"
+        ]
+      },
+      {
+        "value": "hydraulics",
+        "text": "هیدرولیک و پنوماتیک",
+        "aliases": [
+          "هیدرولیک"
+        ]
+      },
+      {
+        "value": "motors_drives",
+        "text": "الکتروموتور، گیربکس و اینورتر",
+        "aliases": [
+          "الکتروموتور"
+        ]
+      },
+      {
+        "value": "control_systems",
+        "text": "اتوماسیون، PLC و ابزار دقیق",
+        "aliases": [
+          "plc",
+          "اتوماسیون"
+        ]
+      },
+      {
+        "value": "electrical_industrial",
+        "text": "برق صنعتی و تابلو برق",
+        "aliases": [
+          "تابلو برق"
+        ]
+      },
+      {
+        "value": "generators",
+        "text": "ژنراتور و برق اضطراری",
+        "aliases": [
+          "ژنراتور"
+        ]
+      },
+      {
+        "value": "solar_energy",
+        "text": "انرژی خورشیدی و تجدیدپذیر",
+        "aliases": [
+          "پنل خورشیدی"
+        ]
+      },
+      {
+        "value": "safety_ppe",
+        "text": "ایمنی کار و PPE",
+        "aliases": [
+          "ایمنی"
+        ]
+      },
+      {
+        "value": "mining_equipment",
+        "text": "معدن، حفاری و سنگ‌شکن",
+        "aliases": [
+          "معدن"
+        ]
+      },
+      {
+        "value": "lab_equipment",
+        "text": "تجهیزات آزمایشگاهی صنعتی",
+        "aliases": [
+          "آزمایشگاه"
+        ]
+      },
+      {
+        "value": "measuring_tools",
+        "text": "ابزار دقیق و اندازه‌گیری",
+        "aliases": [
+          "کولیس"
+        ]
+      },
+      {
+        "value": "industrial_tools",
+        "text": "ابزار صنعتی و کارگاهی",
+        "aliases": [
+          "دریل صنعتی"
+        ]
+      },
+      {
+        "value": "spare_parts_industrial",
+        "text": "قطعات یدکی صنعتی",
+        "aliases": [
+          "یدکی کارخانه"
+        ]
+      },
+      {
+        "value": "ndt_materials",
+        "text": "تست غیرمخرب (NDT)",
+        "aliases": [
+          "ndt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "agriculture",
+    "slug": "agriculture",
+    "group": "کشاورزی، دام و طیور",
+    "short": "کشاورزی",
+    "icon": "🌾",
+    "color": "bg-lime-600 text-lime-50",
+    "gradient": "from-lime-500 to-green-700",
+    "description": "کشت، دام، گلخانه و خوراک دام",
+    "aliases": [
+      "کشاورزی",
+      "دام",
+      "گلخانه"
+    ],
+    "types": [
+      {
+        "value": "honey",
+        "text": "عسل و محصولات زنبورداری",
+        "aliases": [
+          "عسل"
+        ]
+      },
+      {
+        "value": "seeds",
+        "text": "بذر، نهال و پیاز گیاهان",
+        "aliases": [
+          "بذر",
+          "نهال"
+        ]
+      },
+      {
+        "value": "fertilizers",
+        "text": "کود، سم و نهاده کشاورزی",
+        "aliases": [
+          "کود",
+          "سم"
+        ]
+      },
+      {
+        "value": "livestock",
+        "text": "دام، طیور و آبزیان زنده",
+        "aliases": [
+          "دام",
+          "طیور"
+        ]
+      },
+      {
+        "value": "animal_feed",
+        "text": "خوراک دام و طیور",
+        "aliases": [
+          "دان مرغ"
+        ]
+      },
+      {
+        "value": "irrigation",
+        "text": "آبیاری و پمپ آب کشاورزی",
+        "aliases": [
+          "آبیاری"
+        ]
+      },
+      {
+        "value": "greenhouses",
+        "text": "گلخانه و تجهیزات کشت",
+        "aliases": [
+          "گلخانه"
+        ]
+      },
+      {
+        "value": "farm_tools",
+        "text": "ادوات و ابزار کشاورزی",
+        "aliases": [
+          "ادوات"
+        ]
+      },
+      {
+        "value": "tractor_parts",
+        "text": "قطعات تراکتور و کمباین",
+        "aliases": [
+          "کمباین"
+        ]
+      },
+      {
+        "value": "veterinary",
+        "text": "دامپزشکی و دارو دام",
+        "aliases": [
+          "دامپزشکی"
+        ]
+      },
+      {
+        "value": "aquaculture",
+        "text": "شیلات و پرورش آبزیان",
+        "aliases": [
+          "شیلات"
+        ]
+      },
+      {
+        "value": "beekeeping",
+        "text": "زنبورداری و کندو",
+        "aliases": [
+          "کندو"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "services",
+    "slug": "services",
+    "group": "خدمات",
+    "short": "خدمات",
+    "icon": "🛠️",
+    "color": "bg-teal-600 text-teal-50",
+    "gradient": "from-teal-500 to-emerald-700",
+    "description": "تعمیرات، حمل، آموزش و خدمات حرفه‌ای",
+    "aliases": [
+      "خدمات",
+      "سرویس",
+      "services"
+    ],
+    "types": [
+      {
+        "value": "repairs",
+        "text": "تعمیرات لوازم خانگی و دیجیتال",
+        "aliases": [
+          "تعمیرات"
+        ]
+      },
+      {
+        "value": "auto_repair_service",
+        "text": "تعمیرگاه و خدمات خودرو",
+        "aliases": [
+          "مکانیکی"
+        ]
+      },
+      {
+        "value": "plumbing_services",
+        "text": "لوله‌کشی و تأسیسات",
+        "aliases": [
+          "لوله کشی"
+        ]
+      },
+      {
+        "value": "electrical",
+        "text": "برق‌کاری ساختمان",
+        "aliases": [
+          "برقکار"
+        ]
+      },
+      {
+        "value": "building_services",
+        "text": "پیمانکاری و خدمات ساختمان",
+        "aliases": [
+          "پیمانکار"
+        ]
+      },
+      {
+        "value": "cleaning",
+        "text": "نظافت و قالیشویی",
+        "aliases": [
+          "نظافت"
+        ]
+      },
+      {
+        "value": "moving",
+        "text": "اسباب‌کشی و بسته‌بندی منزل",
+        "aliases": [
+          "اسباب کشی"
+        ]
+      },
+      {
+        "value": "transportation",
+        "text": "حمل‌ونقل، باربری و اتوبار",
+        "aliases": [
+          "باربری"
+        ]
+      },
+      {
+        "value": "courier",
+        "text": "پیک موتوری و ارسال کالا",
+        "aliases": [
+          "پیک"
+        ]
+      },
+      {
+        "value": "painting",
+        "text": "نقاشی ساختمان",
+        "aliases": [
+          "نقاش"
+        ]
+      },
+      {
+        "value": "carpentry",
+        "text": "نجاری و کابینت‌سازی",
+        "aliases": [
+          "کابینت"
+        ]
+      },
+      {
+        "value": "welding",
+        "text": "جوشکاری و آهنگری",
+        "aliases": [
+          "جوشکاری"
+        ]
+      },
+      {
+        "value": "beauty_services",
+        "text": "آرایشگاه و خدمات زیبایی",
+        "aliases": [
+          "آرایشگاه"
+        ]
+      },
+      {
+        "value": "digital_services",
+        "text": "طراحی سایت، برنامه و IT",
+        "aliases": [
+          "برنامه نویسی"
+        ]
+      },
+      {
+        "value": "it_support",
+        "text": "پشتیبانی شبکه و کامپیوتر",
+        "aliases": [
+          "شبکه"
+        ]
+      },
+      {
+        "value": "advertising",
+        "text": "تبلیغات، چاپ و بازاریابی",
+        "aliases": [
+          "چاپ"
+        ]
+      },
+      {
+        "value": "legal",
+        "text": "خدمات حقوقی و وکالت",
+        "aliases": [
+          "وکیل"
+        ]
+      },
+      {
+        "value": "finance",
+        "text": "حسابداری، مالی و بیمه",
+        "aliases": [
+          "حسابداری",
+          "بیمه"
+        ]
+      },
+      {
+        "value": "medical",
+        "text": "خدمات پزشکی، پرستاری و درمانی",
+        "aliases": [
+          "پرستاری"
+        ]
+      },
+      {
+        "value": "events",
+        "text": "تشریفات، عکاسی و مجالس",
+        "aliases": [
+          "تشریفات"
+        ]
+      },
+      {
+        "value": "catering",
+        "text": "کترینگ و غذای آماده سازمانی",
+        "aliases": [
+          "کترینگ"
+        ]
+      },
+      {
+        "value": "tourism",
+        "text": "تور، گردشگری و مهاجرت",
+        "aliases": [
+          "تور"
+        ]
+      },
+      {
+        "value": "education",
+        "text": "آموزش و تدریس خصوصی",
+        "aliases": [
+          "تدریس"
+        ]
+      },
+      {
+        "value": "tutoring",
+        "text": "کلاس کنکور و مهارت",
+        "aliases": [
+          "کنکور"
+        ]
+      },
+      {
+        "value": "translation",
+        "text": "ترجمه و دارالترجمه",
+        "aliases": [
+          "ترجمه"
+        ]
+      },
+      {
+        "value": "security",
+        "text": "حفاظت، نگهبانی و دوربین",
+        "aliases": [
+          "نگهبانی"
+        ]
+      },
+      {
+        "value": "consulting",
+        "text": "مشاوره کسب‌وکار",
+        "aliases": [
+          "مشاوره"
+        ]
+      },
+      {
+        "value": "home_services",
+        "text": "خدمات منزل و تعمیرات جزئی",
+        "aliases": [
+          "خدمات منزل"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "jobs",
+    "slug": "jobs",
+    "group": "استخدام و کاریابی",
+    "short": "استخدام",
+    "icon": "💼",
+    "color": "bg-indigo-600 text-indigo-50",
+    "gradient": "from-indigo-500 to-violet-700",
+    "description": "فرصت شغلی و همکاری",
+    "aliases": [
+      "استخدام",
+      "کاریابی",
+      "شغل",
+      "jobs"
+    ],
+    "types": [
+      {
+        "value": "job_full_time",
+        "text": "تمام‌وقت",
+        "aliases": [
+          "استخدام تمام وقت"
+        ]
+      },
+      {
+        "value": "job_part_time",
+        "text": "پاره‌وقت و شیفتی",
+        "aliases": [
+          "پاره وقت"
+        ]
+      },
+      {
+        "value": "job_remote",
+        "text": "دورکاری",
+        "aliases": [
+          "دورکار"
+        ]
+      },
+      {
+        "value": "job_internship",
+        "text": "کارآموزی",
+        "aliases": [
+          "کارآموز"
+        ]
+      },
+      {
+        "value": "job_freelance",
+        "text": "پروژه‌ای و فریلنس",
+        "aliases": [
+          "فریلنس"
+        ]
+      },
+      {
+        "value": "job_management",
+        "text": "مدیریت و اداری",
+        "aliases": [
+          "مدیر"
+        ]
+      },
+      {
+        "value": "job_sales",
+        "text": "فروش و بازاریابی",
+        "aliases": [
+          "ویزیتور"
+        ]
+      },
+      {
+        "value": "job_engineering",
+        "text": "مهندسی و فنی",
+        "aliases": [
+          "مهندس"
+        ]
+      },
+      {
+        "value": "job_it",
+        "text": "برنامه نویسی و IT",
+        "aliases": [
+          "برنامه نویس"
+        ]
+      },
+      {
+        "value": "job_medical",
+        "text": "درمان و سلامت",
+        "aliases": [
+          "پرستار"
+        ]
+      },
+      {
+        "value": "job_education",
+        "text": "آموزش و مربیگری",
+        "aliases": [
+          "معلم"
+        ]
+      },
+      {
+        "value": "job_hospitality",
+        "text": "رستوران، هتل و خدمات",
+        "aliases": [
+          "گارسون"
+        ]
+      },
+      {
+        "value": "job_labor",
+        "text": "کارگری و ساده",
+        "aliases": [
+          "کارگر"
+        ]
+      },
+      {
+        "value": "job_driver",
+        "text": "راننده و پیک",
+        "aliases": [
+          "راننده"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "leisure_culture",
+    "slug": "culture",
+    "group": "سرگرمی، ورزش و فرهنگ",
+    "short": "سرگرمی",
+    "icon": "🎨",
+    "color": "bg-violet-500 text-violet-50",
+    "gradient": "from-violet-400 to-purple-600",
+    "description": "کتاب، ورزش، موسیقی و هنر",
+    "aliases": [
+      "فرهنگ",
+      "ورزش",
+      "کتاب",
+      "هنر"
+    ],
+    "types": [
+      {
+        "value": "books",
+        "text": "کتاب، مجله و نشریات",
+        "aliases": [
+          "کتاب"
+        ]
+      },
+      {
+        "value": "musical_instruments",
+        "text": "ساز و تجهیزات موسیقی",
+        "aliases": [
+          "ساز"
+        ]
+      },
+      {
+        "value": "sports_equipment",
+        "text": "لوازم ورزشی و بدنسازی",
+        "aliases": [
+          "ورزشی",
+          "sports"
+        ]
+      },
+      {
+        "value": "fitness_home",
+        "text": "تردمیل و ورزش خانگی",
+        "aliases": [
+          "تردمیل"
+        ]
+      },
+      {
+        "value": "camping",
+        "text": "کوهنوردی، سفر و کمپینگ",
+        "aliases": [
+          "کمپ"
+        ]
+      },
+      {
+        "value": "traditional_crafts",
+        "text": "صنایع دستی",
+        "aliases": [
+          "صنایع دستی"
+        ]
+      },
+      {
+        "value": "calligraphy",
+        "text": "خطاطی و تابلو هنری",
+        "aliases": [
+          "خطاطی"
+        ]
+      },
+      {
+        "value": "pottery",
+        "text": "سفال و سرامیک هنری",
+        "aliases": [
+          "سفال"
+        ]
+      },
+      {
+        "value": "collectibles",
+        "text": "عتیقه و کلکسیونی",
+        "aliases": [
+          "عتیقه"
+        ]
+      },
+      {
+        "value": "art_supplies",
+        "text": "لوازم نقاشی و هنری",
+        "aliases": [
+          "رنگ روغن"
+        ]
+      },
+      {
+        "value": "music_lessons",
+        "text": "آموزش موسیقی و هنر",
+        "aliases": [
+          "آموزش موسیقی"
+        ]
+      },
+      {
+        "value": "tickets",
+        "text": "بلیط کنسرت، ورزش و رویداد",
+        "aliases": [
+          "بلیط"
+        ]
+      },
+      {
+        "value": "hobbies",
+        "text": "سرگرمی و مدل‌سازی",
+        "aliases": [
+          "ماکت"
+        ]
+      },
+      {
+        "value": "board_games",
+        "text": "بازی فکری و کارتی",
+        "aliases": [
+          "مونوپولی"
+        ]
+      },
+      {
+        "value": "movies_music",
+        "text": "فیلم، سریال و موسیقی فیزیکی",
+        "aliases": [
+          "دی وی دی"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "pets_animals",
+    "slug": "pets",
+    "group": "حیوانات خانگی",
+    "short": "پت",
+    "icon": "🐾",
+    "color": "bg-yellow-600 text-yellow-50",
+    "gradient": "from-yellow-400 to-amber-700",
+    "description": "پت، خوراک و خدمات حیوانات",
+    "aliases": [
+      "حیوانات",
+      "پت",
+      "pets"
+    ],
+    "types": [
+      {
+        "value": "pet_supplies",
+        "text": "خوراک و لوازم حیوانات خانگی",
+        "aliases": [
+          "پت شاپ"
+        ]
+      },
+      {
+        "value": "dogs_cats",
+        "text": "سگ و گربه",
+        "aliases": [
+          "سگ",
+          "گربه"
+        ]
+      },
+      {
+        "value": "birds",
+        "text": "پرنده و لوازم پرندگان",
+        "aliases": [
+          "قناری"
+        ]
+      },
+      {
+        "value": "aquarium",
+        "text": "آکواریوم و ماهی زینتی",
+        "aliases": [
+          "آکواریوم"
+        ]
+      },
+      {
+        "value": "livestock_pets",
+        "text": "سایر حیوانات و اگزوتیک",
+        "aliases": [
+          "همستر"
+        ]
+      },
+      {
+        "value": "pet_services",
+        "text": "نگهداری، اصلاح و دامپزشک پت",
+        "aliases": [
+          "گرومینگ"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "health_medical",
+    "slug": "health",
+    "group": "سلامت، دارو و پزشکی",
+    "short": "سلامت",
+    "icon": "🩺",
+    "color": "bg-red-500 text-red-50",
+    "gradient": "from-red-400 to-rose-600",
+    "description": "دارو، تجهیزات پزشکی و توان‌بخشی",
+    "aliases": [
+      "پزشکی",
+      "دارو",
+      "داروخانه",
+      "medical"
+    ],
+    "types": [
+      {
+        "value": "pharmacy",
+        "text": "دارو و داروخانه",
+        "aliases": [
+          "دارو",
+          "داروخانه"
+        ]
+      },
+      {
+        "value": "medical_equipment",
+        "text": "تجهیزات و دستگاه پزشکی",
+        "aliases": [
+          "تجهیزات پزشکی"
+        ]
+      },
+      {
+        "value": "lab_supplies",
+        "text": "لوازم آزمایشگاهی پزشکی",
+        "aliases": [
+          "لابراتوار"
+        ]
+      },
+      {
+        "value": "dental",
+        "text": "دندان‌پزشکی",
+        "aliases": [
+          "دندان"
+        ]
+      },
+      {
+        "value": "optical",
+        "text": "بینایی‌سنجی و عدسی",
+        "aliases": [
+          "عدسی"
+        ]
+      },
+      {
+        "value": "mobility_aids",
+        "text": "ویلچر، واکر و توان‌بخشی",
+        "aliases": [
+          "ویلچر"
+        ]
+      },
+      {
+        "value": "first_aid",
+        "text": "کمک‌های اولیه و مصرفی درمان",
+        "aliases": [
+          "پانسمان"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "office_business",
+    "slug": "office",
+    "group": "اداری و تجهیزات کسب‌وکار",
+    "short": "اداری",
+    "icon": "🖥️",
+    "color": "bg-stone-600 text-stone-50",
+    "gradient": "from-stone-400 to-neutral-700",
+    "description": "دفتر، فروشگاه، رستوران و صندوق",
+    "aliases": [
+      "اداری",
+      "فروشگاهی",
+      "رستورانی"
+    ],
+    "types": [
+      {
+        "value": "stationery",
+        "text": "نوشت‌افزار و لوازم اداری",
+        "aliases": [
+          "نوشت افزار"
+        ]
+      },
+      {
+        "value": "office_furniture",
+        "text": "مبلمان اداری",
+        "aliases": [
+          "صندلی اداری"
+        ]
+      },
+      {
+        "value": "office_machines",
+        "text": "ماشین‌های اداری",
+        "aliases": [
+          "فتوکپی"
+        ]
+      },
+      {
+        "value": "shop_equipment",
+        "text": "تجهیزات فروشگاهی و قفسه",
+        "aliases": [
+          "قفسه فروشگاه"
+        ]
+      },
+      {
+        "value": "restaurant_equipment",
+        "text": "تجهیزات رستوران و کافی‌شاپ",
+        "aliases": [
+          "صنعتی آشپزخانه"
+        ]
+      },
+      {
+        "value": "pos_systems",
+        "text": "صندوق فروشگاهی و بارکد",
+        "aliases": [
+          "صندوق"
+        ]
+      },
+      {
+        "value": "cctv",
+        "text": "دوربین مداربسته و دزدگیر اماکن",
+        "aliases": [
+          "مداربسته"
+        ]
+      },
+      {
+        "value": "packaging_supplies",
+        "text": "کارتن، نایلون و بسته‌بندی",
+        "aliases": [
+          "کارتن"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wholesale_trade",
+    "slug": "wholesale",
+    "group": "عمده، بازرگانی و واردات",
+    "short": "عمده",
+    "icon": "📦",
+    "color": "bg-cyan-700 text-cyan-50",
+    "gradient": "from-cyan-600 to-slate-700",
+    "description": "فروش عمده و تجارت",
+    "aliases": [
+      "عمده",
+      "بازرگانی",
+      "واردات",
+      "wholesale"
+    ],
+    "types": [
+      {
+        "value": "commerce_general",
+        "text": "بازرگانی عمومی",
+        "aliases": [
+          "بازرگانی"
+        ]
+      },
+      {
+        "value": "import_export",
+        "text": "واردات و صادرات",
+        "aliases": [
+          "واردات"
+        ]
+      },
+      {
+        "value": "wholesale_food",
+        "text": "عمده مواد غذایی",
+        "aliases": [
+          "بنکداری"
+        ]
+      },
+      {
+        "value": "wholesale_fashion",
+        "text": "عمده پوشاک و مد",
+        "aliases": [
+          "عمده پوشاک"
+        ]
+      },
+      {
+        "value": "wholesale_construction",
+        "text": "عمده مصالح و آهن",
+        "aliases": [
+          "عمده آهن"
+        ]
+      },
+      {
+        "value": "raw_materials_trade",
+        "text": "مواد اولیه و کالای واسطه",
+        "aliases": [
+          "مواد اولیه"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "others",
+    "slug": "others",
+    "group": "سایر نیازمندی‌ها",
+    "short": "سایر",
+    "icon": "🧩",
+    "color": "bg-gray-500 text-gray-50",
+    "gradient": "from-gray-400 to-slate-600",
+    "description": "ابزار، دست‌دوم، اجاره و متفرقه",
+    "aliases": [
+      "سایر",
+      "متفرقه",
+      "other"
+    ],
+    "types": [
+      {
+        "value": "tools",
+        "text": "ابزارآلات دستی و برقی",
+        "aliases": [
+          "ابزار",
+          "دریل"
+        ]
+      },
+      {
+        "value": "used",
+        "text": "کالاهای دست‌دوم متفرقه",
+        "aliases": [
+          "دست دوم"
+        ]
+      },
+      {
+        "value": "recycling",
+        "text": "ضایعات و مواد بازیافتی",
+        "aliases": [
+          "ضایعات"
+        ]
+      },
+      {
+        "value": "rental",
+        "text": "اجاره تجهیزات و ابزار",
+        "aliases": [
+          "اجاره ابزار"
+        ]
+      },
+      {
+        "value": "auctions",
+        "text": "حراج و مزایده",
+        "aliases": [
+          "مزایده"
+        ]
+      },
+      {
+        "value": "charity",
+        "text": "امور خیریه و اهدایی",
+        "aliases": [
+          "خیریه"
+        ]
+      },
+      {
+        "value": "lost_found",
+        "text": "گم و پیدا",
+        "aliases": [
+          "گمشده"
+        ]
+      },
+      {
+        "value": "exchange",
+        "text": "معاوضه",
+        "aliases": [
+          "تهاتر"
+        ]
+      },
+      {
+        "value": "other",
+        "text": "موارد دیگر",
+        "aliases": [
+          "general",
+          "سایر موارد"
+        ]
+      }
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 import os
 import re
 import sqlite3
@@ -7,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from flask import current_app, has_app_context, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
+from .data_catalog import CATEGORIES, CATEGORY_LABELS
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 INSTANCE_DIR = BASE_DIR / "instance"
@@ -40,14 +42,8 @@ DATABASE_PATH = _resolve_database_path()
 UPLOAD_FOLDER = _resolve_upload_folder()
 MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
-CATEGORIES = [
-    {"id": "home", "name": "خانه و زندگی", "icon": "⌂"},
-    {"id": "digital", "name": "دیجیتال", "icon": "▣"},
-    {"id": "fashion", "name": "پوشاک", "icon": "✦"},
-    {"id": "vehicle", "name": "خودرو", "icon": "↗"},
-    {"id": "services", "name": "خدمات", "icon": "⚒"},
-    {"id": "other", "name": "سایر", "icon": "＋"},
-]
+# Category catalog is loaded from the versioned taxonomy in kidareh/data.
+
 
 DEMO_LISTINGS = [
     ("گوشی سامسونگ تمیز و سالم", "digital", "تهران", 12800000, "گوشی سالم با حافظه مناسب؛ امکان بررسی حضوری.", "📱", 1),
@@ -342,6 +338,7 @@ def initialize_database() -> None:
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
     item["featured"] = bool(item["featured"])
+    item["category_name"] = CATEGORY_LABELS.get(item.get("category"), item.get("category", ""))
     item.pop("password_hash", None)
     if not include_contact:
         item.pop("seller_phone", None)

@@ -107,7 +107,7 @@ def create_store():
     in_person = 1 if payload.get("in_person", True) else 0
     if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
         return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
-    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 60:
+    if not isinstance(city, str) or not city.strip() or len(city.strip()) > 100:
         return jsonify({"error": "invalid_store_city", "message": "شهر را وارد کنید."}), 400
     if not isinstance(description, str) or len(description.strip()) > 500:
         return jsonify({"error": "invalid_store_description"}), 400
