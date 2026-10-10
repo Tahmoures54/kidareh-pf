@@ -146,12 +146,12 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     assert any(item["name"] == "تهران" for item in searched.get_json()["items"])
     assert all(item["type"] == "city" for item in searched.get_json()["items"])
 
-    # The default location lookup must never mix in villages or unrelated rural records.
-    default_search = client.get("/api/locations?q=کارخانه").get_json()["items"]
-    assert default_search == []
-    assert all(item["type"] == "city" for item in default_search)
-    village_search = client.get("/api/locations?kind=village&q=تهران").get_json()["items"]
-    assert all(item["type"] == "village" for item in village_search)
+    # Villages are intentionally excluded; practical urban areas and centers remain searchable.
+    assert client.get("/api/locations?kind=village&q=تهران").get_json()["items"] == []
+    zones = client.get("/api/locations?q=اراک%201").get_json()["items"]
+    assert any(item["type"] == "urban_zone" for item in zones)
+    points = client.get("/api/locations?kind=point&q=اراک").get_json()["items"]
+    assert any(item["type"] == "important_point" and item.get("latitude") for item in points)
 
     html = client.get("/").get_data(as_text=True)
     assert 'id="marketCityOptions" role="listbox"' in html
