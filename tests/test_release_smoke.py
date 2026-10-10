@@ -117,3 +117,38 @@ def test_service_worker_is_available_at_root_scope(client):
     assert response.status_code == 200
     assert response.headers.get("Service-Worker-Allowed") == "/"
     assert "kidareh-shell-v3" in response.get_data(as_text=True)
+
+
+def test_profile_page_has_editable_profile_controls(client):
+    response = client.get("/account")
+    assert response.status_code == 200
+    assert b"profileEditForm" in response.data
+    assert b"profileName" in response.data
+    assert b"messages" in response.data
+
+
+def test_profile_update_requires_authentication(client):
+    response = client.post("/api/auth/profile", json={"name": "New Name"})
+    assert response.status_code == 401
+
+
+def test_profile_update_changes_name_for_authenticated_user(client, app):
+    from werkzeug.security import generate_password_hash
+    with app.app_context():
+        with __import__("kidareh.core", fromlist=["get_connection"]).get_connection() as connection:
+            cursor = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("Original Name", "09123456789", generate_password_hash("not-used"), "buyer"),
+            )
+            user_id = cursor.lastrowid
+    client.post("/api/auth/challenge")
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+        session["csrf_token"] = "test-csrf"
+    response = client.post(
+        "/api/auth/profile",
+        json={"name": "Updated Name"},
+        headers={"X-CSRF-Token": "test-csrf"},
+    )
+    assert response.status_code == 200
+    assert response.json["user"]["name"] == "Updated Name"
