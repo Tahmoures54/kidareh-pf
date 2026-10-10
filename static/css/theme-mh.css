@@ -1295,3 +1295,30 @@ body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
 @media (prefers-reduced-motion: reduce) {
   .mobile-bottom-nav, .mobile-nav-item { transition: none !important; }
 }
+
+
+/* Compact city selector below the brand; location search stays with the search controls. */
+.site-header { align-items: center; }
+.brand-location-stack { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+.brand-location-stack .brand { flex: 0 0 auto; }
+.header-city-picker { width: 220px; min-width: 0; max-width: 100%; min-height: 34px; padding: 3px 6px 3px 4px; gap: 6px; border-radius: 9px; }
+.header-city-picker .market-city-picker-label { font-size: 10px; }
+.header-city-picker input { min-width: 40px; font-size: 11px; }
+.header-city-picker input::placeholder { font-size: 10px; }
+.header-city-picker .market-city-picker-toggle { width: 23px; height: 23px; flex-basis: 23px; }
+.header-city-status { color: #64748B; font-size: 9px; line-height: 1.2; }
+.nearby-search-button { min-height: 42px; white-space: nowrap; }
+.listings-search .nearby-search-button { justify-self: stretch; }
+@media (max-width: 900px) {
+  .site-header { flex-wrap: wrap; align-items: center; row-gap: 8px; padding-block: 9px; }
+  .brand-location-stack { flex: 1 1 100%; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+  .header-city-picker { width: min(240px, 54vw); }
+  .header-city-status { display: none; }
+  .desktop-nav { order: 3; }
+  .header-actions { order: 2; }
+}
+@media (max-width: 520px) {
+  .brand-location-stack { align-items: flex-start; }
+  .header-city-picker { width: min(210px, 54vw); }
+  .listings-search .nearby-search-button { grid-column: 1 / -1; width: 100%; }
+}
