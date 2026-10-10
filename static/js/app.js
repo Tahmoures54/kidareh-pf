@@ -303,6 +303,49 @@
     loadStores();
   });
 
+  // MaterialHub-style promo banner carousel
+  (function initPromoBanner() {
+    const slides = Array.from(document.querySelectorAll("#promoSlides .promo-slide"));
+    const dots = Array.from(document.querySelectorAll("#promoDots .promo-dot"));
+    if (slides.length < 2) return;
+    let index = 0;
+    let timer = null;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function goTo(next) {
+      const prev = index;
+      index = ((next % slides.length) + slides.length) % slides.length;
+      slides.forEach((el, i) => {
+        el.classList.toggle("active", i === index);
+        el.classList.toggle("exit", i === prev && prev !== index);
+      });
+      dots.forEach((dot, i) => {
+        const on = i === index;
+        dot.classList.toggle("active", on);
+        dot.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+    function start() {
+      if (reduceMotion) return;
+      stop();
+      timer = window.setInterval(() => goTo(index + 1), 4200);
+    }
+    function stop() {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+    }
+    dots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        goTo(Number(dot.dataset.slide) || 0);
+        start();
+      });
+    });
+    const visual = document.querySelector(".hero-visual");
+    visual?.addEventListener("mouseenter", stop);
+    visual?.addEventListener("mouseleave", start);
+    start();
+  })();
+
   loadListings();
   loadStores();
 })();
