@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, Response, render_template, request, session, url_for
+from xml.sax.saxutils import escape as xml_escape
 from urllib.parse import urljoin
 import uuid
 from ..core import CATEGORIES, get_connection
@@ -43,18 +44,36 @@ def stores_page():
 @bp.get("/store/<int:store_id>")
 def store_page(store_id: int):
     with get_connection() as connection:
-        store = connection.execute("SELECT name, city, description FROM stores WHERE id = ?", (store_id,)).fetchone()
+        store = connection.execute(
+            "SELECT name, city, description, address FROM stores WHERE id = ?", (store_id,)
+        ).fetchone()
     meta_title = f"{store['name']} | ویترین کی‌داره" if store else "ویترین فروشگاه | کی‌داره"
     meta_description = (
         f"ویترین {store['name']} در {store['city']}؛ {store['description']}".strip("؛ ")
         if store
         else "کالاهای فروشگاه‌ها را در کی‌داره ببینید."
     )
+    structured_data = None
+    if store:
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": store["name"],
+            "description": store["description"] or meta_description,
+            "url": request.url_root.rstrip("/") + request.path,
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": store["city"],
+                "streetAddress": store["address"] or "",
+                "addressCountry": "IR",
+            },
+        }
     return render_marketplace_page(
         "pages/stores/detail.html",
         store_id=store_id,
         meta_title=meta_title,
         meta_description=meta_description,
+        structured_data=structured_data,
     )
 
 
@@ -62,7 +81,7 @@ def store_page(store_id: int):
 def product_page(product_id: int):
     with get_connection() as connection:
         product = connection.execute(
-            "SELECT title, description, city, image_path FROM listings WHERE id = ?", (product_id,)
+            "SELECT title, description, city, image_path, price FROM listings WHERE id = ?", (product_id,)
         ).fetchone()
     meta_title = f"{product['title']} | کی‌داره" if product else "جزئیات کالا | کی‌داره"
     meta_description = (
@@ -71,6 +90,25 @@ def product_page(product_id: int):
         else "کالاهای متنوع را در کی‌داره ببینید."
     )
     meta_image = urljoin(request.url_root, product["image_path"]) if product and product["image_path"] else None
+    structured_data = None
+    if product:
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product["title"],
+            "description": product["description"] or meta_description,
+            "url": request.url_root.rstrip("/") + request.path,
+            "offers": {
+                "@type": "Offer",
+                "price": int(product["price"] or 0),
+                "priceCurrency": "IRR",
+                "availability": "https://schema.org/InStock",
+                "areaServed": product["city"],
+                "itemCondition": "https://schema.org/UsedCondition",
+            },
+        }
+        if meta_image:
+            structured_data["image"] = meta_image
     return render_marketplace_page(
         "pages/products/detail.html",
         product_id=product_id,
@@ -78,7 +116,47 @@ def product_page(product_id: int):
         meta_description=meta_description,
         meta_type="product",
         meta_image=meta_image,
+        structured_data=structured_data,
     )
+
+
+@bp.get("/robots.txt")
+def robots_txt():
+    base = request.url_root.rstrip("/")
+    body = "\n".join([
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /api/",
+        "Disallow: /account",
+        "Disallow: /seller",
+        "Disallow: /admin",
+        "Disallow: /messages",
+        "Disallow: /support",
+        "Disallow: /monetization",
+        f"Sitemap: {base}/sitemap.xml",
+        "",
+    ])
+    return Response(body, mimetype="text/plain")
+
+
+@bp.get("/sitemap.xml")
+def sitemap_xml():
+    base = request.url_root.rstrip("/")
+    urls = [("/", None), ("/search", None), ("/stores", None), ("/help", None), ("/guide", None),
+            ("/safety", None), ("/terms", None), ("/privacy", None)]
+    with get_connection() as connection:
+        for row in connection.execute("SELECT id, created_at FROM stores ORDER BY id DESC LIMIT 5000"):
+            urls.append((f"/store/{row['id']}", row["created_at"]))
+        for row in connection.execute("SELECT id, created_at FROM listings ORDER BY id DESC LIMIT 5000"):
+            urls.append((f"/product/{row['id']}", row["created_at"]))
+    entries = []
+    for path, lastmod in urls:
+        lastmod_xml = f"<lastmod>{xml_escape(str(lastmod)[:10])}</lastmod>" if lastmod else ""
+        entries.append(f"  <url><loc>{xml_escape(base + path)}</loc>{lastmod_xml}</url>")
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           + "\n".join(entries) + "\n</urlset>\n")
+    return Response(xml, mimetype="application/xml")
 
 
 @bp.get("/seller")
