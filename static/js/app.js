@@ -187,6 +187,7 @@
     tile.addEventListener("click", () => {
       const cat = tile.dataset.category;
       currentFilter = cat || "all";
+      document.querySelectorAll(".category-tile").forEach((c) => c.classList.toggle("active", c === tile));
       document.querySelectorAll(".filter-chip").forEach((c) => {
         c.classList.toggle("selected", (c.dataset.filter || "") === currentFilter || (currentFilter === "all" && c.dataset.filter === "all"));
       });
@@ -199,6 +200,7 @@
     if (searchInput) searchInput.value = "";
     if (citySelect) citySelect.value = "";
     currentFilter = "all";
+    document.querySelectorAll(".category-tile").forEach((c) => c.classList.remove("active"));
     document.querySelectorAll(".filter-chip").forEach((c) => c.classList.toggle("selected", c.dataset.filter === "all"));
     loadListings();
   });
