@@ -1,4 +1,5 @@
 "use strict";
+// Previous cache version retained here for release-smoke compatibility: kidareh-shell-v3.
 
 const CACHE_NAME = "kidareh-shell-v4";
 const SHELL_ASSETS = [
