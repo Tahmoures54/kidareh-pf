@@ -37,7 +37,12 @@
   <datalist id="iranCityOptions"></datalist>
   <div class="market-location-bar" aria-label="شهر بازار فعال">
     <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">تهران</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
-    <label class="market-city-picker"><span class="market-city-picker-label">شهر بازار</span><input id="citySelect" list="iranCityOptions" aria-label="انتخاب شهر یا روستا" value="تهران" autocomplete="off" placeholder="نام شهر یا روستا"></label>
+    <div class="market-city-picker" id="marketCityCombobox">
+      <label class="market-city-picker-label" for="citySelect">شهر بازار</label>
+      <input id="citySelect" aria-label="انتخاب شهر یا روستا" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="marketCityOptions" value="تهران" autocomplete="off" placeholder="جست‌وجوی شهر یا روستا">
+      <button class="market-city-picker-toggle" id="toggleMarketCityPicker" type="button" aria-label="نمایش فهرست شهرها">⌄</button>
+      <div class="market-city-options" id="marketCityOptions" role="listbox" aria-label="شهرها و روستاهای ایران" hidden></div>
+    </div>
     <div class="market-location-actions"><button class="button button-outline market-location-action" id="findMyLocationButton" type="button">یافتن موقعیت من</button><button class="button button-outline market-location-action" id="nearbyListingsButton" type="button">پیدا کردن کالاهای اطراف من</button></div>
     <p class="market-privacy-note">شهر بازار را خودتان انتخاب می‌کنید؛ مکان‌یابی فقط با درخواست شما انجام می‌شود.</p>
   </div>

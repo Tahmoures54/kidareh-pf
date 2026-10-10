@@ -126,3 +126,26 @@ def test_market_city_title_tracks_selected_city_and_defaults_to_tehran():
     assert 'const city = citySelect?.value.trim() || "تهران"' in script
     assert 'marketListingsTitle.textContent = "بازار " + city' in script
     assert 'localStorage.getItem("kidareh.marketCity")' in script
+
+
+
+def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "location-combobox.sqlite3")
+    app_module.initialize_database()
+    client = app_module.app.test_client()
+
+    popular = client.get("/api/locations")
+    assert popular.status_code == 200
+    popular_data = popular.get_json()
+    assert "تهران" in [item["name"] for item in popular_data["items"]]
+    assert all(item["type"] == "city" for item in popular_data["items"])
+
+    searched = client.get("/api/locations?q=تهران")
+    assert searched.status_code == 200
+    assert any(item["name"] == "تهران" for item in searched.get_json()["items"])
+
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="marketCityOptions" role="listbox"' in html
+    assert 'id="toggleMarketCityPicker"' in html
+    assert 'aria-controls="marketCityOptions"' in html
+    assert 'id="citySelect" list=' not in html
