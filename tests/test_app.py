@@ -631,3 +631,64 @@ def test_password_login_is_disabled_in_favor_of_sms(monkeypatch, tmp_path):
     )
     assert response.status_code == 410
     assert response.get_json()["error"] == "sms_login_only"
+
+
+
+def test_database_path_failure_does_not_fall_back_to_temporary_database(monkeypatch, tmp_path):
+    import pytest
+    from pathlib import Path
+    import kidareh.core as core
+
+    blocked_parent = tmp_path / "blocked"
+    app_module.app.config["DATABASE_PATH"] = str(blocked_parent / "kidareh.sqlite3")
+    original_mkdir = Path.mkdir
+
+    def fail_for_configured_parent(self, *args, **kwargs):
+        if self == blocked_parent:
+            raise OSError("simulated persistent-volume permission error")
+        return original_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", fail_for_configured_parent)
+    with app_module.app.app_context():
+        with pytest.raises(OSError, match="simulated persistent-volume permission error"):
+            core.get_connection()
+
+
+def test_production_database_does_not_receive_demo_records(monkeypatch, tmp_path):
+    monkeypatch.setenv("LIARA_APP_ID", "test-liara-app")
+    monkeypatch.delenv("KIDAREH_SEED_DEMO_DATA", raising=False)
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "production.sqlite3")
+
+    app_module.initialize_database()
+
+    with app_module.get_connection() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0] == 0
+        assert connection.execute("SELECT COUNT(*) FROM stores").fetchone()[0] == 0
+
+
+def test_demo_records_can_be_explicitly_enabled_in_production(monkeypatch, tmp_path):
+    monkeypatch.setenv("LIARA_APP_ID", "test-liara-app")
+    monkeypatch.setenv("KIDAREH_SEED_DEMO_DATA", "true")
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "production-demo.sqlite3")
+
+    app_module.initialize_database()
+
+    with app_module.get_connection() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0] > 0
+        assert connection.execute("SELECT COUNT(*) FROM stores").fetchone()[0] > 0
+
+
+def test_production_requires_non_default_secret_and_secure_cookie_settings(monkeypatch):
+    import pytest
+    from kidareh import create_app
+
+    monkeypatch.setenv("LIARA_APP_ID", "test-liara-app")
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="SECRET_KEY must be set"):
+        create_app()
+
+    monkeypatch.setenv("SECRET_KEY", "test-only-strong-secret-value-for-ci")
+    production_app = create_app()
+    assert production_app.config["SESSION_COOKIE_SECURE"] is True
+    assert production_app.config["SESSION_COOKIE_HTTPONLY"] is True
+    assert production_app.config["SESSION_COOKIE_SAMESITE"] == "Lax"

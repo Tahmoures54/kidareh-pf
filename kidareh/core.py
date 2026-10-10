@@ -63,12 +63,9 @@ DEMO_LISTINGS = [
 
 def get_connection() -> sqlite3.Connection:
     database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
-    try:
-        database_path.parent.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        # Fallback to /tmp if the configured path is not writable (e.g. Vercel)
-        database_path = Path("/tmp/instance/kidareh.sqlite3")
-        database_path.parent.mkdir(parents=True, exist_ok=True)
+    # Never silently switch databases: that can make production writes appear lost.
+    # A configured path failure must be visible so the deployment can be fixed.
+    database_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(database_path, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
@@ -161,6 +158,21 @@ def _ensure_listings_fts(connection: sqlite3.Connection) -> None:
         needs_rebuild = True
     if needs_rebuild:
         connection.execute("INSERT INTO listings_fts(listings_fts) VALUES('rebuild')")
+
+
+def _should_seed_demo_data() -> bool:
+    """Seed showcase records locally by default, but require explicit opt-in in production."""
+    configured = os.environ.get("KIDAREH_SEED_DEMO_DATA")
+    is_production = bool(
+        os.environ.get("LIARA_APP_ID")
+        or os.environ.get("FLASK_ENV", "").lower() == "production"
+        or os.environ.get("ENV", "").lower() == "production"
+    )
+    if is_production:
+        return (configured or "").strip().lower() in {"1", "true", "yes"}
+    if configured is None:
+        return True
+    return configured.strip().lower() in {"1", "true", "yes"}
 
 
 def initialize_database() -> None:
@@ -291,37 +303,38 @@ def initialize_database() -> None:
                 FOREIGN KEY(listing_id) REFERENCES listings(id) ON DELETE CASCADE
             )
         """)
-        store_count = connection.execute("SELECT COUNT(*) FROM stores").fetchone()[0]
-        if store_count == 0:
-            connection.executemany(
-                "INSERT INTO stores (owner_id, name, city, description) VALUES (NULL, ?, ?, ?)",
-                [
-                    ("خانه‌چین", "تهران", "لوازم کاربردی خانه و زندگی؛ بازدید و خرید حضوری"),
-                    ("دیجیتال‌کده", "تبریز", "کالاهای دیجیتال و لوازم جانبی"),
-                    ("بازار محلی", "شیراز", "کالاهای روزمره و انتخاب‌های محلی"),
-                ],
-            )
-        count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
-        if count == 0:
-            connection.executemany(
-                """
-                INSERT INTO listings
-                    (title, category, city, price, description, emoji, featured)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                DEMO_LISTINGS,
-            )
-        connection.execute("""
-            UPDATE listings SET store_id = (
-                SELECT id FROM stores
-                WHERE stores.owner_id IS NULL
-                  AND ((listings.category = 'home' AND stores.name = 'خانه‌چین')
-                    OR (listings.category = 'digital' AND stores.name = 'دیجیتال‌کده')
-                    OR (listings.category NOT IN ('home', 'digital') AND stores.name = 'بازار محلی'))
-                LIMIT 1
-            )
-            WHERE store_id IS NULL
-        """)
+        if _should_seed_demo_data():
+            store_count = connection.execute("SELECT COUNT(*) FROM stores").fetchone()[0]
+            if store_count == 0:
+                connection.executemany(
+                    "INSERT INTO stores (owner_id, name, city, description) VALUES (NULL, ?, ?, ?)",
+                    [
+                        ("خانه‌چین", "تهران", "لوازم کاربردی خانه و زندگی؛ بازدید و خرید حضوری"),
+                        ("دیجیتال‌کده", "تبریز", "کالاهای دیجیتال و لوازم جانبی"),
+                        ("بازار محلی", "شیراز", "کالاهای روزمره و انتخاب‌های محلی"),
+                    ],
+                )
+            count = connection.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
+            if count == 0:
+                connection.executemany(
+                    """
+                    INSERT INTO listings
+                        (title, category, city, price, description, emoji, featured)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    DEMO_LISTINGS,
+                )
+            connection.execute("""
+                UPDATE listings SET store_id = (
+                    SELECT id FROM stores
+                    WHERE stores.owner_id IS NULL
+                      AND ((listings.category = 'home' AND stores.name = 'خانه‌چین')
+                        OR (listings.category = 'digital' AND stores.name = 'دیجیتال‌کده')
+                        OR (listings.category NOT IN ('home', 'digital') AND stores.name = 'بازار محلی'))
+                    LIMIT 1
+                )
+                WHERE store_id IS NULL
+            """)
         _ensure_performance_indexes(connection)
         _ensure_listings_fts(connection)
 
