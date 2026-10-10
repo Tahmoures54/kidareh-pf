@@ -29,7 +29,7 @@
       <a href="/seller">ویترین من</a>
     </nav>
     <div class="header-actions">
-      <a class="button button-quiet" href="/login">ورود</a><a class="button button-quiet" href="/register">ثبت‌نام</a><a class="button button-quiet" href="/account">حساب من</a>
+      <a class="button button-quiet" id="headerLoginLink" href="/login">ورود</a><a class="button button-quiet" id="headerRegisterLink" href="/register">ثبت‌نام</a><a class="button button-quiet" id="headerAccountLink" href="/account" hidden>حساب من</a><button class="button button-quiet" id="headerLogoutButton" type="button" hidden>خروج از حساب</button>
       <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> دیدن ویترین‌ها</a><button class="button button-quiet" id="installAppButton" type="button" hidden>نصب اپ</button>
     </div>
   </header>
@@ -188,6 +188,7 @@
     <span class="footer-note">نسخهٔ نمایشی اولیه · نمونه‌های نمایشی</span>
   </footer>
 
+  <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </body>
