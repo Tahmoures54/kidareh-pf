@@ -1,6 +1,6 @@
 import uuid
 
-import app as app_module
+import main as app_module
 
 
 def test_dedicated_marketplace_pages_render(monkeypatch, tmp_path):

@@ -1,4 +1,4 @@
-import app as app_module
+import main as app_module
 
 
 def setup_test_database(monkeypatch, tmp_path):

@@ -1,5 +1,5 @@
 """Tests for FTS-backed search and keyset pagination on /api/listings."""
-import app as app_module
+import main as app_module
 
 
 def setup_test_database(monkeypatch, tmp_path):

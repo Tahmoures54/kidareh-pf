@@ -161,7 +161,7 @@ pip install -r requirements.txt
 ### ۴. اجرای برنامه
 
 ```bash
-python app.py
+python main.py
 ```
 
 سپس در مرورگر:
@@ -192,14 +192,14 @@ python app.py
 ```bash
 export SECRET_KEY="یک-کلید-تصادفی-طولانی-و-منحصر-به-فرد"
 export DATABASE_PATH="/مسیر/پایدار/kidareh.sqlite3"
-python app.py
+python main.py
 ```
 
 ویندوز PowerShell:
 
 ```powershell
 $env:SECRET_KEY = "یک-کلید-تصادفی-طولانی-و-منحصر-به-فرد"
-python app.py
+python main.py
 ```
 
 **امنیت:** کلیدهای واقعی و `SECRET_KEY` را در کد یا مخزن عمومی قرار نده.
@@ -210,7 +210,7 @@ python app.py
 
 ```text
 kidareh-pf/
-├── app.py                         # نقطه ورود WSGI
+├── main.py                        # نقطه ورود WSGI
 ├── kidareh/
 │   ├── __init__.py                # Application factory
 │   ├── core.py                    # دیتابیس و توابع مشترک
@@ -293,7 +293,7 @@ GitHub Actions این بررسی‌ها را روی `main` اجرا می‌کن�
 ## 🚢 استقرار و نگهداری
 
 ```bash
-gunicorn app:app
+gunicorn main:app
 ```
 
 در production:

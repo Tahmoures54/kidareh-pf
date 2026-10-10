@@ -1,4 +1,4 @@
-import app as app_module
+import main as app_module
 
 
 def setup_client(monkeypatch, tmp_path, phone="09120000000", role="seller"):
