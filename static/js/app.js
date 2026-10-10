@@ -138,12 +138,12 @@
       }
     } catch (err) {
       if (grid && !opts.append) {
-        grid.innerHTML = '<div class="loading-card listing-load-error"><p>بارگذاری آگهی‌ها ممکن نشد. اتصال اینترنت را بررسی کنید.</p><button class="button button-outline" id="retryListings" type="button">تلاش دوباره</button></div>';
+        grid.innerHTML = '<div class="loading-card listing-load-error"><p>بارگذاری کالاها ممکن نشد. اتصال اینترنت را بررسی کنید.</p><button class="button button-outline" id="retryListings" type="button">تلاش دوباره</button></div>';
         grid.querySelector("#retryListings")?.addEventListener("click", () => loadListings());
         if (empty) empty.hidden = true;
         if (count) count.textContent = "خطا در دریافت کالاها";
       }
-      showToast("بارگذاری آگهی‌ها ممکن نشد.", "error");
+      showToast("بارگذاری کالاها ممکن نشد.", "error");
     }
   }
 
