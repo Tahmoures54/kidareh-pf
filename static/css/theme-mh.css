@@ -1186,3 +1186,112 @@ input:focus, select:focus, textarea:focus,
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Global bottom navigation and readable footer links: consistent on every viewport. */
+.mobile-bottom-nav {
+  position: fixed !important;
+  z-index: 1000 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 8px max(12px, calc((100vw - 900px) / 2)) calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  border: 0 !important;
+  border-top: 1px solid #CBD5E1 !important;
+  border-radius: 0 !important;
+  background: rgba(255,255,255,.98) !important;
+  box-shadow: 0 -5px 22px rgba(15,23,42,.10) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.mobile-bottom-nav .mobile-nav-item {
+  min-width: 0 !important;
+  min-height: 52px !important;
+  padding: 5px 8px !important;
+  gap: 5px !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: #475569 !important;
+  text-decoration: none !important;
+}
+.mobile-bottom-nav .mobile-nav-item > span {
+  display: grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  background: #F1F5F9 !important;
+  font-size: 1.15rem !important;
+  line-height: 1 !important;
+}
+.mobile-bottom-nav .mobile-nav-item > small {
+  max-width: 100% !important;
+  font-size: .72rem !important;
+  line-height: 1.4 !important;
+  white-space: nowrap !important;
+}
+.mobile-bottom-nav .mobile-nav-item[aria-current="page"],
+.mobile-bottom-nav .mobile-nav-item:hover,
+.mobile-bottom-nav .mobile-nav-item:focus-visible,
+.mobile-bottom-nav .mobile-nav-more[open] > summary {
+  background: #ECFEFF !important;
+  border-color: #A5F3FC !important;
+  color: #0E7490 !important;
+}
+.mobile-bottom-nav .mobile-nav-item[aria-current="page"] > span,
+.mobile-bottom-nav .mobile-nav-more[open] > summary > span {
+  background: #CFFAFE !important;
+}
+.mobile-nav-more { min-width: 0 !important; }
+.mobile-nav-more > summary { width: 100%; }
+.mobile-nav-menu {
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  left: auto !important;
+  width: min(290px, calc(100vw - 24px)) !important;
+  max-height: min(65vh, 440px);
+  overflow-y: auto;
+}
+body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important; }
+.site-footer { margin-bottom: 0 !important; padding-bottom: 24px !important; }
+.footer-links {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px 22px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 18px auto !important;
+  padding: 0 18px !important;
+  box-sizing: border-box !important;
+}
+.footer-links a {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 32px !important;
+  padding: 5px 2px !important;
+  line-height: 1.8 !important;
+  white-space: nowrap !important;
+}
+@media (min-width: 761px) {
+  .mobile-bottom-nav { gap: 12px !important; padding-inline: 24px !important; }
+  .mobile-bottom-nav .mobile-nav-item { flex-direction: row !important; justify-content: center !important; gap: 9px !important; min-height: 54px !important; }
+  .mobile-bottom-nav .mobile-nav-item > span { width: 30px !important; height: 30px !important; }
+  .mobile-bottom-nav .mobile-nav-item > small { font-size: .82rem !important; }
+}
+@media (max-width: 560px) {
+  .mobile-bottom-nav { gap: 4px !important; padding-inline: 6px !important; }
+  .mobile-bottom-nav .mobile-nav-item { padding-inline: 2px !important; min-height: 50px !important; }
+  .mobile-bottom-nav .mobile-nav-item > small { font-size: .62rem !important; }
+  .footer-links { gap: 8px 14px !important; padding-inline: 12px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-bottom-nav, .mobile-nav-item { transition: none !important; }
+}
