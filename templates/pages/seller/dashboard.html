@@ -101,14 +101,14 @@
           <form id="storeCreateForm" class="stack-form" hidden>
         <div class="seller-empty-hint">فقط نام فروشگاه و شهر را وارد کن؛ بعد از ساخت ویترین می‌توانی کالاهایت را اضافه کنی.</div>
         <label>نام فروشگاه<input name="name" required maxlength="80" placeholder="مثلاً خانه‌چین"></label>
-        <label>صنف فروشگاه<select name="category"><option value="">انتخاب صنف (اختیاری)</option>{% for group in trade_groups %}<optgroup label="{{ group.group }}">{% for item in group.items %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
+        <label>صنف فروشگاه<select name="category"><option value="">انتخاب صنف (اختیاری)</option>{% for group in trade_groups %}<optgroup label="{{ group.group }}">{% for item in group["items"] %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
         <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا"></label>
         <label>درباره فروشگاه (اختیاری)<textarea name="description" rows="3" maxlength="500" placeholder="چه کالاهایی ارائه می‌کنی؟"></textarea></label>
         <button class="button button-primary" type="submit">ساخت ویترین من</button>
       </form>
       <form id="storeEditForm" class="stack-form" hidden>
         <label>نام فروشگاه<input name="name" required maxlength="80"></label>
-        <label>صنف فروشگاه<select name="category"><option value="">انتخاب صنف (اختیاری)</option>{% for group in trade_groups %}<optgroup label="{{ group.group }}">{% for item in group.items %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
+        <label>صنف فروشگاه<select name="category"><option value="">انتخاب صنف (اختیاری)</option>{% for group in trade_groups %}<optgroup label="{{ group.group }}">{% for item in group["items"] %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</optgroup>{% endfor %}</select></label>
         <label>شهر یا روستا<input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off"></label>
         <label>درباره فروشگاه<textarea name="description" rows="3" maxlength="500"></textarea></label>
         <label>نشانی حضوری<input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…"></label>
