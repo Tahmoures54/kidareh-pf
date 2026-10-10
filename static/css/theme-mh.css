@@ -1328,3 +1328,24 @@ body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
 @media (max-width: 900px) {
   .site-header { height: auto !important; min-height: 0; padding-block: 10px; }
 }
+
+
+/* Full-bleed mobile navigation: align its width with the viewport, not the content container. */
+@media (max-width: 760px) {
+  .mobile-bottom-nav {
+    position: fixed !important;
+    inset-inline: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 1000 !important;
+  }
+  body:not(.inner-page) {
+    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  }
+}
