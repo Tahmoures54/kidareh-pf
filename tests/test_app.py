@@ -780,3 +780,34 @@ def test_non_admin_cannot_access_admin_api_or_mutate_accounts(monkeypatch, tmp_p
         headers={"X-CSRF-Token": "test-token"},
         json={"status": "closed"},
     ).status_code == 403
+
+
+
+def test_full_taxonomy_trade_directory_and_iran_locations(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+
+    taxonomy = client.get("/api/categories").get_json()
+    assert len(taxonomy["items"]) == 20
+    assert sum(len(group["types"]) for group in taxonomy["items"]) == 271
+    assert len(taxonomy["subcategories"]) == 271
+
+    trades = client.get("/api/trades").get_json()["items"]
+    assert len(trades) == 11
+    assert sum(len(group["items"]) for group in trades) == 157
+
+    locations = client.get("/api/locations?q=تهران").get_json()
+    assert any(item["name"] == "تهران" and item["type"] == "city" for item in locations["items"])
+
+
+def test_listing_accepts_imported_subcategory_and_group_filter(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post("/api/listings", json={
+        "title": "خودروی آزمایشی",
+        "category": "cars",
+        "city": "تهران",
+        "price": 0,
+        "description": "آگهی تست دسته‌بندی جدید",
+    })
+    assert created.status_code == 201
+    filtered = client.get("/api/listings?category=vehicles").get_json()
+    assert any(item["title"] == "خودروی آزمایشی" for item in filtered["items"])
