@@ -5,27 +5,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from flask import Blueprint, current_app, jsonify, request
-from ..core import CATEGORIES, MAX_IMAGE_BYTES, current_user, csrf_valid, get_connection, serialize_listing
+from ..core import (
+    CATEGORIES,
+    MAX_IMAGE_BYTES,
+    current_user,
+    csrf_valid,
+    delete_uploaded_image,
+    get_connection,
+    serialize_listing,
+)
 from ..data_catalog import CATEGORY_ALLOWED_IDS, CATEGORY_GROUPS, CATEGORY_TREE, IRAN_LOCATIONS, TRADE_GROUPS
 
 bp = Blueprint("listings", __name__)
-
-
-def _delete_listing_image(image_path: str) -> None:
-    """Remove an uploaded listing image from disk if it lives under UPLOAD_FOLDER."""
-    if not image_path or not isinstance(image_path, str):
-        return
-    if not image_path.startswith("/static/uploads/"):
-        return
-    filename = image_path.rsplit("/", 1)[-1]
-    if not filename or ".." in filename or "/" in filename or "\\" in filename:
-        return
-    target = Path(current_app.config["UPLOAD_FOLDER"]) / filename
-    try:
-        if target.is_file():
-            target.unlink()
-    except OSError:
-        pass
 
 
 def _attach_active_tags(items):
@@ -457,7 +448,7 @@ def manage_listing(listing_id: int):
             updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
             return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
     if request.method == "DELETE":
-        _delete_listing_image(image_path)
+        delete_uploaded_image(image_path)
         return jsonify({"ok": True})
     return jsonify({"error": "method_not_allowed"}), 405
 

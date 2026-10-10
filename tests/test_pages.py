@@ -1,5 +1,3 @@
-import uuid
-
 import main as app_module
 
 

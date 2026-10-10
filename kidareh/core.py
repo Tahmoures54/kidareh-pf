@@ -1,14 +1,13 @@
 from __future__ import annotations
-import json
+import contextlib
+import hmac
 import os
-import re
 import sqlite3
-import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 from flask import current_app, has_app_context, request, session
-from werkzeug.security import check_password_hash, generate_password_hash
-from .data_catalog import CATEGORIES, CATEGORY_LABELS
+# CATEGORIES is re-exported: `main.py` and templates read it from this module.
+from .data_catalog import CATEGORIES, CATEGORY_LABELS  # noqa: F401
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 INSTANCE_DIR = BASE_DIR / "instance"
@@ -57,21 +56,70 @@ DEMO_LISTINGS = [
 ]
 
 
-def get_connection() -> sqlite3.Connection:
-    database_path = Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH)) if has_app_context() else DATABASE_PATH
+def _configured_database_path() -> Path:
+    """Resolve the active database path from the app config or module defaults."""
+    if has_app_context():
+        return Path(current_app.config.get("DATABASE_PATH", DATABASE_PATH))
+    return Path(DATABASE_PATH)
+
+
+@contextlib.contextmanager
+def get_connection() -> Iterator[sqlite3.Connection]:
+    """Yield a configured SQLite connection and always close it afterwards.
+
+    ``sqlite3.Connection`` used as a context manager only commits or rolls back;
+    it deliberately leaves the connection open, so the previous ``with`` style
+    leaked one open file handle per request until the garbage collector ran.
+    This generator keeps the familiar ``with get_connection() as db`` call site
+    while guaranteeing the connection is committed and closed on every exit.
+    """
+    database_path = _configured_database_path()
     # Never silently switch databases: that can make production writes appear lost.
     # A configured path failure must be visible so the deployment can be fixed.
     database_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(database_path, timeout=30)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    connection.execute("PRAGMA busy_timeout = 30000")
-    connection.execute("PRAGMA journal_mode = WAL")
-    connection.execute("PRAGMA synchronous = NORMAL")
-    connection.execute("PRAGMA temp_store = MEMORY")
-    connection.execute("PRAGMA cache_size = -65536")
-    connection.execute("PRAGMA mmap_size = 268435456")
-    return connection
+    try:
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA busy_timeout = 30000")
+        connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute("PRAGMA synchronous = NORMAL")
+        connection.execute("PRAGMA temp_store = MEMORY")
+        connection.execute("PRAGMA cache_size = -65536")
+        connection.execute("PRAGMA mmap_size = 268435456")
+        yield connection
+        connection.commit()
+    except Exception:
+        with contextlib.suppress(sqlite3.Error):
+            connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
+def delete_uploaded_image(image_path: str) -> None:
+    """Remove an uploaded image from disk if it lives under the uploads folder.
+
+    Only public ``/static/uploads/`` paths are honoured and path traversal in
+    the filename is rejected before anything is unlinked.
+    """
+    if not isinstance(image_path, str) or not image_path.startswith("/static/uploads/"):
+        return
+    filename = image_path.rsplit("/", 1)[-1]
+    if not filename or ".." in filename or "/" in filename or "\\" in filename:
+        return
+    target = Path(_configured_upload_folder()) / filename
+    try:
+        if target.is_file():
+            target.unlink()
+    except OSError:
+        pass
+
+
+def _configured_upload_folder() -> Path:
+    if has_app_context():
+        return Path(current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER))
+    return Path(UPLOAD_FOLDER)
 
 
 def _ensure_performance_indexes(connection: sqlite3.Connection) -> None:
@@ -337,12 +385,6 @@ def _initialize_schema_v1() -> None:
         _ensure_performance_indexes(connection)
         _ensure_listings_fts(connection)
 
-    # Prepare feature tables before the server starts accepting user requests.
-    # The feature initializers are idempotent and preserve existing data.
-    from .schema_init import initialize_feature_schemas
-
-    initialize_feature_schemas()
-
 
 def serialize_listing(row: sqlite3.Row, include_contact: bool = False) -> dict[str, Any]:
     item = dict(row)
@@ -370,13 +412,49 @@ def current_user():
 def csrf_valid():
     expected = session.get("csrf_token", "")
     supplied = request.headers.get("X-CSRF-Token", "")
-    return bool(expected and supplied and __import__("hmac").compare_digest(expected, supplied))
+    return bool(expected and supplied and hmac.compare_digest(expected, supplied))
 
 
 # Incremental, recoverable schema migrations. Version 1 adopts the existing
 # idempotent initializers as the baseline for both fresh and legacy databases.
 SCHEMA_VERSION = 1
 SCHEMA_MIGRATIONS = ((1, _initialize_schema_v1),)
+
+# Concurrent workers share one SQLite file, so schema work is serialized with a
+# dedicated lock database that lives beside the real database file.
+MIGRATION_LOCK_FILENAME = "kidareh-migrations.lock"
+MIGRATION_LOCK_TIMEOUT_SECONDS = 120
+
+
+@contextlib.contextmanager
+def _schema_migration_lock(database_path: Path) -> Iterator[None]:
+    """Serialize schema initialization across processes and workers.
+
+    Gunicorn boots several workers at once and every worker runs
+    ``initialize_database()`` while importing the application. Without a lock
+    they all migrate, then collide on the primary key of ``schema_migrations``
+    and one worker dies during deployment. The lock is a separate SQLite file so
+    holding it never blocks the migrations themselves, and SQLite releases it
+    automatically if a worker is killed mid-migration, so there is no stale
+    lock left behind to clean up.
+    """
+    lock_path = database_path.parent / MIGRATION_LOCK_FILENAME
+    connection = sqlite3.connect(
+        lock_path, timeout=MIGRATION_LOCK_TIMEOUT_SECONDS, isolation_level=None
+    )
+    try:
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS migration_lock (id INTEGER PRIMARY KEY CHECK (id = 1))"
+        )
+        connection.execute("INSERT OR IGNORE INTO migration_lock (id) VALUES (1)")
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            yield
+        finally:
+            with contextlib.suppress(sqlite3.Error):
+                connection.execute("ROLLBACK")
+    finally:
+        connection.close()
 
 
 def initialize_database() -> None:
@@ -386,28 +464,42 @@ def initialize_database() -> None:
     failed initialization is retried on the next startup instead of being
     marked as complete. Existing databases are safely adopted by migration 1.
     """
-    with get_connection() as connection:
-        connection.execute(
-            """CREATE TABLE IF NOT EXISTS schema_migrations (
-                version INTEGER PRIMARY KEY,
-                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )"""
-        )
-        applied = connection.execute(
-            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations"
-        ).fetchone()[0]
+    # Import lazily: the feature modules import this module at start-up time.
+    from .schema_init import initialize_feature_schemas
 
-    if applied > SCHEMA_VERSION:
-        raise RuntimeError(
-            f"Database schema version {applied} is newer than this application supports "
-            f"(maximum {SCHEMA_VERSION})."
-        )
+    database_path = _configured_database_path()
+    # Never silently switch databases: a configured path failure must be visible
+    # so the deployment can be fixed instead of losing production writes.
+    database_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for version, migration in SCHEMA_MIGRATIONS:
-        if version <= applied:
-            continue
-        migration()
+    with _schema_migration_lock(database_path):
         with get_connection() as connection:
             connection.execute(
-                "INSERT INTO schema_migrations (version) VALUES (?)", (version,)
+                """CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )"""
             )
+            applied = connection.execute(
+                "SELECT COALESCE(MAX(version), 0) FROM schema_migrations"
+            ).fetchone()[0]
+
+        if applied > SCHEMA_VERSION:
+            raise RuntimeError(
+                f"Database schema version {applied} is newer than this application supports "
+                f"(maximum {SCHEMA_VERSION})."
+            )
+
+        for version, migration in SCHEMA_MIGRATIONS:
+            if version <= applied:
+                continue
+            migration()
+            with get_connection() as connection:
+                connection.execute(
+                    "INSERT INTO schema_migrations (version) VALUES (?)", (version,)
+                )
+
+        # Feature-owned tables are refreshed on every startup rather than only
+        # inside a numbered migration, so databases that are already at the
+        # latest version still gain tables added by feature modules later on.
+        initialize_feature_schemas()

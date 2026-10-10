@@ -650,8 +650,10 @@ def test_database_path_failure_does_not_fall_back_to_temporary_database(monkeypa
 
     monkeypatch.setattr(Path, "mkdir", fail_for_configured_parent)
     with app_module.app.app_context():
+        # get_connection() is a context manager; the failure surfaces on entry.
         with pytest.raises(OSError, match="simulated persistent-volume permission error"):
-            core.get_connection()
+            with core.get_connection():
+                pass
 
 
 def test_production_database_does_not_receive_demo_records(monkeypatch, tmp_path):

@@ -5,7 +5,7 @@
   const tokenMeta = document.querySelector('meta[name="csrf-token"]');
   const toast = document.querySelector("#pageToast");
   const fmt = new Intl.NumberFormat("fa-IR");
-  const escapeHTML = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c]));
+  const escapeHTML = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
   function notify(message) {
     if (!toast) return;

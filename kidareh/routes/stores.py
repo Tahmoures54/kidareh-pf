@@ -1,4 +1,3 @@
-import re
 import sqlite3
 from datetime import datetime, timezone
 from typing import Any
@@ -34,7 +33,7 @@ def _store_payload(row):
     result = dict(row)
     result.pop("social_url", None)
     badge_until = str(result.get("badge_until") or "")
-    result["blue_tick_active"] = bool(badge_until and badge_until > __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat())
+    result["blue_tick_active"] = bool(badge_until and badge_until > datetime.now(timezone.utc).isoformat())
     return result
 
 

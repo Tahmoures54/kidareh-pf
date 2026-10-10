@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, render_template, request, session, url_for
+from flask import Blueprint, Response, render_template, request, session
 from xml.sax.saxutils import escape as xml_escape
 from urllib.parse import urljoin
 import uuid
@@ -173,7 +173,14 @@ def seller_tags_page():
 
 @bp.get("/monetization")
 def monetization_page():
-    return render_marketplace_page("pages/seller/monetization.html")
+    # Imported lazily: the monetization module owns the package catalogue.
+    from .monetization import PACKAGES, TAG_PACKAGES
+
+    return render_marketplace_page(
+        "pages/seller/monetization.html",
+        packages=PACKAGES,
+        tag_packages=TAG_PACKAGES,
+    )
 
 
 @bp.get("/account")

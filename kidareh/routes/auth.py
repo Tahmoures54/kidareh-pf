@@ -1,4 +1,4 @@
-import os
+import hashlib
 import re
 import secrets
 import sqlite3
@@ -9,11 +9,27 @@ from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..core import current_user, csrf_valid, get_connection
 from ..data_catalog import is_city_name, normalize_location_name
-from ..services.sms import SMSDeliveryError, send_otp
+from ..services.sms import send_otp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 PHONE_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+
+
+def ensure_tables() -> None:
+    """Create the shared OTP rate-limit ledger once, during start-up.
+
+    The ledger used to be created inside the request that first needed it, which
+    ran schema DDL while serving a login attempt.
+    """
+    with get_connection() as connection:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS otp_rate_limits (
+                scope TEXT NOT NULL, key_hash TEXT NOT NULL, last_sent_at REAL NOT NULL DEFAULT 0,
+                window_started_at REAL NOT NULL DEFAULT 0, request_count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(scope, key_hash)
+            )"""
+        )
 
 
 def _normalize_phone(value):
@@ -30,7 +46,6 @@ def _send_kavenegar_otp(phone, code):
 
 def _check_otp_rate_limit(phone):
     """Enforce shared SQLite rate limits across sessions and app workers."""
-    import hashlib
     now = time.time()
     ip = request.remote_addr or "unknown"
     keys = {
@@ -38,11 +53,6 @@ def _check_otp_rate_limit(phone):
         "ip": hashlib.sha256(ip.encode("utf-8")).hexdigest(),
     }
     with get_connection() as connection:
-        connection.execute("""CREATE TABLE IF NOT EXISTS otp_rate_limits (
-            scope TEXT NOT NULL, key_hash TEXT NOT NULL, last_sent_at REAL NOT NULL DEFAULT 0,
-            window_started_at REAL NOT NULL DEFAULT 0, request_count INTEGER NOT NULL DEFAULT 0,
-            PRIMARY KEY(scope, key_hash)
-        )""")
         connection.execute("BEGIN IMMEDIATE")
         rows = {}
         for scope, key_hash in keys.items():
@@ -83,7 +93,8 @@ def request_otp():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     payload = request.get_json(silent=True) or {}
     phone = _normalize_phone(payload.get("phone"))
-    register_intent = payload.get("registering") is True
+    # `registering` is accepted for API compatibility; the account itself is
+    # always created by /complete-profile after the phone is verified.
     requested_role = payload.get("role", "seller")
     if requested_role not in {"buyer", "seller"}:
         return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
@@ -125,8 +136,6 @@ def request_otp():
     session["otp_last_sent_at"] = time.time()
     session["otp_terms_accepted_at"] = datetime.now(timezone.utc).isoformat()
     session["otp_existing_user"] = exists
-    session["otp_register_intent"] = register_intent
-    session["otp_registration_role"] = requested_role if register_intent else None
     result = {"ok": True, "message": "کد تأیید ارسال شد.", "expires_in": 300}
     if current_app.testing and current_app.config.get("TESTING_OTP_CODE"):
         result["test_code"] = code
@@ -160,28 +169,14 @@ def verify_otp():
                 "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
                 (datetime.now(timezone.utc).isoformat(), accepted_at or "", user["id"]),
             )
-        elif session.get("otp_register_intent"):
-            role = session.get("otp_registration_role", "seller")
-            default_name = "فروشگاه‌دار" if role == "seller" else "خریدار"
-            try:
-                cursor = connection.execute(
-                    "INSERT INTO users (name, phone, password_hash, role, phone_verified_at, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    (default_name, phone, generate_password_hash(secrets.token_urlsafe(32)), role, datetime.now(timezone.utc).isoformat(), accepted_at or ""),
-                )
-                created_user = True
-                user = connection.execute(
-                    "SELECT id, name, phone, role, is_banned FROM users WHERE id = ?", (cursor.lastrowid,)
-                ).fetchone()
-            except sqlite3.IntegrityError:
-                user = connection.execute(
-                    "SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?", (phone,)
-                ).fetchone()
-                created_user = False
     if user:
         session.clear()
         session["user_id"] = user["id"]
         session["csrf_token"] = uuid.uuid4().hex
-        return jsonify({"existing_user": True, "new_user": bool(locals().get("created_user", False)), "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
+        return jsonify({"existing_user": True, "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
+    # An unknown phone is never auto-registered: the account is created by
+    # /complete-profile so the shopper's own name and store details are used
+    # instead of a placeholder such as "فروشگاه‌دار".
     session["verified_phone"] = phone
     session["verified_terms_accepted_at"] = accepted_at
     session.pop("otp_hash", None)

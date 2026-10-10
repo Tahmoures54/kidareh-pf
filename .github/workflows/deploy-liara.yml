@@ -34,9 +34,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
-          node --check static/js/app.js
-          node --check static/js/pages.js
-          node --check static/js/location-picker.js
+          find static -name '*.js' -print0 | xargs -0 -n1 node --check
 
       - name: Run tests
         run: python -m pytest -q

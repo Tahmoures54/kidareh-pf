@@ -156,10 +156,10 @@ def test_profile_update_changes_name_for_authenticated_user(client, app):
 
 
 @pytest.mark.parametrize(("role", "expected_name"), [
-    ("seller", "فروشگاه‌دار"),
-    ("buyer", "خریدار"),
+    ("seller", "فروشنده تازه"),
+    ("buyer", "خریدار تازه"),
 ])
-def test_new_signup_creates_account_immediately_after_otp(
+def test_new_signup_collects_profile_before_creating_account(
     app, client, monkeypatch, role, expected_name
 ):
     import re
@@ -197,20 +197,57 @@ def test_new_signup_creates_account_immediately_after_otp(
     )
     assert verified.status_code == 200
     payload = verified.get_json()
-    assert payload["existing_user"] is True
-    assert payload["new_user"] is True
-    assert payload["user"]["role"] == role
-    assert payload["user"]["name"] == expected_name
+    # An unknown phone is never auto-registered: the shopper must still finish
+    # the profile step, otherwise their own name and store details are lost.
+    assert payload["existing_user"] is False
+    assert payload["phone"] == "09123456789"
+    assert "user" not in payload
 
     with client.session_transaction() as session:
-        assert session["user_id"] == payload["user"]["id"]
-        assert "verified_phone" not in session
+        assert "user_id" not in session
+        assert session["verified_phone"] == "09123456789"
+
+    profile = {"name": expected_name, "role": role}
+    if role == "seller":
+        profile.update(
+            {
+                "store_name": "ویترین تازه",
+                "store_category": "لوازم خانه",
+                "store_city": "تهران",
+                "store_address": "تهران، خیابان نمونه",
+                "store_hours": "۹ تا ۱۸",
+                "in_person": True,
+            }
+        )
+    else:
+        profile["city"] = "تهران"
+
+    created = client.post(
+        "/api/auth/complete-profile",
+        json=profile,
+        headers={"X-CSRF-Token": "signup-test-csrf"},
+    )
+    assert created.status_code == 200, created.get_json()
+    created_payload = created.get_json()
+    assert created_payload["user"]["name"] == expected_name
+    assert created_payload["user"]["role"] == role
+
+    with client.session_transaction() as session:
+        assert session["user_id"] == created_payload["user"]["id"]
 
     if role == "seller":
         assert client.get("/seller").status_code == 200
+        assert created_payload["store"]["name"] == "ویترین تازه"
         with app.app_context():
             from kidareh.core import get_connection
             with get_connection() as connection:
                 assert connection.execute(
-                    "SELECT 1 FROM stores WHERE owner_id = ?", (payload["user"]["id"],)
+                    "SELECT 1 FROM stores WHERE owner_id = ?", (created_payload["user"]["id"],)
+                ).fetchone() is not None
+    else:
+        with app.app_context():
+            from kidareh.core import get_connection
+            with get_connection() as connection:
+                assert connection.execute(
+                    "SELECT 1 FROM stores WHERE owner_id = ?", (created_payload["user"]["id"],)
                 ).fetchone() is None

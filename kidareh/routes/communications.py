@@ -1,6 +1,6 @@
 """Buyer/seller conversations, customer support tickets, and admin overview."""
 import os
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, request
 from ..core import current_user, csrf_valid, get_connection
 
 bp = Blueprint("communications", __name__)
@@ -310,26 +310,5 @@ def admin_update_ticket(ticket_id):
         db.execute("UPDATE support_tickets SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", (status, ticket_id))
     return jsonify({"ok": True})
 
-
-@bp.get("/messages")
-def messages_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/account/messages.html", csrf_token=session["csrf_token"])
-
-
-@bp.get("/support")
-def support_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/account/support.html", csrf_token=session["csrf_token"])
-
-
-@bp.get("/admin")
-def admin_page():
-    if not session.get("csrf_token"):
-        import uuid
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/admin/dashboard.html", csrf_token=session["csrf_token"])
+# The /messages, /support and /admin pages are rendered by the pages blueprint
+# so that every marketplace page shares one renderer and CSRF handling.

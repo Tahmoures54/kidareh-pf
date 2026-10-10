@@ -4,10 +4,9 @@ import json
 import os
 import urllib.error
 import urllib.request
-import uuid
 from datetime import datetime, timedelta, timezone
 
-from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, jsonify, redirect, request, url_for
 
 from ..core import current_user, csrf_valid, get_connection
 
@@ -97,12 +96,8 @@ def zibal_request(url: str, payload: dict) -> dict:
         raise RuntimeError("پاسخ نامعتبر از درگاه زیبال دریافت شد.")
     return data
 
-@bp.get("/monetization")
-def monetization_page():
-    if not session.get("csrf_token"):
-        session["csrf_token"] = uuid.uuid4().hex
-    return render_template("pages/seller/monetization.html", csrf_token=session["csrf_token"], packages=PACKAGES)
-
+# The /monetization page itself is served by the pages blueprint so that every
+# marketplace page shares one renderer (see kidareh/routes/pages.py).
 @bp.get("/api/monetization/packages")
 def packages():
     return jsonify({"items": PACKAGES + TAG_PACKAGES, "tag_items": TAG_PACKAGES, "currency": "تومان", "payment_enabled": bool(zibal_merchant())})
@@ -204,22 +199,22 @@ def payment_callback():
     success = request.args.get("success")
     status = request.args.get("status")
     if success == "0" or status == "3":
-        return redirect(url_for("monetization.monetization_page", payment="cancelled"))
+        return redirect(url_for("pages.monetization_page", payment="cancelled"))
     if not order_id or not track_id or not track_id.isdigit():
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     with get_connection() as db:
         order = db.execute("SELECT * FROM monetization_orders WHERE id=?", (order_id,)).fetchone()
     if not order or order["status"] != "pending" or str(order["gateway_code"]) != track_id:
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     package = next((p for p in PACKAGES + TAG_PACKAGES if p["id"] == order["package_id"]), None)
     if not package:
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     try:
         result = zibal_request(ZIBAL_VERIFY_URL, {"trackId": int(track_id)})
     except RuntimeError:
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     if result.get("result") not in (100, 201):
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     # Do not grant paid features unless the gateway explicitly confirms both
     # the exact amount (Rials) and the merchant-generated order ID.
     verified_amount = result.get("amount")
@@ -230,12 +225,12 @@ def payment_callback():
         or int(verified_amount) != int(order["amount_toman"]) * 10
     ):
         current_app.logger.warning("Zibal amount missing/invalid/mismatched for monetization order %s", order_id)
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     expected_order_id = f"kidareh-{order_id}"
     verified_order_id = result.get("orderId")
     if not isinstance(verified_order_id, (str, int)) or str(verified_order_id) != expected_order_id:
         current_app.logger.warning("Zibal order ID missing/invalid/mismatched for monetization order %s", order_id)
-        return redirect(url_for("monetization.monetization_page", payment="unverified"))
+        return redirect(url_for("pages.monetization_page", payment="unverified"))
     now = datetime.now(timezone.utc)
     starts = now.isoformat()
     ends = (now + timedelta(days=package["days"])).isoformat()
@@ -246,11 +241,11 @@ def payment_callback():
             (ref_id, order_id, track_id),
         )
         if updated.rowcount != 1:
-            return redirect(url_for("monetization.monetization_page", payment="unverified"))
+            return redirect(url_for("pages.monetization_page", payment="unverified"))
         if package["id"] in TAG_LABELS:
             if not order["listing_id"]:
                 db.execute("UPDATE monetization_orders SET status='failed' WHERE id=?", (order_id,))
-                return redirect(url_for("monetization.monetization_page", payment="unverified"))
+                return redirect(url_for("pages.monetization_page", payment="unverified"))
             db.execute("UPDATE listing_tags SET status='replaced' WHERE listing_id=? AND status='active'", (order["listing_id"],))
             db.execute(
                 "INSERT INTO listing_tags (listing_id,user_id,tag_type,starts_at,ends_at,status,order_id) VALUES (?,?,?,?,?,'active',?)",
@@ -265,16 +260,20 @@ def payment_callback():
             db.execute("UPDATE stores SET badge_until=? WHERE id=?", (ends, order["store_id"]))
         if package["id"] in ("trial_boost_3d", "search_boost_7d", "search_boost_30d", "visibility_bundle_7d"):
             db.execute("UPDATE listings SET featured=1, featured_until=? WHERE store_id=?", (ends, order["store_id"]))
-    return redirect(url_for("pages.seller_tags_page", payment="success") if package["id"] in TAG_LABELS else url_for("monetization.monetization_page", payment="success"))
+    return redirect(url_for("pages.seller_tags_page", payment="success") if package["id"] in TAG_LABELS else url_for("pages.monetization_page", payment="success"))
 
 @bp.get("/api/monetization/status")
 def monetization_status():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required"}), 401
+    # ends_at is stored as an ISO-8601 string, so it must be compared with an
+    # ISO-8601 "now": SQLite's CURRENT_TIMESTAMP uses a different format and
+    # sorts incorrectly against ISO values within the same day.
+    now = datetime.now(timezone.utc).isoformat()
     with get_connection() as db:
         store = db.execute("SELECT id, badge_until FROM stores WHERE owner_id=?", (user["id"],)).fetchone()
-        promos = db.execute("SELECT package_id, ends_at FROM store_promotions WHERE user_id=? AND status='active' AND ends_at>CURRENT_TIMESTAMP ORDER BY ends_at DESC", (user["id"],)).fetchall()
+        promos = db.execute("SELECT package_id, ends_at FROM store_promotions WHERE user_id=? AND status='active' AND ends_at>? ORDER BY ends_at DESC", (user["id"], now)).fetchall()
     return jsonify({"store": dict(store) if store else None, "promotions": [dict(p) for p in promos]})
 
 

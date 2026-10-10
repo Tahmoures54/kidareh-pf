@@ -23,17 +23,9 @@ jobs:
       - name: Compile Python
         run: python -m compileall -q main.py kidareh tests
       - name: Check JavaScript syntax
+        # Every script is checked, not a hand-maintained list: seller.js shipped
+        # with a syntax error for several releases because it was not listed.
         run: |
-          node --check static/js/app.js
-          node --check static/js/pages.js
-          node --check static/js/location-picker.js
-          node --check static/js/auth.js
-          node --check static/js/auth-pages.js
-          node --check static/js/reports.js
-          node --check static/js/pwa.js
-          node --check static/sw.js
-          node --check static/js/ui.js
-          node --check static/js/pwa-rules.js
-          node --check static/js/onboarding.js
+          find static -name '*.js' -print0 | xargs -0 -n1 node --check
       - name: Run tests
         run: python -m pytest -q

@@ -14,6 +14,12 @@ The current app stores uploaded images under `UPLOAD_FOLDER`, but generates publ
 
 Before pointing `UPLOAD_FOLDER` at a separate mount directory, configure the app or Liara routing to serve that directory safely. Do not expose the whole disk mount as a public directory.
 
+## Start-up schema initialization
+
+Every Gunicorn worker runs `initialize_database()` while importing the app. That work is serialized with a dedicated SQLite lock file, `kidareh-migrations.lock`, created next to the configured `DATABASE_PATH`. The lock is released automatically if a worker dies, so there is no stale lock to clear; exclude the file from backups.
+
+Feature tables such as `content_reports` and `otp_rate_limits` are created at start-up too, so no request ever runs schema DDL.
+
 ## SQLite and backups
 
 - Keep the database file on a persistent disk, not `/tmp` or the ephemeral application filesystem.
