@@ -95,6 +95,8 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
 
     assert response.status_code == 200
     assert 'id="activeMarketCity"' in html
+    assert html.index('id="activeMarketCity"') < html.index('id="promoBanner"')
+    assert 'id="changeMarketCityButton"' in html
     assert 'id="citySelect"' in html
     assert 'id="categorySelect"' in html
     assert 'id="findMyLocationButton"' in html
