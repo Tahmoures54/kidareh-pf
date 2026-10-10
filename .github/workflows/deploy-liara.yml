@@ -36,6 +36,7 @@ jobs:
         run: |
           node --check static/js/app.js
           node --check static/js/pages.js
+          node --check static/js/location-picker.js
 
       - name: Run tests
         run: python -m pytest -q
@@ -48,6 +49,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Prepare complete Iranian village directory
+        run: python scripts/fetch_iran_villages.py
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
