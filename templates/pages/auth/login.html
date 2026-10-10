@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}ورود | کی‌داره{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css') }}">
+{% endblock %}
+{% block content %}
+<section class="auth-page" data-auth-mode="login">
+  <div class="auth-shell">
+    <aside class="auth-visual" aria-hidden="true">
+      <div class="auth-visual-inner">
+        <div class="auth-brand-mark">ک</div>
+        <h2>خوش آمدید</h2>
+        <p>با شماره موبایل وارد شوید و به ویترین‌ها، ذخیره‌ها و گفت‌وگوهایتان دسترسی داشته باشید.</p>
+        <ul class="auth-benefits">
+          <li><span class="benefit-icon">⌕</span> جست‌وجوی سریع کالا و فروشگاه</li>
+          <li><span class="benefit-icon">♡</span> ذخیره کالاهای موردعلاقه</li>
+          <li><span class="benefit-icon">💬</span> گفت‌وگوی مستقیم با فروشنده</li>
+        </ul>
+      </div>
+      <div class="auth-visual-glow"></div>
+    </aside>
+
+    <div class="auth-panel">
+      <div class="auth-panel-header">
+        <span class="auth-kicker">ورود امن با پیامک</span>
+        <h1>ورود به کی‌داره</h1>
+        <p class="auth-subtitle">کد یک‌بارمصرف به شماره همراهتان ارسال می‌شود. رمز عبور لازم نیست.</p>
+      </div>
+
+      <div class="auth-steps-indicator" id="loginStepsIndicator" aria-hidden="true">
+        <span class="step-dot active" data-step="phone"></span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="code"></span>
+      </div>
+
+      <form id="authPageForm" class="auth-form" novalidate>
+        <!-- Step 1: Phone -->
+        <div class="auth-step" id="authPhoneStep" data-step="phone">
+          <label class="auth-label" for="loginPhone">شماره همراه</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-prefix">+۹۸</span>
+            <input
+              class="auth-input"
+              type="tel"
+              id="loginPhone"
+              name="phone"
+              inputmode="numeric"
+              autocomplete="tel"
+              placeholder="۹۱۲۳۴۵۶۷۸۹"
+              maxlength="11"
+              required
+              dir="ltr"
+            >
+          </div>
+          <p class="auth-hint">مثال: ۰۹۱۲۳۴۵۶۷۸۹</p>
+
+          <label class="auth-label" for="loginCaptcha">محاسبه امنیتی</label>
+          <div class="auth-captcha-row">
+            <span class="auth-captcha-question" id="captchaQuestion">…</span>
+            <input
+              class="auth-input auth-captcha-input"
+              type="text"
+              id="loginCaptcha"
+              name="captcha"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="پاسخ"
+              required
+              dir="ltr"
+            >
+          </div>
+
+          <label class="auth-check">
+            <input type="checkbox" name="terms_accepted" required>
+            <span>قوانین و شرایط استفاده از <a href="/terms" target="_blank" rel="noopener">کی‌داره</a> را می‌پذیرم.</span>
+          </label>
+
+          <button class="button button-primary auth-submit" type="submit">دریافت کد تأیید</button>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div class="auth-step" id="authCodeStep" data-step="code" hidden>
+          <p class="auth-otp-info">کد ۶ رقمی به <strong id="otpPhoneLabel">—</strong> ارسال شد.</p>
+          <label class="auth-label" for="loginOtp">کد تأیید</label>
+          <input
+            class="auth-input auth-otp-input"
+            type="text"
+            id="loginOtp"
+            name="otp"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            placeholder="• • • • • •"
+            maxlength="6"
+            required
+            dir="ltr"
+          >
+          <p class="auth-hint">کد تا ۵ دقیقه معتبر است.</p>
+          <div class="auth-actions-row">
+            <button class="button button-outline" type="button" id="backToPhoneButton">تغییر شماره</button>
+            <button class="button button-primary auth-submit" type="submit">تأیید و ورود</button>
+          </div>
+        </div>
+
+        <p class="auth-feedback" id="authFeedback" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="auth-footer-links">
+        <p>حساب ندارید؟ <a href="/register">ثبت‌نام کنید</a></p>
+        <p class="auth-note">ورود فقط با کد پیامکی انجام می‌شود.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth-pages.js') }}" defer></script>
+{% endblock %}

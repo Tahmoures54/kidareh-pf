@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}ثبت‌نام | کی‌داره{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css') }}">
+{% endblock %}
+{% block content %}
+<section class="auth-page" data-auth-mode="register">
+  <div class="auth-shell">
+    <aside class="auth-visual auth-visual-register" aria-hidden="true">
+      <div class="auth-visual-inner">
+        <div class="auth-brand-mark">ک</div>
+        <h2>به خانواده کی‌داره بپیوندید</h2>
+        <p>ویترین آنلاین بسازید یا به‌عنوان خریدار کالاهای نزدیک را پیدا کنید و حضوری هماهنگ شوید.</p>
+        <ul class="auth-benefits">
+          <li><span class="benefit-icon">🏪</span> ساخت ویترین حرفه‌ای در چند دقیقه</li>
+          <li><span class="benefit-icon">📍</span> جذب مشتری محلی و حضوری</li>
+          <li><span class="benefit-icon">⚡</span> ثبت‌نام سریع فقط با شماره موبایل</li>
+        </ul>
+      </div>
+      <div class="auth-visual-glow"></div>
+    </aside>
+
+    <div class="auth-panel">
+      <div class="auth-panel-header">
+        <span class="auth-kicker">ثبت‌نام رایگان</span>
+        <h1>ساخت حساب در کی‌داره</h1>
+        <p class="auth-subtitle">نوع حساب را انتخاب کنید، شماره را تأیید کنید و شروع کنید.</p>
+      </div>
+
+      <div class="auth-steps-indicator" id="registerStepsIndicator" aria-hidden="true">
+        <span class="step-dot active" data-step="role"></span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="phone"></span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="code"></span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="profile"></span>
+      </div>
+
+      <form id="authPageForm" class="auth-form" novalidate>
+        <!-- Step 0: Role selection -->
+        <div class="auth-step" id="authRoleStep" data-step="role">
+          <p class="auth-role-intro">چطور می‌خواهید از کی‌داره استفاده کنید؟</p>
+          <div class="auth-role-grid" role="radiogroup" aria-label="نوع حساب">
+            <label class="auth-role-card">
+              <input type="radio" name="role" value="buyer" checked>
+              <div class="role-card-inner">
+                <div class="role-icon">🛍️</div>
+                <strong>خریدار / مشتری</strong>
+                <span>جست‌وجو، ذخیره کالا، دنبال‌کردن فروشگاه‌ها و هماهنگی حضوری</span>
+              </div>
+            </label>
+            <label class="auth-role-card">
+              <input type="radio" name="role" value="seller">
+              <div class="role-card-inner">
+                <div class="role-icon">🏪</div>
+                <strong>فروشگاه‌دار</strong>
+                <span>ساخت ویترین، افزودن کالا و جذب مشتری به فروشگاه حضوری</span>
+              </div>
+            </label>
+          </div>
+          <button class="button button-primary auth-submit" type="button" id="continueRoleButton">ادامه</button>
+        </div>
+
+        <!-- Step 1: Phone -->
+        <div class="auth-step" id="authPhoneStep" data-step="phone" hidden>
+          <label class="auth-label" for="regPhone">شماره همراه</label>
+          <div class="auth-input-wrap">
+            <span class="auth-input-prefix">+۹۸</span>
+            <input
+              class="auth-input"
+              type="tel"
+              id="regPhone"
+              name="phone"
+              inputmode="numeric"
+              autocomplete="tel"
+              placeholder="۹۱۲۳۴۵۶۷۸۹"
+              maxlength="11"
+              required
+              dir="ltr"
+            >
+          </div>
+          <p class="auth-hint">مثال: ۰۹۱۲۳۴۵۶۷۸۹</p>
+
+          <label class="auth-label" for="regCaptcha">محاسبه امنیتی</label>
+          <div class="auth-captcha-row">
+            <span class="auth-captcha-question" id="captchaQuestion">…</span>
+            <input
+              class="auth-input auth-captcha-input"
+              type="text"
+              id="regCaptcha"
+              name="captcha"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="پاسخ"
+              required
+              dir="ltr"
+            >
+          </div>
+
+          <label class="auth-check">
+            <input type="checkbox" name="terms_accepted" required>
+            <span>قوانین و شرایط استفاده از <a href="/terms" target="_blank" rel="noopener">کی‌داره</a> را می‌پذیرم.</span>
+          </label>
+
+          <div class="auth-actions-row">
+            <button class="button button-outline" type="button" id="backToRoleButton">بازگشت</button>
+            <button class="button button-primary auth-submit" type="submit">دریافت کد تأیید</button>
+          </div>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div class="auth-step" id="authCodeStep" data-step="code" hidden>
+          <p class="auth-otp-info">کد ۶ رقمی به <strong id="otpPhoneLabel">—</strong> ارسال شد.</p>
+          <label class="auth-label" for="regOtp">کد تأیید</label>
+          <input
+            class="auth-input auth-otp-input"
+            type="text"
+            id="regOtp"
+            name="otp"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            placeholder="• • • • • •"
+            maxlength="6"
+            required
+            dir="ltr"
+          >
+          <p class="auth-hint">کد تا ۵ دقیقه معتبر است.</p>
+          <div class="auth-actions-row">
+            <button class="button button-outline" type="button" id="backToPhoneButton">تغییر شماره</button>
+            <button class="button button-primary auth-submit" type="submit">تأیید کد</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Profile -->
+        <div class="auth-step" id="authProfileStep" data-step="profile" hidden>
+          <label class="auth-label" for="regName">نام و نام خانوادگی</label>
+          <input class="auth-input" type="text" id="regName" name="name" maxlength="80" required placeholder="مثلاً علی رضایی" autocomplete="name">
+
+          <div id="sellerDetails" hidden>
+            <div class="auth-divider"><span>اطلاعات ویترین فروشگاه</span></div>
+
+            <label class="auth-label" for="storeName">نام فروشگاه / ویترین</label>
+            <input class="auth-input" type="text" id="storeName" name="store_name" maxlength="80" placeholder="مثلاً گالری نور">
+
+            <div class="auth-field-row">
+              <div>
+                <label class="auth-label" for="storeCity">شهر</label>
+                <input class="auth-input" type="text" id="storeCity" name="store_city" maxlength="60" placeholder="تهران">
+              </div>
+              <div>
+                <label class="auth-label" for="storeCategory">دسته</label>
+                <input class="auth-input" type="text" id="storeCategory" name="store_category" maxlength="80" placeholder="مثلاً پوشاک">
+              </div>
+            </div>
+
+            <label class="auth-label" for="contactName">نام مسئول تماس</label>
+            <input class="auth-input" type="text" id="contactName" name="contact_name" maxlength="80" placeholder="اختیاری — پیش‌فرض نام شما">
+
+            <label class="auth-label" for="storeAddress">آدرس</label>
+            <input class="auth-input" type="text" id="storeAddress" name="store_address" maxlength="300" placeholder="خیابان، پلاک، طبقه…">
+
+            <label class="auth-label" for="storeHours">ساعات کاری</label>
+            <input class="auth-input" type="text" id="storeHours" name="store_hours" maxlength="120" placeholder="مثلاً ۱۰ تا ۲۱">
+
+            <label class="auth-label" for="storeDescription">توضیح کوتاه ویترین</label>
+            <textarea class="auth-input auth-textarea" id="storeDescription" name="store_description" maxlength="500" rows="3" placeholder="چه کالاهایی دارید؟ چرا مشتری باید بیاید؟"></textarea>
+
+            <label class="auth-check">
+              <input type="checkbox" name="in_person" checked>
+              <span>خرید حضوری از این فروشگاه امکان‌پذیر است.</span>
+            </label>
+          </div>
+
+          <button class="button button-primary auth-submit" type="submit">تکمیل ثبت‌نام</button>
+        </div>
+
+        <p class="auth-feedback" id="authFeedback" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="auth-footer-links">
+        <p>قبلاً ثبت‌نام کرده‌اید؟ <a href="/login">وارد شوید</a></p>
+        <p class="auth-note">ثبت‌نام فقط پس از تأیید کد پیامکی انجام می‌شود.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth-pages.js') }}" defer></script>
+{% endblock %}
