@@ -159,6 +159,7 @@ def send_conversation_message(conversation_id):
     body = payload.get("body")
     if not isinstance(body, str) or not body.strip() or len(body.strip()) > 2000:
         return jsonify({"error": "invalid_message", "message": "پیام باید بین ۱ تا ۲۰۰۰ نویسه باشد."}), 400
+    ensure_tables()
     with get_connection() as db:
         thread = db.execute("SELECT * FROM conversations WHERE id=? AND (buyer_id=? OR seller_id=?)", (conversation_id, user["id"], user["id"])).fetchone()
         if not thread:
@@ -235,6 +236,7 @@ def support_reply(ticket_id):
     body = payload.get("body")
     if not isinstance(body, str) or not 1 <= len(body.strip()) <= 4000:
         return jsonify({"error": "invalid_message", "message": "پاسخ باید حداکثر ۴۰۰۰ نویسه باشد."}), 400
+    ensure_tables()
     with get_connection() as db:
         ticket = db.execute("SELECT * FROM support_tickets WHERE id=?", (ticket_id,)).fetchone()
         if not ticket:
