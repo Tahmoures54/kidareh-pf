@@ -7,6 +7,7 @@
   const citySelect = document.querySelector("#citySelect");
   const categorySelect = document.querySelector("#categorySelect");
   const activeMarketCity = document.querySelector("#activeMarketCity");
+  const changeMarketCityButton = document.querySelector("#changeMarketCityButton");
   const findMyLocationButton = document.querySelector("#findMyLocationButton");
   const nearbyListingsButton = document.querySelector("#nearbyListingsButton");
   const showAllButton = document.querySelector("#showAllButton");
@@ -192,7 +193,12 @@
     saveMarketCity();
     loadListings();
   });
+  citySelect?.addEventListener("input", updateMarketCity);
   citySelect?.addEventListener("change", updateMarketCity);
+  changeMarketCityButton?.addEventListener("click", () => {
+    document.querySelector("#listings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => citySelect?.focus({ preventScroll: true }), 250);
+  });
   categorySelect?.addEventListener("change", () => {
     currentFilter = categorySelect.value || "all";
     loadListings();
