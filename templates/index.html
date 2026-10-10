@@ -17,6 +17,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
 </head>
 <body>
+  <div class="market-ticker" id="marketTicker" aria-label="پیام‌های راهنمای کی‌داره">
+    <span class="market-ticker-mark" aria-hidden="true">✦</span>
+    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+    <a class="market-ticker-link" id="marketTickerLink" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
+  </div>
+
   <header class="site-header">
     <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
       <span class="brand-mark">ک</span>
@@ -34,11 +40,6 @@
     </div>
   </header>
 
-  <div class="market-ticker" id="marketTicker" aria-label="پیام‌های راهنمای کی‌داره">
-    <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
-    <a class="market-ticker-link" id="marketTickerLink" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
-  </div>
   <datalist id="iranCityOptions"></datalist>
   <div class="market-location-bar" aria-label="شهر بازار فعال">
     <div class="market-location-copy"><span class="market-location-icon" aria-hidden="true">⌖</span><div><span class="market-location-caption">بازار فعال</span><strong id="activeMarketCity">تهران</strong></div><span class="market-location-pulse" aria-hidden="true"></span></div>
@@ -114,10 +115,21 @@
     <a class="mobile-nav-item" href="/stores" aria-label="فروشگاه‌ها"><span aria-hidden="true">⌕</span><small>فروشگاه‌ها</small></a>
     <a class="mobile-nav-item" href="/saved" aria-label="ذخیره‌ها"><span aria-hidden="true">♡</span><small>ذخیره‌ها</small></a>
     <a class="mobile-nav-item" href="/seller" aria-label="ویترین من"><span aria-hidden="true">＋</span><small>ویترین من</small></a>
+    <details class="mobile-nav-more">
+      <summary class="mobile-nav-item" aria-label="راهنما و قوانین"><span aria-hidden="true">☰</span><small>راهنما</small></summary>
+      <div class="mobile-nav-menu" aria-label="راهنما و قوانین">
+        <a href="/help"><span aria-hidden="true">؟</span> مرکز راهنما</a>
+        <a href="/guide"><span aria-hidden="true">☷</span> راهنمای کاربر</a>
+        <a href="/safety"><span aria-hidden="true">✓</span> خرید امن</a>
+        <a href="/terms"><span aria-hidden="true">§</span> قوانین استفاده</a>
+        <a href="/privacy"><span aria-hidden="true">♧</span> حریم خصوصی</a>
+      </div>
+    </details>
   </nav>
 
   <footer class="site-footer">
     <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span></a>
+    <nav class="footer-links" aria-label="پیوندهای مفید"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a><a href="/help">راهنما</a><a href="/guide">راهنمای کاربر</a><a href="/safety">خرید امن</a><a href="/terms">قوانین استفاده</a><a href="/privacy">حریم خصوصی</a></nav>
     <p>ویترین فروشگاه‌های شهر؛ انتخاب آگاهانه‌تر، خرید حضوری ساده‌تر.</p>
     <span class="footer-note">نسخهٔ نمایشی اولیه · نمونه‌های نمایشی</span>
   </footer>
