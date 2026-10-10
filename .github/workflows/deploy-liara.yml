@@ -70,11 +70,13 @@ jobs:
             echo "::error::Add LIARA_APP_NAME to GitHub Actions variables (the exact Liara app ID)."
             exit 1
           fi
+          # Explicitly attach the persistent database disk on every release.
           liara deploy \
             --api-token "$LIARA_API_TOKEN" \
             --app "$LIARA_APP_NAME" \
             --platform python \
             --port 8000 \
             --path . \
+            --disks "app-data:/app/data" \
             --no-app-logs \
             --message "GitHub Actions ${GITHUB_SHA}"
