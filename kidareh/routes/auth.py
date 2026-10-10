@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..core import current_user, csrf_valid, get_connection
+from ..data_catalog import is_city_name, normalize_location_name
 from ..services.sms import SMSDeliveryError, send_otp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
@@ -205,26 +206,29 @@ def complete_profile():
         return jsonify({"error": "invalid_role", "message": "نوع حساب معتبر نیست."}), 400
     store = None
     values = {}
+    profile_city = normalize_location_name(payload.get("city", ""))
+    if role == "buyer" and not is_city_name(profile_city):
+        return jsonify({"error": "invalid_city", "message": "شهر محل سکونت را از فهرست شهرهای معتبر انتخاب کنید."}), 400
     if role == "seller":
         values = {
             "name": payload.get("store_name", ""), "category": payload.get("store_category", ""),
-            "city": payload.get("store_city", ""), "contact_name": payload.get("contact_name", name.strip()),
+            "city": normalize_location_name(payload.get("store_city", "")), "contact_name": payload.get("contact_name", name.strip()),
             "address": payload.get("store_address", ""), "hours": payload.get("store_hours", ""),
             "description": payload.get("store_description", ""),
             "in_person": 1 if payload.get("in_person") else 0,
         }
         if not isinstance(values["name"], str) or not values["name"].strip() or len(values["name"].strip()) > 80:
             return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
-        if not isinstance(values["city"], str) or not values["city"].strip() or len(values["city"].strip()) > 60:
-            return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را وارد کنید."}), 400
+        if not values["city"] or len(values["city"]) > 60 or not is_city_name(values["city"]):
+            return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را از فهرست شهرهای معتبر انتخاب کنید."}), 400
         for key, limit in (("category", 80), ("contact_name", 80), ("address", 300), ("hours", 120), ("description", 500)):
             if not isinstance(values[key], str) or len(values[key].strip()) > limit:
                 return jsonify({"error": "invalid_store_details", "message": "اطلاعات فروشگاه معتبر نیست."}), 400
     try:
         with get_connection() as connection:
             cursor = connection.execute(
-                "INSERT INTO users (name, phone, password_hash, role, phone_verified_at, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (name.strip(), phone, generate_password_hash(secrets.token_urlsafe(32)), role, datetime.now(timezone.utc).isoformat(), accepted_at),
+                "INSERT INTO users (name, phone, password_hash, role, phone_verified_at, terms_accepted_at, city) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (name.strip(), phone, generate_password_hash(secrets.token_urlsafe(32)), role, datetime.now(timezone.utc).isoformat(), accepted_at, profile_city if role == "buyer" else values["city"]),
             )
             user_id = cursor.lastrowid
             if role == "seller":
