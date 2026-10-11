@@ -213,7 +213,7 @@
     .page-shell {
       width: min(1160px, calc(100% - 2rem));
       margin-inline: auto;
-      padding-block: 1.25rem 5.5rem;
+      padding-block: 1.25rem 2rem;
       min-height: 50vh;
     }
 
@@ -429,24 +429,7 @@
     {% block content %}{% endblock %}
   </main>
 
-  <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
-    <a class="mobile-nav-item" href="/" {% if request.path == '/' %}aria-current="page"{% endif %} aria-label="خانه">
-      <span aria-hidden="true">⌂</span>
-      <small>خانه</small>
-    </a>
-    <a class="mobile-nav-item" href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %} aria-label="جست‌وجو">
-      <span aria-hidden="true">⌕</span>
-      <small>جست‌وجو</small>
-    </a>
-    <a class="mobile-nav-item nav-cta" href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %} aria-label="ثبت آگهی">
-      <span aria-hidden="true">＋</span>
-      <small>ثبت</small>
-    </a>
-    <a class="mobile-nav-item" href="/account" {% if request.path.startswith('/account') %}aria-current="page"{% endif %} aria-label="پروفایل">
-      <span aria-hidden="true">☺</span>
-      <small>پروفایل</small>
-    </a>
-  </nav>
+
 
   <footer class="site-footer inner-footer">
     <div class="footer-top">
