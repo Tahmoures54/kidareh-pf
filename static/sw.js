@@ -2,7 +2,7 @@
    CACHE_VERSION را با هر انتشار افزایش بده تا کاربران نسخهٔ جدید را دریافت کنند. */
 "use strict";
 
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const SHELL_CACHE = `kidareh-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `kidareh-runtime-${CACHE_VERSION}`;
 const KNOWN_CACHES = [SHELL_CACHE, RUNTIME_CACHE];
@@ -13,6 +13,7 @@ const PRECACHE_ASSETS = [
   "/static/css/pages.css",
   "/static/css/components.css",
   "/static/css/theme-mh.css",
+  "/static/css/site-shell.css",
   "/static/js/ui.js",
   "/static/js/pwa-rules.js",
   "/static/js/app.js",
