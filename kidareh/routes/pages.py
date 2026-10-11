@@ -1,6 +1,6 @@
 import time
 
-from flask import Blueprint, Response, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, abort, redirect, render_template, request, session, url_for
 from xml.sax.saxutils import escape as xml_escape
 from urllib.parse import urljoin
 import uuid
@@ -25,6 +25,24 @@ def render_marketplace_page(template: str, **context):
     context.setdefault("category_tree", CATEGORY_TREE)
     context.setdefault("trade_groups", TRADE_GROUPS)
     return render_template(template, csrf_token=session["csrf_token"], **context)
+
+
+def _registration_required():
+    """Send guests to the account form while preserving the requested page."""
+    if current_user():
+        return None
+    destination = request.full_path.rstrip("?")
+    return redirect(url_for("pages.register_page", next=destination))
+
+
+def _admin_required():
+    """Keep administration screens private to authenticated administrators."""
+    user = current_user()
+    if not user:
+        return redirect(url_for("pages.register_page", next=request.full_path.rstrip("?")))
+    if user.get("role") != "admin":
+        abort(403)
+    return None
 
 
 @bp.get("/search")
@@ -180,15 +198,17 @@ def sitemap_xml():
 
 @bp.get("/seller")
 def seller_dashboard_page():
-    # Keep the requested destination through SMS login; never render a private
-    # seller console for a guest session.
-    if not current_user():
-        return redirect(url_for("pages.login_page", next="/seller"))
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/seller/dashboard.html", categories=CATEGORIES)
 
 
 @bp.get("/seller/tags")
 def seller_tags_page():
+    required = _registration_required()
+    if required:
+        return required
     from .monetization import TAG_PACKAGES
 
     return render_marketplace_page("pages/seller/tags.html", tag_packages=TAG_PACKAGES)
@@ -196,6 +216,9 @@ def seller_tags_page():
 
 @bp.get("/monetization")
 def monetization_page():
+    required = _registration_required()
+    if required:
+        return required
     # Imported lazily: the monetization module owns the package catalogue.
     from .monetization import PACKAGES, TAG_PACKAGES
 
@@ -208,36 +231,57 @@ def monetization_page():
 
 @bp.get("/account")
 def account_page():
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/account/profile.html")
 
 
 @bp.get("/saved")
 def saved_products_page():
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/account/saved.html")
 
 
 @bp.get("/following")
 def following_stores_page():
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/account/following.html")
 
 
 @bp.get("/messages")
 def messages_page():
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/account/messages.html")
 
 
 @bp.get("/support")
 def support_page():
+    required = _registration_required()
+    if required:
+        return required
     return render_marketplace_page("pages/account/support.html")
 
 
 @bp.get("/admin")
 def admin_dashboard_page():
+    required = _admin_required()
+    if required:
+        return required
     return render_marketplace_page("pages/admin/dashboard.html")
 
 
 @bp.get("/admin/reports")
 def admin_reports_page():
+    required = _admin_required()
+    if required:
+        return required
     return render_marketplace_page("pages/admin/reports.html")
 
 
