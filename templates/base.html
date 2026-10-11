@@ -168,6 +168,17 @@
       border-radius: 8px;
       font-size: 0.8rem;
     }
+    /* Keep utility links quiet; make only authentication actions prominent. */
+    .header-utility-link {
+      display: inline-flex; align-items: center; padding: .4rem .25rem;
+      color: var(--color-muted, #475569); font-size: .8rem; font-weight: 600;
+      text-decoration: none; white-space: nowrap;
+    }
+    .header-utility-link:hover { color: var(--color-primary, #0E7490); }
+    .header-auth-button { text-decoration: none; white-space: nowrap; }
+    #headerLoginLink { border: 1px solid #0E7490; color: #0E7490; background: #ECFEFF; }
+    #headerRegisterLink { box-shadow: 0 3px 10px rgba(14,116,144,.18); }
+
 
     /* Market ticker */
     .market-ticker {
@@ -339,19 +350,17 @@
       </a>
 
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
-        <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>خانه</a>
-        <a href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}>جست‌وجوی کالا</a>
+        <a href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}>جست‌وجو</a>
         <a href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}>فروشگاه‌ها</a>
-        <a href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>ویترین من</a>
+        <a href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>پنل فروشنده</a>
         <a href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %}>گفت‌وگوها</a>
         <a href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}>پشتیبانی</a>
       </nav>
 
       <div class="header-actions">
-        <a class="header-search-link" href="/search" aria-label="جست‌وجوی کالا" title="جست‌وجوی کالا"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></a>
-        <a class="button button-outline" id="headerSavedLink" href="/saved">ذخیره‌ها</a>
-        <a class="button button-outline" id="headerLoginLink" href="/login">ورود</a>
-        <a class="button button-primary" id="headerRegisterLink" href="/register">ثبت‌نام</a>
+        <a class="header-utility-link" id="headerSavedLink" href="/saved">ذخیره‌ها</a>
+        <a class="button button-outline header-auth-button" id="headerLoginLink" href="/login">ورود</a>
+        <a class="button button-primary header-auth-button" id="headerRegisterLink" href="/register">ثبت‌نام</a>
         <a class="button button-outline" id="headerAccountLink" href="/account" hidden>حساب من</a>
         <button class="button button-outline" id="headerLogoutButton" type="button" hidden>خروج</button>
         <button class="button button-outline" id="installAppButton" type="button" hidden title="نصب اپلیکیشن">نصب اپ</button>
