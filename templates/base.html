@@ -32,7 +32,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-search-v2">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ux-improvements.css') }}?v=20261011-ux-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ux-improvements.css') }}?v=20261011-ux-v2">
 
   {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
@@ -51,7 +51,7 @@
 
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
         <a href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}>فروشگاه‌ها</a>
-        <a id="headerSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>مدیریت فروشگاه</a>
+        <a id="headerSellerLink" href="/seller" title="مدیریت فروشگاه" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>مدیریت فروشگاه</a>
         <a href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %}>گفت‌وگوها</a>
         <a href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}>پشتیبانی</a>
       </nav>
@@ -62,7 +62,7 @@
         <a class="button button-primary header-auth-button" id="headerRegisterLink" href="/register">ثبت‌نام</a>
         <a class="button button-outline" id="headerAccountLink" href="/account" hidden>حساب من</a>
         <button class="button button-outline" id="headerLogoutButton" type="button" hidden>خروج</button>
-        <button class="button button-outline" id="installAppButton" type="button" hidden title="نصب اپلیکیشن">نصب اپ</button>
+        <button class="button button-outline" id="installAppButton" type="button" hidden title="نصب اپ">نصب اپ</button>
       </div>
     </div>
   </header>
@@ -73,7 +73,7 @@
     <a class="mobile-nav-item" href="/" {% if request.path == '/' %}aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span>خانه</span></a>
     <a class="mobile-nav-item" href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}><span aria-hidden="true">⌕</span><span>جست‌وجو</span></a>
     <a class="mobile-nav-item" href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}><span aria-hidden="true">▦</span><span>فروشگاه‌ها</span></a>
-    <a class="mobile-nav-item nav-cta" id="mobileSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}><span aria-hidden="true">＋</span><span>مدیریت فروشگاه</span></a>
+    <a class="mobile-nav-item nav-cta" id="mobileSellerLink" href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}><span aria-hidden="true">＋</span><span>مدیریت فروشگاه</span></a>
     <a class="mobile-nav-item" href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}><span aria-hidden="true">？</span><span>پشتیبانی</span></a>
   </nav>
 
@@ -102,6 +102,9 @@
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/onboarding.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/homepage-ux.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app-ux.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/pages-ux.js') }}" defer></script>
   {% block scripts %}{% endblock %}
 
   <script>
