@@ -54,7 +54,7 @@
               '" class="button button-outline">حذف</button></div></div></article>'
             );
           }).join("")
-        : '<div class="empty-page-state">هنوز کالایی در ویترین ثبت نکرده‌ای.</div>';
+        : '<div class="empty-page-state"><span aria-hidden="true">＋</span><h3>ویترین هنوز خالی است</h3><p>اولین کالا را با عنوان روشن، عکس واقعی و قیمت به‌روز اضافه کن تا مشتری‌های شهر پیدایت کنند.</p></div>';
       const count = document.querySelector("#pageResultsCount");
       if (count) count.textContent = fmt.format(items.length) + " کالا";
       const productMetric = document.querySelector("#sellerProductMetric");
@@ -112,15 +112,7 @@
 
       const mine = await api("/api/my/store");
       const store = mine.item;
-      const storeMetric = document.querySelector("#sellerStoreMetric");
-      const nextMetric = document.querySelector("#sellerNextStepMetric");
-      const welcomeTitle = document.querySelector("#sellerWelcomeTitle");
       if (!store) {
-        if (storeMetric) storeMetric.textContent = "هنوز ساخته نشده";
-        if (nextMetric) nextMetric.textContent = "ساخت ویترین";
-        if (welcomeTitle) welcomeTitle.textContent = "سلام " + (me.user.name || "فروشگاه‌دار") + "؛ ویترینت را بساز";
-        const productMetric = document.querySelector("#sellerProductMetric");
-        if (productMetric) productMetric.textContent = "۰ کالا";
         if (status)
           status.innerHTML =
             "<strong>سلام " +
@@ -131,64 +123,15 @@
         if (productForm) productForm.hidden = true;
       } else {
         storeId = store.id;
-        if (storeMetric) storeMetric.textContent = "فعال";
-        if (nextMetric) nextMetric.textContent = "ثبت کالا";
-        if (welcomeTitle) welcomeTitle.textContent = "سلام " + (me.user.name || store.name || "فروشگاه‌دار") + "؛ " + store.name;
         if (status)
           status.innerHTML =
             "<strong>" +
             escapeHTML(store.name) +
             "</strong><br>" +
-            escapeHTML(store.city) +
-            (store.description ? " · " + escapeHTML(store.description) : "");
+            escapeHTML(store.city);
         if (createForm) createForm.hidden = true;
-        if (editForm) {
-          editForm.hidden = false;
-          editForm.name.value = store.name || "";
-          editForm.city.value = store.city || "";
-          editForm.description.value = store.description || "";
-          if (editForm.category) {
-          const existingCategory = store.category || "";
-          if (existingCategory && !Array.from(editForm.category.options).some((option) => option.value === existingCategory)) {
-            const legacyOption = document.createElement("option");
-            legacyOption.value = existingCategory;
-            legacyOption.textContent = existingCategory + " (صنف قبلی)";
-            editForm.category.appendChild(legacyOption);
-          }
-          editForm.category.value = existingCategory;
-        }
-          if (editForm.address) editForm.address.value = store.address || "";
-          if (editForm.latitude) editForm.latitude.value = store.latitude ?? "";
-          if (editForm.longitude) editForm.longitude.value = store.longitude ?? "";
-        }
+        if (editForm) editForm.hidden = false;
         if (productForm) productForm.hidden = false;
-
-        const shareBtn = document.querySelector("#shareMyStore");
-        const copyBtn = document.querySelector("#copyStorePromo");
-        if (shareBtn) {
-          shareBtn.hidden = false;
-          shareBtn.dataset.shareUrl = "/store/" + store.id;
-          shareBtn.dataset.shareTitle = "ویترین " + store.name;
-        }
-        if (copyBtn) {
-          copyBtn.hidden = false;
-          const promo =
-            "ویترین «" +
-            store.name +
-            "» در کی‌داره:\n" +
-            location.origin +
-            "/store/" +
-            store.id +
-            "\nکالاها را ببین و برای خرید حضوری هماهنگ کن.";
-          copyBtn.addEventListener("click", async () => {
-            try {
-              await navigator.clipboard.writeText(promo);
-              notify("متن معرفی کپی شد.");
-            } catch {
-              notify("کپی پشتیبانی نشد.");
-            }
-          });
-        }
         await loadSellerListings(storeId);
       }
 
@@ -212,43 +155,12 @@
         }
       });
 
-      editForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!storeId) return;
-        try {
-          await api("/api/stores/" + storeId, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: editForm.name.value.trim(),
-              city: editForm.city.value.trim(),
-              description: editForm.description.value.trim(),
-              category: editForm.category?.value || "",
-              address: editForm.address?.value.trim() || "",
-              latitude: editForm.latitude?.value || "",
-              longitude: editForm.longitude?.value || "",
-            }),
-          });
-          notify("ویترینت به‌روز شد ✓");
-          location.reload();
-        } catch (err) {
-          notify(err.message);
-        }
-      });
-
       productForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!storeId) {
           notify("ابتدا ویترین بساز.");
           return;
         }
-        const btn = productForm.querySelector('button[type="submit"]');
-        const old = btn?.textContent;
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = "در حال ثبت…";
-        }
-        if (productFeedback) productFeedback.textContent = "";
         try {
           const fd = new FormData(productForm);
           const response = await fetch("/api/listings", {
@@ -264,22 +176,9 @@
           if (!response.ok) throw new Error(data.message || data.error || "ثبت کالا انجام نشد.");
           notify("آگهی‌ات منتشر شد 🎉");
           productForm.reset();
-          if (productFeedback) {
-            productFeedback.textContent = "کالا با موفقیت به ویترین اضافه شد.";
-            productFeedback.style.color = "#0E7490";
-          }
           await loadSellerListings(storeId);
         } catch (err) {
-          if (productFeedback) {
-            productFeedback.textContent = err.message;
-            productFeedback.style.color = "#B91C1C";
-          }
           notify(err.message);
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = old;
-          }
         }
       });
 
@@ -300,5 +199,46 @@
     }
   }
 
-  initSeller();
+  function setupLivePreview() {
+    const form = document.querySelector("#sellerProductForm");
+    if (!form) return;
+    let preview = document.querySelector("#sellerLivePreview");
+    if (!preview) {
+      preview = document.createElement("div");
+      preview.id = "sellerLivePreview";
+      preview.className = "seller-live-preview";
+      preview.innerHTML =
+        '<span class="seller-live-preview-label">پیش‌نمایش زنده</span>' +
+        '<div class="seller-live-preview-card">' +
+        "<strong id=\"previewTitle\">عنوان کالا اینجا دیده می‌شود</strong>" +
+        '<small id="previewMeta">شهر · دسته</small>' +
+        '<span class="preview-price" id="previewPrice">قیمت</span>' +
+        '<p id="previewDesc" style="margin:0;color:#64748B;font-size:.82rem;line-height:1.6">توضیح کوتاه کالا</p>' +
+        "</div>";
+      form.appendChild(preview);
+    }
+    const titleEl = preview.querySelector("#previewTitle");
+    const metaEl = preview.querySelector("#previewMeta");
+    const priceEl = preview.querySelector("#previewPrice");
+    const descEl = preview.querySelector("#previewDesc");
+    const update = () => {
+      const title = (form.title?.value || form.querySelector("[name=title]")?.value || "").trim();
+      const city = (form.city?.value || document.querySelector("#storeEditForm [name=city]")?.value || "شهر").trim();
+      const cat = form.category?.selectedOptions?.[0]?.textContent || form.category?.value || "دسته";
+      const priceRaw = form.price?.value || form.querySelector("[name=price]")?.value || "";
+      const desc = (form.description?.value || form.querySelector("[name=description]")?.value || "").trim();
+      if (titleEl) titleEl.textContent = title || "عنوان کالا اینجا دیده می‌شود";
+      if (metaEl) metaEl.textContent = city + " · " + cat;
+      if (priceEl) {
+        const n = Number(String(priceRaw).replace(/[^\d.]/g, ""));
+        priceEl.textContent = n > 0 ? fmt.format(n) + " تومان" : "توافقی";
+      }
+      if (descEl) descEl.textContent = desc || "توضیح کوتاه کالا";
+    };
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    update();
+  }
+
+  Promise.resolve(initSeller()).finally(setupLivePreview);
 })();
