@@ -365,7 +365,10 @@ def test_legal_links_are_hidden_until_auth_state_is_confirmed_and_store_label_is
 def test_seller_dashboard_redirects_guests_to_login_and_serves_signed_in_users(client, app):
     guest_response = client.get("/seller")
     assert guest_response.status_code == 302
-    assert guest_response.headers["Location"].endswith("/login?next=/seller")
+    from urllib.parse import parse_qs, urlsplit
+    location = urlsplit(guest_response.headers["Location"])
+    assert location.path == "/login"
+    assert parse_qs(location.query).get("next") == ["/seller"]
 
     with app.app_context():
         with get_connection() as connection:
