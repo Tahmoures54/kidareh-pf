@@ -51,7 +51,6 @@
       </a>
 
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
-        <a href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}>جست‌وجو</a>
         <a href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}>فروشگاه‌ها</a>
         <a href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>پنل فروشنده</a>
         <a href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %}>گفت‌وگوها</a>
