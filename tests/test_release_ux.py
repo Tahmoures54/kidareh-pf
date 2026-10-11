@@ -109,6 +109,9 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     assert "@media (min-width: 900px) {\n  .mobile-bottom-nav { display: none !important; }" in css
     assert 'class="site-header"' in home
     assert 'class="site-footer"' in home
+    assert 'class="brand-tagline">سوپر اپلیکیشن خرید حضوری</small>' in home
+    assert 'class="brand-city" id="activeMarketCity"' in home
+    assert 'class="brand-title-row"' in home
     for path in ("static/css/style.css", "static/css/pages.css", "static/css/components.css", "static/css/theme-mh.css"):
         source = read(path)
         assert ".site-footer" not in source, path
