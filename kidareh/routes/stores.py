@@ -158,6 +158,11 @@ def update_store(store_id: int):
             return jsonify({"error": "store_not_found"}), 404
         if store["owner_id"] != user["id"]:
             return jsonify({"error": "store_forbidden", "message": "فقط صاحب فروشگاه می‌تواند اطلاعات آن را تغییر دهد."}), 403
+        if user.get("role") != "seller":
+            return jsonify({
+                "error": "seller_account_required",
+                "message": "مدیریت ویترین فقط برای حساب فروشنده در دسترس است.",
+            }), 403
         name = payload.get("name", store["name"])
         city = payload.get("city", store["city"])
         description = payload.get("description", store["description"])
