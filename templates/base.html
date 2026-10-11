@@ -2,9 +2,10 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="theme-color" content="#0E7490">
+  <meta name="theme-color" content="#0E7490" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B1322" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="کی‌داره">
@@ -31,39 +32,461 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <style>
+    /* ── Base layout enhancements ── */
+    .skip-link {
+      position: absolute;
+      inset-inline-start: 1rem;
+      top: -100px;
+      z-index: 1000;
+      padding: 0.6rem 1.1rem;
+      border-radius: 10px;
+      background: var(--color-primary, #0E7490);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus {
+      top: 0.75rem;
+      outline: 3px solid var(--color-focus, #0891B2);
+      outline-offset: 2px;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: none;
+      height: auto;
+      min-height: 64px;
+      margin: 0;
+      padding: 0.6rem max(1.25rem, env(safe-area-inset-right)) 0.6rem max(1.25rem, env(safe-area-inset-left));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: color-mix(in srgb, var(--color-surface, #fff) 92%, transparent);
+      backdrop-filter: blur(12px) saturate(1.2);
+      -webkit-backdrop-filter: blur(12px) saturate(1.2);
+      border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+      transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .site-header.is-scrolled {
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    }
+    .site-header-inner {
+      width: min(1160px, 100%);
+      margin-inline: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-shrink: 0;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #0891B2, #0E7490);
+      color: #fff;
+      font-size: 1.35rem;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .brand:hover .brand-mark {
+      transform: scale(1.05);
+      box-shadow: 0 6px 18px rgba(14, 116, 144, 0.35);
+    }
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+    .brand-copy strong {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-copy small {
+      color: var(--color-muted, #475569);
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 0.15rem;
+      margin-inline: auto;
+    }
+    .desktop-nav a {
+      position: relative;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      color: var(--color-muted, #475569);
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+    .desktop-nav a:hover {
+      color: var(--color-primary, #0E7490);
+      background: var(--color-primary-soft, #ECFEFF);
+    }
+    .desktop-nav a[aria-current="page"] {
+      color: var(--color-primary, #0E7490);
+      background: var(--color-primary-soft, #ECFEFF);
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    .header-actions .button {
+      min-height: 40px;
+      padding-inline: 0.9rem;
+      font-size: 0.8rem;
+    }
+
+    /* Market ticker */
+    .market-ticker {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 38px;
+      padding: 0.45rem max(1rem, env(safe-area-inset-right)) 0.45rem max(1rem, env(safe-area-inset-left));
+      background: linear-gradient(90deg, #0E7490, #0891B2);
+      color: #F0F9FF;
+      font-size: 0.8rem;
+      font-weight: 600;
+      overflow: hidden;
+    }
+    .market-ticker-mark {
+      flex-shrink: 0;
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+    .market-ticker-message {
+      margin: 0;
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .market-ticker-link {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(165, 243, 252, 0.4);
+      color: #ECFEFF;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .market-ticker-link:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #67E8F9;
+    }
+
+    /* Main content */
+    .page-shell {
+      width: min(1160px, calc(100% - 2rem));
+      margin-inline: auto;
+      padding-block: 1.25rem 5.5rem;
+      min-height: 50vh;
+    }
+
+    /* Mobile bottom nav */
+    .mobile-bottom-nav {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      min-height: 60px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      background: color-mix(in srgb, var(--color-surface, #fff) 94%, transparent);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
+      border-top: 1px solid var(--color-line-soft, #E2E8F0);
+      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
+    }
+    .mobile-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      min-height: 52px;
+      padding: 0.4rem 0.25rem;
+      color: var(--color-muted, #64748B);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-nav-item span[aria-hidden] {
+      font-size: 1.35rem;
+      line-height: 1;
+      transition: transform 0.2s ease;
+    }
+    .mobile-nav-item:hover,
+    .mobile-nav-item[aria-current="page"] {
+      color: var(--color-primary, #0E7490);
+    }
+    .mobile-nav-item[aria-current="page"] span[aria-hidden] {
+      transform: scale(1.12);
+    }
+    .mobile-nav-item.nav-cta {
+      position: relative;
+    }
+    .mobile-nav-item.nav-cta span[aria-hidden] {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #0891B2, #0E7490);
+      color: #fff;
+      font-size: 1.4rem;
+      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.35);
+      margin-top: -1.1rem;
+    }
+    .mobile-nav-item.nav-cta small {
+      margin-top: 0.15rem;
+    }
+
+    /* Footer */
+    .site-footer {
+      width: min(1160px, calc(100% - 2rem));
+      margin: 0 auto 5rem;
+      padding: 2rem 0 1.5rem;
+      border-top: 1px solid var(--color-line-soft, #E2E8F0);
+      display: grid;
+      gap: 1.5rem;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    .footer-brand .brand-copy small {
+      max-width: 220px;
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+    }
+    .footer-links a {
+      color: var(--color-muted, #475569);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover {
+      color: var(--color-primary, #0E7490);
+    }
+    .footer-note {
+      margin: 0;
+      color: var(--color-muted, #64748B);
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .footer-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-line-soft, #E2E8F0);
+      font-size: 0.75rem;
+      color: var(--color-muted, #64748B);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      inset-inline-start: 50%;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+      z-index: 60;
+      transform: translateX(-50%) translateY(12px);
+      max-width: min(420px, calc(100% - 2rem));
+      padding: 0.75rem 1.1rem;
+      border-radius: 12px;
+      background: #0F172A;
+      color: #F8FAFC;
+      font-size: 0.875rem;
+      font-weight: 600;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (min-width: 900px) {
+      .desktop-nav { display: flex; }
+      .mobile-bottom-nav { display: none; }
+      .page-shell { padding-bottom: 2.5rem; }
+      .site-footer { margin-bottom: 2rem; }
+      .toast { bottom: 1.5rem; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .site-header {
+        background: color-mix(in srgb, var(--color-surface, #111B2A) 90%, transparent);
+        border-bottom-color: var(--color-line, #334155);
+      }
+      .mobile-bottom-nav {
+        background: color-mix(in srgb, var(--color-surface, #111B2A) 92%, transparent);
+        border-top-color: var(--color-line, #334155);
+      }
+      .market-ticker {
+        background: linear-gradient(90deg, #0C4A6E, #0E7490);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .brand-mark,
+      .mobile-nav-item span[aria-hidden],
+      .toast {
+        transition: none !important;
+      }
+    }
+  </style>
   {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
 </head>
 <body class="inner-page">
+  <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
+
   <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
     <span class="market-ticker-mark" aria-hidden="true">✦</span>
     <p class="market-ticker-message" id="marketTickerMessage" aria-live="off">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
     <a class="market-ticker-link" id="marketTickerLink" href="/#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
   </div>
-  <header class="site-header">
-    <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی‌داره؟ حضوری بگیر!</small></span></a>
-    <nav class="desktop-nav" aria-label="ناوبری اصلی">
-      <a href="/">خانه</a><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ویترین من</a><a href="/messages">گفت‌وگوها</a><a href="/support">پشتیبانی</a>
-    </nav>
-    <div class="header-actions"><a class="button button-outline" href="/saved">ذخیره‌ها</a><a class="button button-outline" id="headerLoginLink" href="/login">ورود</a><a class="button button-primary" id="headerRegisterLink" href="/register">ثبت‌نام</a><a class="button button-outline" id="headerAccountLink" href="/account" hidden>حساب من</a><button class="button button-outline" id="headerLogoutButton" type="button" hidden>خروج از حساب</button><button class="button button-outline" id="installAppButton" type="button" hidden>نصب اپ</button></div>
+
+  <header class="site-header" id="siteHeader">
+    <div class="site-header-inner">
+      <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
+        <span class="brand-mark">ک</span>
+        <span class="brand-copy">
+          <strong>کی‌داره</strong>
+          <small>ببین کی‌داره؟ حضوری بگیر!</small>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="ناوبری اصلی">
+        <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>خانه</a>
+        <a href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}>جست‌وجوی کالا</a>
+        <a href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}>فروشگاه‌ها</a>
+        <a href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>ویترین من</a>
+        <a href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %}>گفت‌وگوها</a>
+        <a href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}>پشتیبانی</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="button button-outline" href="/saved">ذخیره‌ها</a>
+        <a class="button button-outline" id="headerLoginLink" href="/login">ورود</a>
+        <a class="button button-primary" id="headerRegisterLink" href="/register">ثبت‌نام</a>
+        <a class="button button-outline" id="headerAccountLink" href="/account" hidden>حساب من</a>
+        <button class="button button-outline" id="headerLogoutButton" type="button" hidden>خروج</button>
+        <button class="button button-outline" id="installAppButton" type="button" hidden title="نصب اپلیکیشن">نصب اپ</button>
+      </div>
+    </div>
   </header>
+
   <datalist id="iranCityOptions"></datalist>
+
   <main class="page-shell" id="main-content">
     {% block content %}{% endblock %}
   </main>
+
   <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
-    <a class="mobile-nav-item" href="/" aria-label="خانه"><span aria-hidden="true">⌂</span><small>خانه</small></a>
-    <a class="mobile-nav-item" href="/search" aria-label="جست‌وجو"><span aria-hidden="true">⌕</span><small>جست‌وجو</small></a>
-    <a class="mobile-nav-item" href="/seller" aria-label="ثبت آگهی"><span aria-hidden="true">＋</span><small>ثبت</small></a>
-    <a class="mobile-nav-item" href="/account" aria-label="پروفایل"><span aria-hidden="true">☺</span><small>پروفایل</small></a>
+    <a class="mobile-nav-item" href="/" {% if request.path == '/' %}aria-current="page"{% endif %} aria-label="خانه">
+      <span aria-hidden="true">⌂</span>
+      <small>خانه</small>
+    </a>
+    <a class="mobile-nav-item" href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %} aria-label="جست‌وجو">
+      <span aria-hidden="true">⌕</span>
+      <small>جست‌وجو</small>
+    </a>
+    <a class="mobile-nav-item nav-cta" href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %} aria-label="ثبت آگهی">
+      <span aria-hidden="true">＋</span>
+      <small>ثبت</small>
+    </a>
+    <a class="mobile-nav-item" href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %} aria-label="گفت‌وگوها">
+      <span aria-hidden="true">💬</span>
+      <small>چت</small>
+    </a>
+    <a class="mobile-nav-item" href="/account" {% if request.path.startswith('/account') %}aria-current="page"{% endif %} aria-label="پروفایل">
+      <span aria-hidden="true">☺</span>
+      <small>پروفایل</small>
+    </a>
   </nav>
 
   <footer class="site-footer inner-footer">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی‌داره؟ حضوری بگیر!</small></span></a>
-    <nav class="footer-links" aria-label="پیوندهای مفید"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a><a href="/help">راهنما</a><a href="/guide">راهنمای کاربر</a><a href="/safety">خرید امن</a><a href="/terms">قوانین استفاده</a><a href="/privacy">حریم خصوصی</a></nav>
-    <p>دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید.</p>
+    <div class="footer-top">
+      <a class="brand footer-brand" href="/">
+        <span class="brand-mark">ک</span>
+        <span class="brand-copy">
+          <strong>کی‌داره</strong>
+          <small>ببین کی‌داره؟ حضوری بگیر!</small>
+        </span>
+      </a>
+      <nav class="footer-links" aria-label="پیوندهای مفید">
+        <a href="/search">جست‌وجوی کالا</a>
+        <a href="/stores">فروشگاه‌ها</a>
+        <a href="/seller">ساخت ویترین</a>
+        <a href="/help">راهنما</a>
+        <a href="/guide">راهنمای کاربر</a>
+        <a href="/safety">خرید امن</a>
+        <a href="/terms">قوانین استفاده</a>
+        <a href="/privacy">حریم خصوصی</a>
+      </nav>
+    </div>
+    <p class="footer-note">دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید. خرید حضوری — بدون انتظار ارسال آنلاین.</p>
+    <div class="footer-bottom">
+      <span>© {{ now().year if now is defined else '۲۰۲۶' }} کی‌داره</span>
+      <span>ساخته‌شده با ❤️ برای فروش حضوری محلی</span>
+    </div>
   </footer>
+
   <div id="pageToast" class="toast" role="status" aria-live="polite"></div>
+
   <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/location-picker.js') }}" defer></script>
@@ -72,12 +495,25 @@
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
   {% block scripts %}{% endblock %}
+
   <script>
     (() => {
+      /* Sticky header shadow on scroll */
+      const header = document.getElementById("siteHeader");
+      if (header) {
+        const onScroll = () => {
+          header.classList.toggle("is-scrolled", window.scrollY > 8);
+        };
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+      }
+
+      /* Market ticker rotation */
       const root = document.getElementById("marketTicker");
       const message = document.getElementById("marketTickerMessage");
       const link = document.getElementById("marketTickerLink");
       if (!root || !message || !link) return;
+
       const items = [
         { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "/#listings" },
         { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
@@ -85,9 +521,11 @@
         { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
         { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "/#marketCityCombobox" }
       ];
+
       let index = 0;
       let timer = null;
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
       function show(next) {
         index = (next + items.length) % items.length;
         message.textContent = items[index].text;
@@ -99,21 +537,31 @@
         arrow.textContent = "←";
         link.append(arrow);
       }
+
       function stop() {
-        if (timer !== null) window.clearInterval(timer);
-        timer = null;
+        if (timer !== null) {
+          window.clearInterval(timer);
+          timer = null;
+        }
       }
+
       function start() {
         stop();
-        if (!reduceMotion && !document.hidden) timer = window.setInterval(() => show(index + 1), 5000);
+        if (!reduceMotion && !document.hidden) {
+          timer = window.setInterval(() => show(index + 1), 5200);
+        }
       }
+
       root.addEventListener("mouseenter", stop);
       root.addEventListener("mouseleave", start);
       root.addEventListener("focusin", stop);
       root.addEventListener("focusout", (event) => {
         if (!root.contains(event.relatedTarget)) start();
       });
-      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+      document.addEventListener("visibilitychange", () => {
+        document.hidden ? stop() : start();
+      });
+
       show(0);
       start();
     })();
