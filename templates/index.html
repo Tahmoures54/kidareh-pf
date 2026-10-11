@@ -98,12 +98,15 @@
 
     /* Prominent local-market selector, below the sticky navigation */
     .home-location-bar {
-      position: relative; z-index: 30; width: 100%; padding: 12px max(1rem, env(safe-area-inset-right)) 12px max(1rem, env(safe-area-inset-left));
+      position: relative; z-index: 30; box-sizing: border-box;
+      width: min(1500px, calc(100% - 2rem)); margin: 12px auto 0;
+      padding: 12px clamp(12px, 2vw, 24px);
       background: linear-gradient(105deg, #ECFEFF 0%, #CFFAFE 55%, #E6FFFB 100%);
-      border-bottom: 1px solid #A5F3FC;
+      border: 1px solid #A5F3FC; border-radius: 16px;
+      box-shadow: 0 5px 18px rgba(14, 116, 144, .055);
     }
     .home-location-inner {
-      width: min(1500px, 100%); margin-inline: auto; display: flex; align-items: center;
+      width: 100%; margin-inline: auto; display: flex; align-items: center;
       justify-content: space-between; gap: 1rem;
     }
     .home-location-copy { display: flex; align-items: center; gap: .7rem; min-width: 0; }
@@ -127,6 +130,7 @@
     .home-location-nearby:hover { background: #155E75; transform: translateY(-1px); }
     .home-location-nearby:disabled { opacity: .7; cursor: wait; transform: none; }
     @media (max-width: 760px) {
+      .home-location-bar { width: calc(100% - 1.25rem); margin-top: .65rem; padding: 12px; border-radius: 14px; }
       .home-location-inner { align-items: stretch; flex-direction: column; gap: .75rem; }
       .home-location-controls { display: grid; grid-template-columns: minmax(0, 1fr); }
       .home-city-picker { width: 100%; min-width: 0; flex-basis: auto; }
