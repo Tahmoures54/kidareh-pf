@@ -356,6 +356,37 @@ def test_buyer_cannot_create_listing_or_access_seller_analytics(monkeypatch, tmp
     assert stats.get_json()["error"] == "seller_account_required"
 
 
+def test_buyer_role_cannot_manage_previously_owned_inventory_or_store(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post(
+        "/api/listings",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"title": "کالای فروشنده", "category": "home", "city": "تبریز", "price": 1000},
+    )
+    assert created.status_code == 201
+    listing_id = created.get_json()["item"]["id"]
+    store_id = client.get("/api/my/store").get_json()["item"]["id"]
+
+    with app_module.get_connection() as connection:
+        connection.execute("UPDATE users SET role = 'buyer' WHERE id = 1")
+
+    listing_edit = client.patch(
+        f"/api/listings/{listing_id}",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"title": "تغییر پس از تبدیل نقش"},
+    )
+    assert listing_edit.status_code == 403
+    assert listing_edit.get_json()["error"] == "seller_account_required"
+
+    store_edit = client.patch(
+        f"/api/stores/{store_id}",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"name": "تغییر پس از تبدیل نقش"},
+    )
+    assert store_edit.status_code == 403
+    assert store_edit.get_json()["error"] == "seller_account_required"
+
+
 def test_buyer_can_switch_to_seller_when_ready_to_open_storefront(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
     with app_module.get_connection() as connection:
