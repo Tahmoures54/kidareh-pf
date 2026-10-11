@@ -35,7 +35,7 @@
 
   {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
-  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v4">
+  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v5">
 </head>
 <body class="inner-page">
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
@@ -45,8 +45,7 @@
       <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
         <span class="brand-mark">ک</span>
         <span class="brand-copy">
-          <strong>کی‌داره</strong>
-          <small>ببین کی‌داره؟ حضوری بگیر!</small>
+          <span class="brand-title-row"><strong>کی‌داره</strong><small class="brand-tagline">سوپر اپلیکیشن خرید حضوری</small></span>
         </span>
       </a>
 

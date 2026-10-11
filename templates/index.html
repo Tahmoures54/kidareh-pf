@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-search-v2">
-  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v4">
+  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v5">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
   <style>
     /* ── Homepage polish ── */
@@ -541,9 +541,11 @@
     <div class="brand-location-stack">
       <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
         <span class="brand-mark">ک</span>
-        <span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span>
+        <span class="brand-copy">
+          <span class="brand-title-row"><strong>کی‌داره</strong><small class="brand-tagline">سوپر اپلیکیشن خرید حضوری</small></span>
+          <small class="brand-city" id="activeMarketCity" aria-live="polite">تهران</small>
+        </span>
       </a>
-      <span class="header-city-status" id="activeMarketCity" aria-live="polite">تهران</span>
     </div>
 
     <nav class="desktop-nav" aria-label="ناوبری اصلی">

@@ -99,8 +99,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-shell-v4" in home
-    assert "site-shell.css?v=20261011-shell-v4" in stores
+    assert "site-shell.css?v=20261011-shell-v5" in home
+    assert "site-shell.css?v=20261011-shell-v5" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
@@ -109,6 +109,9 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     assert "@media (min-width: 900px) {\n  .mobile-bottom-nav { display: none !important; }" in css
     assert 'class="site-header"' in home
     assert 'class="site-footer"' in home
+    assert 'class="brand-tagline">سوپر اپلیکیشن خرید حضوری</small>' in home
+    assert 'class="brand-city" id="activeMarketCity"' in home
+    assert 'class="brand-title-row"' in home
     for path in ("static/css/style.css", "static/css/pages.css", "static/css/components.css", "static/css/theme-mh.css"):
         source = read(path)
         assert ".site-footer" not in source, path
