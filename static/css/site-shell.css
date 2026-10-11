@@ -88,7 +88,7 @@
 }
 
 
-/* Compact global search entry point: icon-only on every viewport. */
+/* Legacy header search styles are intentionally kept inert; search lives in page and mobile navigation. */
 .header-search-link { display:inline-grid; place-items:center; flex:0 0 42px; width:42px; height:42px; border:1px solid var(--color-line,#CBD5E1); border-radius:12px; color:var(--kidareh-turquoise-dark); background:var(--color-surface,#FFFFFF); text-decoration:none; transition:color .18s ease,background .18s ease,border-color .18s ease; }
 .header-search-link svg { display:block; width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .header-search-link:hover,.header-search-link:focus-visible { color:#FFFFFF; background:var(--kidareh-turquoise-dark); border-color:var(--kidareh-turquoise-dark); outline:none; }
@@ -486,3 +486,99 @@
         transition: none !important;
       }
     }
+
+
+/* Refined authentication actions: clear hierarchy and tactile, accessible feedback. */
+.header-actions .header-auth-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding-inline: 1rem;
+  border-radius: 11px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  transition: transform .18s ease, box-shadow .18s ease, color .18s ease,
+    background-color .18s ease, border-color .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+#headerLoginLink {
+  border: 1px solid rgba(14, 116, 144, .55);
+  color: var(--kidareh-turquoise-dark, #0E7490);
+  background: var(--color-surface, #FFFFFF);
+  box-shadow: 0 2px 5px rgba(14, 116, 144, .06);
+}
+#headerRegisterLink {
+  border: 1px solid transparent;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #0E7490 0%, #0891B2 58%, #06A6BD 100%);
+  box-shadow: 0 4px 12px rgba(14, 116, 144, .22);
+}
+.header-actions .header-auth-button::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -130%;
+  width: 65%;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.34), transparent);
+  transform: skewX(-18deg);
+  transition: inset-inline-start .48s ease;
+  pointer-events: none;
+}
+.header-actions .header-auth-button:hover {
+  transform: translateY(-2px);
+}
+.header-actions .header-auth-button:hover::after {
+  inset-inline-start: 150%;
+}
+#headerLoginLink:hover {
+  color: #FFFFFF;
+  border-color: #0E7490;
+  background: #0E7490;
+  box-shadow: 0 6px 16px rgba(14, 116, 144, .2);
+}
+#headerRegisterLink:hover {
+  background: linear-gradient(135deg, #0B6178, #087E9B 58%, #0891B2);
+  box-shadow: 0 7px 18px rgba(14, 116, 144, .3);
+}
+.header-actions .header-auth-button:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: 0 1px 3px rgba(14, 116, 144, .16);
+}
+.header-actions .header-auth-button:focus-visible {
+  outline: 3px solid rgba(8, 145, 178, .35);
+  outline-offset: 3px;
+}
+@media (max-width: 420px) {
+  .header-actions .header-auth-button {
+    min-height: 36px;
+    padding-inline: .65rem;
+    border-radius: 10px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  #headerLoginLink {
+    color: #67E8F9;
+    border-color: #3B8191;
+    background: #17243A;
+  }
+  #headerLoginLink:hover {
+    color: #FFFFFF;
+    background: #0E7490;
+    border-color: #0E7490;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-actions .header-auth-button,
+  .header-actions .header-auth-button::after {
+    transition: none !important;
+  }
+  .header-actions .header-auth-button:hover,
+  .header-actions .header-auth-button:active {
+    transform: none;
+  }
+}
