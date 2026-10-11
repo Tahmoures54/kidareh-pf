@@ -393,12 +393,6 @@
 <body class="inner-page">
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
 
-  <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
-    <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
-    <a class="market-ticker-link" id="marketTickerLink" href="/#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
-  </div>
-
   <header class="site-header" id="siteHeader">
     <div class="site-header-inner">
       <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
@@ -465,101 +459,29 @@
       </a>
       <nav class="footer-links" aria-label="پیوندهای مفید">
         <a href="/search">جست‌وجوی کالا</a>
-        <a href="/stores">فروشگاه‌ها</a>
-        <a href="/seller">ساخت ویترین</a>
-        <a href="/help">راهنما</a>
-        <a href="/guide">راهنمای کاربر</a>
-        <a href="/safety">خرید امن</a>
-        <a href="/terms">قوانین استفاده</a>
-        <a href="/privacy">حریم خصوصی</a>
-      </nav>
-    </div>
-    <p class="footer-note">دیدن کالاها آزاد است؛ برای ساخت ویترین حساب بسازید. خرید حضوری — بدون انتظار ارسال آنلاین.</p>
+        <a href="/s  <footer class="site-footer inner-footer" aria-label="پیوندهای حقوقی و راهنما">
+    <nav class="footer-links" aria-label="پیوندهای تکمیلی">
+      <a href="/help">راهنما</a>
+      <a href="/guide">راهنمای کاربر</a>
+      <a href="/safety">خرید امن</a>
+      <a href="/terms">قوانین استفاده</a>
+      <a href="/privacy">حریم خصوصی</a>
+    </nav>
     <div class="footer-bottom">
       <span>© {{ now().year if now is defined else '۲۰۲۶' }} کی‌داره</span>
-      <span>ساخته‌شده با ❤️ برای فروش حضوری محلی</span>
     </div>
-  </footer>
-
-  <div id="pageToast" class="toast" role="status" aria-live="polite"></div>
-
-  <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/location-picker.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/pages.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/pwa-rules.js') }}" defer></script>
+  </footer>rl_for('static', filename='js/pwa-rules.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
   {% block scripts %}{% endblock %}
 
   <script>
     (() => {
-      /* Sticky header shadow on scroll */
       const header = document.getElementById("siteHeader");
-      if (header) {
-        const onScroll = () => {
-          header.classList.toggle("is-scrolled", window.scrollY > 8);
-        };
-        onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-      }
-
-      /* Market ticker rotation */
-      const root = document.getElementById("marketTicker");
-      const message = document.getElementById("marketTickerMessage");
-      const link = document.getElementById("marketTickerLink");
-      if (!root || !message || !link) return;
-
-      const items = [
-        { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "/#listings" },
-        { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
-        { text: "دنبال کالای خاصی هستی؟ جست‌وجو و دسته‌بندی‌ها کمکت می‌کنند زودتر پیدایش کنی.", label: "جست‌وجو", href: "/search" },
-        { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
-        { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "/#marketCityCombobox" }
-      ];
-
-      let index = 0;
-      let timer = null;
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      function show(next) {
-        index = (next + items.length) % items.length;
-        message.textContent = items[index].text;
-        link.href = items[index].href;
-        link.innerHTML = "";
-        link.append(document.createTextNode(items[index].label + " "));
-        const arrow = document.createElement("span");
-        arrow.setAttribute("aria-hidden", "true");
-        arrow.textContent = "←";
-        link.append(arrow);
-      }
-
-      function stop() {
-        if (timer !== null) {
-          window.clearInterval(timer);
-          timer = null;
-        }
-      }
-
-      function start() {
-        stop();
-        if (!reduceMotion && !document.hidden) {
-          timer = window.setInterval(() => show(index + 1), 5200);
-        }
-      }
-
-      root.addEventListener("mouseenter", stop);
-      root.addEventListener("mouseleave", start);
-      root.addEventListener("focusin", stop);
-      root.addEventListener("focusout", (event) => {
-        if (!root.contains(event.relatedTarget)) start();
-      });
-      document.addEventListener("visibilitychange", () => {
-        document.hidden ? stop() : start();
-      });
-
-      show(0);
-      start();
+      if (!header) return;
+      const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 8);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
     })();
   </script>
 </body>
