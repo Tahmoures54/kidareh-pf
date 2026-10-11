@@ -485,3 +485,17 @@ def test_admin_dashboard_exposes_real_ticket_reply_action():
     assert 'root.querySelectorAll("[data-reply-ticket]")' in script
     assert '"/api/support/tickets/"+b.dataset.replyTicket+"/messages"' in script
     assert 'در حال بررسی' in script
+
+
+
+def test_registration_form_uses_vertical_layout_and_mobile_sizing(client):
+    html = client.get("/register").get_data(as_text=True)
+    css = read("static/css/auth-pages.css")
+    assert "auth-pages.css?v=20261011-register-column-v1" in html
+    assert '.auth-page[data-auth-mode="register"] .auth-role-grid' in css
+    assert '.auth-page[data-auth-mode="register"] .auth-field-row' in css
+    assert "grid-template-columns: minmax(0, 1fr);" in css
+    assert '@media (max-width: 520px)' in css
+    assert 'id="continueRoleButton"' in html
+    assert 'id="authPhoneStep"' in html
+    assert 'id="authProfileStep"' in html
