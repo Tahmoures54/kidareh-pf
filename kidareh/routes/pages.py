@@ -3,7 +3,7 @@ import time
 
 from flask import Blueprint, Response, abort, redirect, render_template, request, session, url_for
 from xml.sax.saxutils import escape as xml_escape
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 import uuid
 from ..core import CATEGORIES, current_user, get_connection
 from ..data_catalog import CATEGORY_TREE, TRADE_GROUPS
@@ -33,14 +33,14 @@ def _registration_required():
     if current_user():
         return None
     destination = request.full_path.rstrip("?")
-    return redirect(url_for("pages.register_page", next=destination))
+    return redirect("/register?" + urlencode({"next": destination}))
 
 
 def _admin_required():
     """Keep administration screens private to authenticated administrators."""
     user = current_user()
     if not user:
-        return redirect(url_for("pages.register_page", next=request.full_path.rstrip("?")))
+        return redirect("/register?" + urlencode({"next": request.full_path.rstrip("?")}))
     admin_phone = os.environ.get("ADMIN_PHONE", "").strip()
     if not admin_phone or user.get("phone") != admin_phone or not user.get("phone_verified_at"):
         abort(403)
