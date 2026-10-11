@@ -98,15 +98,13 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
     assert 'id="citySelect"' in html
     assert 'value="تهران"' in html
     assert 'id="marketListingsTitle">بازار تهران</h2>' in html
-    assert 'id="citySelect"' not in html[html.index('id="searchForm"'):html.index('</form>', html.index('id="searchForm"'))]
-    assert "کالاها و خدمات معرفی‌شده" not in html
-    assert 'id="categorySelect"' in html
-    assert 'id="findMyLocationButton"' not in html
-    assert 'id="nearbyListingsButton"' in html
-    assert 'id="nearbyListingsButton"' in html[html.index('id="searchForm"'):html.index('</form>', html.index('id="searchForm"'))]
+    assert 'class="header-search-link" href="/search"' in html
+    assert 'id="searchForm"' not in html
+    assert 'id="searchInput"' not in html
+    assert 'id="categorySelect"' not in html
+    assert 'id="nearbyListingsButton"' not in html
     assert 'class="market-location-bar"' not in html
     assert 'class="category-grid"' not in html
-
 
 def test_homepage_geolocation_is_click_driven_and_uses_api_longitude_parameter():
     from pathlib import Path
@@ -240,3 +238,17 @@ def test_help_and_policy_pages_render_and_link_from_footer(monkeypatch, tmp_path
     home = client.get("/").get_data(as_text=True)
     for path in pages:
         assert f'href="{path}"' in home
+
+
+def test_header_search_icon_routes_to_dedicated_search_page(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "dedicated-search.sqlite3")
+    app_module.initialize_database()
+    client = app_module.app.test_client()
+    home = client.get("/").get_data(as_text=True)
+    search = client.get("/search?q=%DA%AF%D9%88%D8%B4%DB%8C&category=digital&city=%D8%AA%D9%87%D8%B1%D8%A7%D9%86").get_data(as_text=True)
+    assert 'class="header-search-link" href="/search"' in home
+    assert 'aria-label="جست‌وجوی کالا"' in home
+    assert 'id="pageSearchForm"' in search
+    assert 'id="pageQuery"' in search and 'value="گوشی"' in search
+    assert 'name="category"' in search and 'value="digital"' in search
+    assert 'id="pageCity"' in search and 'value="تهران"' in search
