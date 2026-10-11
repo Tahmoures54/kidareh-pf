@@ -477,3 +477,11 @@ def test_help_center_distinguishes_faq_from_actual_support(client):
     base = read("templates/base.html")
     assert '<a href="/help">سؤالات رایج</a>' in base
     assert '<a href="/support">پشتیبانی</a>' in base
+
+
+def test_admin_dashboard_exposes_real_ticket_reply_action():
+    script = read("static/js/communications.js")
+    assert 'data-reply-ticket="'+t.id+'"' in script
+    assert 'root.querySelectorAll("[data-reply-ticket]")' in script
+    assert '"/api/support/tickets/"+b.dataset.replyTicket+"/messages"' in script
+    assert 'در حال بررسی' in script
