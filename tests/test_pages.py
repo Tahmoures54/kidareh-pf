@@ -210,7 +210,7 @@ def test_homepage_uses_rotating_hero_message_and_contextual_action(monkeypatch, 
     assert 'action.addEventListener("focus", stop)' in template
 
 
-def test_help_and_policy_pages_render_and_link_from_mobile_navigation(monkeypatch, tmp_path):
+def test_help_and_policy_pages_render_and_link_from_footer(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "help-policy-pages.sqlite3")
     app_module.initialize_database()
     client = app_module.app.test_client()
@@ -227,7 +227,8 @@ def test_help_and_policy_pages_render_and_link_from_mobile_navigation(monkeypatc
         html = response.get_data(as_text=True)
         assert response.status_code == 200, path
         assert expected in html, path
-        assert 'class="mobile-bottom-nav"' in html, path
+        assert 'class="mobile-bottom-nav"' not in html, path
+        assert 'class="footer-links"' in html, path
         assert f'href="{path}"' in html, path
 
     home = client.get("/").get_data(as_text=True)
