@@ -93,7 +93,8 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
 
     assert response.status_code == 200
     assert 'id="activeMarketCity"' in html
-    assert html.index('id="marketTicker"') < html.index('id="activeMarketCity"')
+    assert 'id="homeRotatingMessage"' in html
+    assert 'id="homeMessageAction"' in html
     assert 'id="citySelect"' in html
     assert 'value="تهران"' in html
     assert 'id="marketListingsTitle">بازار تهران</h2>' in html
@@ -185,27 +186,28 @@ def test_category_options_are_shared_across_home_search_seller_and_registration(
         assert 'value="fresh_produce"' in html, path
 
 
-def test_homepage_uses_compact_accessible_message_ticker_instead_of_large_promo_carousel(monkeypatch, tmp_path):
-    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "compact-ticker.sqlite3")
+def test_homepage_uses_rotating_hero_message_and_contextual_action(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "hero-messages.sqlite3")
     app_module.initialize_database()
     response = app_module.app.test_client().get("/")
     html = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert 'id="marketTicker"' in html
-    assert 'id="marketTickerMessage" aria-live="polite"' in html
-    assert 'id="marketTickerLink"' in html
-    assert html.index('id="marketTicker"') < html.index('id="marketCityCombobox"')
+    assert 'id="homeRotatingMessage" aria-live="polite"' in html
+    assert 'id="homeMessageAction"' in html
+    assert 'class="market-ticker"' not in html
+    assert 'id="marketTicker"' not in html
     assert 'class="market-location-bar"' not in html
     assert 'id="promoBanner"' not in html
     assert 'class="promo-banner-slide"' not in html
 
     from pathlib import Path
-    script = Path(app_module.BASE_DIR / "static" / "js" / "app.js").read_text(encoding="utf-8")
-    assert "initMarketTicker" in script
-    assert "setInterval(() => show(index + 1), 5000)" in script
-    assert 'prefers-reduced-motion: reduce' in script
-    assert 'root.addEventListener("mouseenter", stop)' in script
+    template = Path(app_module.BASE_DIR / "templates" / "index.html").read_text(encoding="utf-8")
+    assert 'id="homeRotatingMessage"' in template
+    assert 'id="homeMessageAction"' in template
+    assert 'setInterval(showNext, 5000)' in template
+    assert 'prefers-reduced-motion: reduce' in template
+    assert 'action.addEventListener("focus", stop)' in template
 
 
 def test_help_and_policy_pages_render_and_link_from_mobile_navigation(monkeypatch, tmp_path):
