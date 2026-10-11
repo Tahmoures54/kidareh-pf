@@ -229,16 +229,17 @@
       inset-inline: 0;
       bottom: 0;
       z-index: 50;
+      width: 100%;
+      margin: 0;
       display: flex;
       justify-content: space-around;
       align-items: stretch;
       min-height: 60px;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-      background: color-mix(in srgb, var(--color-surface, #fff) 94%, transparent);
-      backdrop-filter: blur(14px) saturate(1.15);
-      -webkit-backdrop-filter: blur(14px) saturate(1.15);
-      border-top: 1px solid var(--color-line-soft, #E2E8F0);
-      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
+      padding: 0 max(0.25rem, env(safe-area-inset-left)) env(safe-area-inset-bottom, 0) max(0.25rem, env(safe-area-inset-right));
+      background: linear-gradient(90deg, #0E7490, #0891B2);
+      color: #F0F9FF;
+      border-top: 1px solid rgba(165, 243, 252, 0.4);
+      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.14);
     }
     .mobile-nav-item {
       flex: 1;
@@ -249,7 +250,7 @@
       gap: 0.15rem;
       min-height: 52px;
       padding: 0.4rem 0.25rem;
-      color: var(--color-muted, #64748B);
+      color: #E0F2FE;
       font-size: 0.7rem;
       font-weight: 600;
       text-decoration: none;
@@ -263,7 +264,13 @@
     }
     .mobile-nav-item:hover,
     .mobile-nav-item[aria-current="page"] {
-      color: var(--color-primary, #0E7490);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .mobile-nav-item:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: -3px;
+      border-radius: 8px;
     }
     .mobile-nav-item[aria-current="page"] span[aria-hidden] {
       transform: scale(1.12);
@@ -277,11 +284,12 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: linear-gradient(145deg, #0891B2, #0E7490);
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.28);
       color: #fff;
       font-size: 1.4rem;
-      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.35);
-      margin-top: -1.1rem;
+      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.2);
+      margin-top: -0.25rem;
     }
     .mobile-nav-item.nav-cta small {
       margin-top: 0.15rem;
@@ -402,8 +410,8 @@
         border-bottom-color: var(--color-line, #334155);
       }
       .mobile-bottom-nav {
-        background: color-mix(in srgb, var(--color-surface, #111B2A) 92%, transparent);
-        border-top-color: var(--color-line, #334155);
+        background: linear-gradient(90deg, #0C4A6E, #0E7490);
+        border-top-color: rgba(165, 243, 252, 0.35);
       }
       .market-ticker {
         background: linear-gradient(90deg, #0C4A6E, #0E7490);
@@ -471,7 +479,9 @@
 
 
   <footer class="site-footer inner-footer" aria-label="پیوندهای حقوقی">
-    <nav class="footer-links" aria-label="قوانین و حریم خصوصی">
+    <nav class="footer-links" aria-label="پیوندهای تکمیلی">
+      <a href="/help">راهنما</a>
+      <a href="/guide">راهنمای کاربر</a>
       <a href="/safety">خرید امن</a>
       <a href="/terms">قوانین استفاده</a>
       <a href="/privacy">حریم خصوصی</a>
