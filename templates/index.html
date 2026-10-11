@@ -419,7 +419,7 @@
 
   <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
     <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="off">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
     <a class="market-ticker-link" id="marketTickerLink" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
   </div>
 
@@ -508,42 +508,6 @@
   <datalist id="iranCityOptions"></datalist>
 
   <main id="main-content">
-    <section class="categories-section" aria-labelledby="categoriesTitle">
-      <div class="section-heading">
-        <div>
-          <span class="section-kicker">دسته‌بندی‌ها</span>
-          <h2 id="categoriesTitle">چه می‌خوای پیدا کنی؟</h2>
-        </div>
-        <a class="text-link" href="/search" style="color:#0E7490;font-size:0.85rem;font-weight:700;text-decoration:none;">همه دسته‌ها ←</a>
-      </div>
-      <div class="category-grid">
-        <a class="category-tile" href="/search?category=electronics" data-category="electronics">
-          <span class="category-symbol symbol-2" aria-hidden="true">📱</span>
-          الکترونیک
-        </a>
-        <a class="category-tile" href="/search?category=home" data-category="home">
-          <span class="category-symbol symbol-3" aria-hidden="true">🏠</span>
-          خانه و آشپزخانه
-        </a>
-        <a class="category-tile" href="/search?category=fashion" data-category="fashion">
-          <span class="category-symbol symbol-4" aria-hidden="true">👕</span>
-          پوشاک
-        </a>
-        <a class="category-tile" href="/search?category=services" data-category="services">
-          <span class="category-symbol symbol-5" aria-hidden="true">🔧</span>
-          خدمات
-        </a>
-        <a class="category-tile" href="/search?category=food" data-category="food">
-          <span class="category-symbol symbol-1" aria-hidden="true">🍎</span>
-          خوراکی
-        </a>
-        <a class="category-tile" href="/search?category=other" data-category="other">
-          <span class="category-symbol symbol-6" aria-hidden="true">✦</span>
-          سایر
-        </a>
-      </div>
-    </section>
-
     <section class="section listings-section" id="listings">
       <div class="section-heading">
         <div>
@@ -703,7 +667,7 @@
       function start() {
         stop();
         if (!reduceMotion && !document.hidden) {
-          timer = window.setInterval(() => show(index + 1), 5200);
+          timer = window.setInterval(() => show(index + 1), 5000);
         }
       }
 
