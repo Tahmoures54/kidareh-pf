@@ -154,7 +154,7 @@ def test_manifest_icon_files_exist_and_are_png(client):
 
 def test_service_worker_precaches_release_assets_and_versions_cache():
     sw = read("static/sw.js")
-    assert 'CACHE_VERSION = "v5"' in sw
+    assert 'CACHE_VERSION = "v6"' in sw
     for asset in ("/static/offline.html", "/static/css/style.css", "/static/css/theme-mh.css",
                   "/static/css/site-shell.css",
                   "/static/js/app.js", "/static/manifest.webmanifest",
