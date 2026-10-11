@@ -241,22 +241,6 @@
     @media (max-width: 420px) { .home-promo-visual { min-height: 320px; } .home-promo-slide { inset-inline: 4%; } }
     @media (prefers-reduced-motion: reduce) { .home-promo-slide, .home-promo-dot { transition: none !important; } }
 
-    /* Trust strip */
-    .trust-strip {
-      width: min(1000px, calc(100% - 1.5rem));
-      margin: 1.25rem auto 0; padding: 1rem 1.25rem;
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
-      border: 1px solid #E2E8F0; border-radius: 16px; background: #fff;
-      box-shadow: 0 2px 12px rgba(15,23,42,0.04);
-    }
-    .trust-strip > div { display: flex; align-items: center; gap: 0.7rem; justify-content: center; }
-    .trust-icon {
-      width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0;
-      border-radius: 11px; background: #ECFEFF; color: #0E7490; font-size: 1.15rem;
-    }
-    .trust-strip b { display: block; font-size: 0.82rem; color: #0F172A; }
-    .trust-strip small { display: block; margin-top: 0.1rem; color: #64748B; font-size: 0.7rem; }
-
     /* Categories */
     .categories-section {
       width: min(1100px, calc(100% - 1.5rem));
@@ -422,8 +406,8 @@
     .mobile-nav-item[aria-current="page"], .mobile-nav-item:hover { color: #fff; background: rgba(255,255,255,0.12); }
     .mobile-nav-item.nav-cta span[aria-hidden] {
       width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
-      background: linear-gradient(145deg, #0891B2, #0E7490); color: #fff;
-      font-size: 1.35rem; box-shadow: 0 4px 12px rgba(14,116,144,0.35); margin-top: -1rem;
+      background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.28);
+      font-size: 1.35rem; box-shadow: 0 4px 12px rgba(14,116,144,0.2); margin-top: -0.25rem;
     }
 
     .site-footer {
@@ -465,8 +449,6 @@
         grid-template-columns: 1fr; padding: 1.4rem 1.15rem;
       }
       .home-intro-art { min-height: 200px; order: -1; }
-      .trust-strip { grid-template-columns: 1fr; gap: 0.6rem; }
-      .trust-strip > div { justify-content: flex-start; }
       .listings-search { flex-direction: column; align-items: stretch; }
       .search-divider { display: none; }
       .search-field, .category-field { width: 100%; }
