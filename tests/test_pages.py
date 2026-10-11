@@ -254,7 +254,7 @@ def test_header_navigation_search_link_routes_to_dedicated_search_page(monkeypat
     search = client.get("/search?q=%DA%AF%D9%88%D8%B4%DB%8C&category=digital&city=%D8%AA%D9%87%D8%B1%D8%A7%D9%86").get_data(as_text=True)
     assert 'class="header-search-link" href="/search"' not in home
     assert '>جست‌وجوی کالا</a>' in home
-    assert 'aria-label="جست‌وجوی کالا"' in home
+    assert '<nav class="desktop-nav" aria-label="ناوبری اصلی">' in home
     assert 'id="pageSearchForm"' in search
     assert 'id="pageQuery"' in search and 'value="گوشی"' in search
     assert 'name="category"' in search and "digital" in search
