@@ -95,20 +95,23 @@ def test_components_stylesheet_is_loaded_after_theme_overlay(client):
 
 
 # ---------- Mobile navigation & AIDA home ----------
-def test_mobile_bottom_nav_is_removed_and_shared_header_remains(client):
-    for path in ("/", "/stores"):
-        html = client.get(path).get_data(as_text=True)
-        assert 'class="mobile-bottom-nav"' not in html, path
-        assert 'class="site-header"' in html, path
-    # The shared footer is guaranteed on the homepage; the stores directory
-    # currently uses a separate shell.
-    assert 'class="site-footer"' in client.get("/").get_data(as_text=True)
+def test_mobile_bottom_nav_is_homepage_only_and_full_width(client):
+    home = client.get("/").get_data(as_text=True)
+    assert 'class="mobile-bottom-nav"' in home
+    assert 'href="/search"' in home
+    assert 'href="/stores"' in home
+    assert 'href="/seller"' in home
+    assert "linear-gradient(90deg, #0E7490, #0891B2)" in home
+    stores = client.get("/stores").get_data(as_text=True)
+    assert 'class="mobile-bottom-nav"' not in stores
+    assert 'class="site-header"' in home
+    assert 'class="site-footer"' in home
 
 
 def test_home_has_single_primary_cta_above_the_fold():
     html = read("templates/index.html")
     hero_start = html.index('<section class="home-intro"')
-    hero_end = html.index('<div class="trust-strip"', hero_start)
+    hero_end = html.index('<datalist id="iranCityOptions"', hero_start)
     hero = html[hero_start:hero_end]
     assert "منتظر نمون تا مشتری بیاد!" in hero
     assert "ویترینت رو به دلِ خونه‌ها بفرست." in hero
