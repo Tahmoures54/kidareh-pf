@@ -99,8 +99,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-shell-v4" in home
-    assert "site-shell.css?v=20261011-shell-v4" in stores
+    assert "site-shell.css?v=20261011-shell-v5" in home
+    assert "site-shell.css?v=20261011-shell-v5" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
