@@ -2,59 +2,239 @@
 {% block title %}ثبت‌نام | کی‌داره{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css', v='20261011-register-turquoise-header-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css', v='20261011-register-v3') }}">
 <style>
-  /* Register polish on top of auth-pages.css */
-  .auth-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.28rem 0.7rem;
-    border-radius: 999px;
-    background: #ECFEFF;
-    border: 1px solid #A5F3FC;
-    color: #0E7490;
-    font-size: 0.78rem;
-    font-weight: 700;
+  /* ===== Register page — simple, guide-focused ===== */
+  .auth-page[data-auth-mode="register"] {
+    padding: 24px 16px 48px;
   }
-  .auth-security-strip {
+  .auth-page[data-auth-mode="register"] .auth-shell {
+    width: min(520px, 100%);
+    display: block;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow:
+      0 4px 6px -1px rgba(15, 23, 42, 0.04),
+      0 20px 40px -12px rgba(15, 23, 42, 0.10);
+  }
+
+  /* --- Simple guide header --- */
+  .auth-guide-head {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 1.15rem;
-    padding: 0.65rem 0.85rem;
-    border-radius: 11px;
-    background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
-    border: 1px solid #BBF7D0;
-    color: #166534;
-    font-size: 0.8rem;
-    font-weight: 600;
-    line-height: 1.5;
+    gap: 12px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #ECFEFF 0%, #F0F9FF 100%);
+    border-bottom: 1px solid #E0F2FE;
   }
-  .auth-security-strip span[aria-hidden] {
-    flex-shrink: 0;
+  .auth-guide-mark {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, #0891B2, #0E7490);
+    color: #FFFFFF;
+    font-size: 1.15rem;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+  }
+  .auth-guide-text {
+    min-width: 0;
+  }
+  .auth-guide-text h1 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.02em;
+  }
+  .auth-guide-text p {
+    margin: 3px 0 0;
+    font-size: 0.8rem;
+    color: #475569;
+    line-height: 1.55;
+  }
+  .auth-guide-text a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .auth-guide-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* --- Panel body --- */
+  .auth-page[data-auth-mode="register"] .auth-panel {
+    padding: 22px 22px 20px;
+  }
+
+  /* --- Numbered step indicator --- */
+  .auth-steps-indicator {
+    counter-reset: stepnum;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0 0 1.25rem;
+  }
+  .auth-steps-indicator .step-dot {
+    counter-increment: stepnum;
+    position: relative;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #E2E8F0;
+    color: #64748B;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .auth-steps-indicator .step-dot::before {
+    content: counter(stepnum);
+  }
+  .auth-steps-indicator .step-dot.active {
+    background: #0E7490;
+    color: #FFFFFF;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.16);
+  }
+  .auth-steps-indicator .step-dot.active::before {
+    content: counter(stepnum);
+  }
+  .auth-steps-indicator .step-dot.done {
+    background: #0891B2;
+    color: #FFFFFF;
+  }
+  .auth-steps-indicator .step-dot.done::before {
+    content: "✓";
+    font-size: 0.8rem;
+  }
+  .auth-steps-indicator .step-line {
+    flex: 1;
+    height: 2px;
+    background: #E2E8F0;
+    margin: 0 4px;
+  }
+
+  /* --- Step titles & helpers --- */
+  .auth-step-title {
+    margin: 0 0 0.35rem;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.01em;
+  }
+  .auth-step-help {
+    margin: 0 0 1.1rem;
+    font-size: 0.82rem;
+    color: #64748B;
+    line-height: 1.65;
+  }
+
+  /* --- Role cards: row style, guide-like --- */
+  .auth-page[data-auth-mode="register"] .auth-role-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .auth-page[data-auth-mode="register"] .role-card-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: start;
+    padding: 14px 14px;
+    gap: 12px;
+    border-radius: 14px;
+    border-width: 1.5px;
+  }
+  .auth-page[data-auth-mode="register"] .role-icon {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    border-radius: 11px;
+    background: #F1F5F9;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: background 0.2s ease;
+  }
+  .auth-page[data-auth-mode="register"] .role-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .auth-page[data-auth-mode="register"] .role-card-inner strong {
+    font-size: 0.92rem;
+    text-align: start;
+    display: block;
+  }
+  .auth-page[data-auth-mode="register"] .role-card-desc {
+    font-size: 0.78rem;
+    color: #64748B;
+    line-height: 1.55;
+    display: block;
+  }
+  .auth-page[data-auth-mode="register"] .auth-role-card input:checked + .role-card-inner .role-icon {
+    background: linear-gradient(145deg, #CFFAFE, #A5F3FC);
+  }
+
+  /* --- Inputs --- */
+  .auth-page[data-auth-mode="register"] .auth-input {
+    min-height: 52px;
     font-size: 1rem;
   }
-  .auth-otp-input {
-    letter-spacing: 0.45em;
-    font-variant-numeric: tabular-nums;
+
+  /* --- Captcha: stacked for clarity --- */
+  .auth-page[data-auth-mode="register"] .auth-captcha-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
+  .auth-page[data-auth-mode="register"] .auth-captcha-question {
+    min-width: 0;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+  .auth-page[data-auth-mode="register"] .auth-captcha-input {
+    max-width: none;
+  }
+
+  /* --- OTP overrides (over inline base) --- */
+  .auth-page[data-auth-mode="register"] .auth-otp-input {
+    letter-spacing: 0.35em;
+    font-size: 1.35rem;
+  }
+
+  /* --- Feedback --- */
   .auth-feedback:not(:empty) {
     padding: 0.65rem 0.85rem;
     border-radius: 10px;
     background: #FEF2F2;
     border: 1px solid #FECACA;
     color: #B91C1C;
+    margin-top: 0.85rem;
   }
   .auth-feedback.success:not(:empty) {
     background: #ECFDF5;
     border-color: #A7F3D0;
     color: #047857;
   }
-  .auth-panel-header {
-    margin-bottom: 1.15rem;
+
+  /* --- Divider inside seller details --- */
+  #sellerDetails .auth-divider {
+    margin-top: 1.25rem;
   }
-  .auth-role-card-priority .role-recommended {
+
+  /* --- Recommended pill --- */
+  .role-recommended {
     display: inline-block;
     margin-inline-start: 4px;
     padding: 2px 7px;
@@ -66,17 +246,93 @@
     white-space: nowrap;
     vertical-align: middle;
   }
-  #sellerDetails .auth-divider {
-    margin-top: 1.25rem;
-  }
-  @media (prefers-color-scheme: dark) {
-    .auth-kicker {
-      background: #083344;
-      border-color: #155E75;
-      color: #67E8F9;
+
+  /* --- Mobile --- */
+  @media (max-width: 520px) {
+    .auth-page[data-auth-mode="register"] {
+      padding: 12px 10px 32px;
     }
-    .auth-security-strip {
-      background: linear-gradient(135deg, #052E24, #064E3B);
+    .auth-page[data-auth-mode="register"] .auth-shell {
+      border-radius: 16px;
+    }
+    .auth-guide-head {
+      padding: 14px 16px;
+      gap: 10px;
+    }
+    .auth-guide-mark {
+      flex-basis: 38px;
+      width: 38px;
+      height: 38px;
+      font-size: 1rem;
+      border-radius: 10px;
+    }
+    .auth-guide-text h1 {
+      font-size: 1rem;
+    }
+    .auth-guide-text p {
+      font-size: 0.76rem;
+    }
+    .auth-page[data-auth-mode="register"] .auth-panel {
+      padding: 18px 16px 16px;
+    }
+    .auth-page[data-auth-mode="register"] .auth-input {
+      font-size: 16px;
+      min-height: 50px;
+    }
+    .auth-actions-row {
+      flex-direction: column;
+    }
+    .auth-actions-row .button {
+      width: 100%;
+      min-height: 50px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-steps-indicator .step-dot {
+      transition: none;
+    }
+  }
+
+  /* --- Dark mode --- */
+  @media (prefers-color-scheme: dark) {
+    .auth-page[data-auth-mode="register"] .auth-shell {
+      background: #0F172A;
+      border-color: #1E293B;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+    }
+    .auth-guide-head {
+      background: linear-gradient(135deg, #082F49, #0C4A6E);
+      border-bottom-color: #155E75;
+    }
+    .auth-guide-text h1 { color: #F0F9FF; }
+    .auth-guide-text p  { color: #BAE6FD; }
+    .auth-guide-text a  { color: #67E8F9; }
+
+    .auth-step-title { color: #F1F5F9; }
+    .auth-step-help  { color: #94A3B8; }
+
+    .auth-steps-indicator .step-dot {
+      background: #1E293B;
+      color: #94A3B8;
+    }
+    .auth-steps-indicator .step-line { background: #1E293B; }
+
+    .auth-page[data-auth-mode="register"] .role-icon {
+      background: #1E293B;
+    }
+    .auth-page[data-auth-mode="register"] .auth-role-card input:checked + .role-card-inner .role-icon {
+      background: linear-gradient(145deg, #155E75, #0E7490);
+    }
+    .auth-page[data-auth-mode="register"] .role-card-desc { color: #94A3B8; }
+
+    .auth-feedback:not(:empty) {
+      background: #450A0A;
+      border-color: #7F1D1D;
+      color: #FCA5A5;
+    }
+    .auth-feedback.success:not(:empty) {
+      background: #052E24;
       border-color: #065F46;
       color: #A7F3D0;
     }
@@ -88,71 +344,64 @@
 <section class="auth-page" data-auth-mode="register">
   <div class="auth-shell">
 
-    <aside class="auth-visual auth-visual-register" aria-hidden="true">
-      <div class="auth-visual-inner">
-        <div class="auth-brand-mark">ک</div>
-        <h2>به خانواده کی‌داره بپیوندید</h2>
-        <p>
-          ویترین آنلاین بسازید یا به‌عنوان خریدار کالاهای نزدیک را پیدا کنید
-          و حضوری هماهنگ شوید.
-        </p>
-        <ul class="auth-benefits">
-          <li><span class="benefit-icon">🏪</span> ساخت ویترین حرفه‌ای در چند دقیقه</li>
-          <li><span class="benefit-icon">📍</span> جذب مشتری محلی و حضوری</li>
-          <li><span class="benefit-icon">⚡</span> ثبت‌نام سریع فقط با شماره موبایل</li>
-        </ul>
+    <!-- Simple guide header -->
+    <header class="auth-guide-head">
+      <div class="auth-guide-mark" aria-hidden="true">ک</div>
+      <div class="auth-guide-text">
+        <h1>ساخت حساب در کی‌داره</h1>
+        <p>در ۴ گام ساده ثبت‌نام کنید. قبلاً ثبت‌نام کرده‌اید؟ <a href="/login">وارد شوید</a></p>
       </div>
-      <div class="auth-visual-glow"></div>
-    </aside>
+    </header>
 
     <div class="auth-panel">
-      <div class="auth-panel-header">
-        <span class="auth-kicker"><span aria-hidden="true">✦</span> ثبت‌نام رایگان</span>
-        <h1>ساخت حساب در کی‌داره</h1>
-        <p class="auth-subtitle">
-          نوع حساب را انتخاب کنید، شماره را تأیید کنید و شروع کنید.
-        </p>
-      </div>
 
-      <div class="auth-security-strip" role="note">
-        <span aria-hidden="true">✓</span>
-        <span>حساب فقط پس از تأیید کد پیامکی ساخته می‌شود. کد را با کسی به اشتراک نگذارید.</span>
-      </div>
-
+      <!-- Step indicator -->
       <div class="auth-steps-indicator" id="registerStepsIndicator" aria-hidden="true">
         <span class="step-dot active" data-step="role"></span>
         <span class="step-line"></span>
         <span class="step-dot" data-step="phone"></span>
         <span class="step-line"></span>
         <span class="step-dot" data-step="code"></span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="profile"></span>
       </div>
 
       <form id="authPageForm" class="auth-form" novalidate>
 
         <!-- Step 0: Role -->
         <div class="auth-step" id="authRoleStep" data-step="role">
-          <p class="auth-role-intro">چطور می‌خواهید از کی‌داره استفاده کنید؟</p>
+          <h2 class="auth-step-title">نوع حساب را انتخاب کنید</h2>
+          <p class="auth-step-help">
+            انتخاب شما مسیر ثبت‌نام را مشخص می‌کند. بعداً می‌توانید این انتخاب را تغییر دهید.
+          </p>
+
           <div class="auth-role-grid" role="radiogroup" aria-label="نوع حساب">
             <label class="auth-role-card auth-role-card-priority">
               <input type="radio" name="role" value="seller" checked>
               <div class="role-card-inner">
                 <div class="role-icon" aria-hidden="true">🏪</div>
-                <strong>
-                  فروشگاه‌دار
-                  <span class="role-recommended">پیشنهاد کی‌داره</span>
-                </strong>
-                <span>ساخت ویترین، افزودن کالا و جذب مشتری به فروشگاه حضوری</span>
+                <div class="role-card-body">
+                  <strong>
+                    فروشگاه‌دار
+                    <span class="role-recommended">پیشنهاد کی‌داره</span>
+                  </strong>
+                  <span class="role-card-desc">ویترین بسازید، کالا اضافه کنید و مشتری محلی جذب کنید.</span>
+                </div>
               </div>
             </label>
+
             <label class="auth-role-card">
               <input type="radio" name="role" value="buyer">
               <div class="role-card-inner">
                 <div class="role-icon" aria-hidden="true">🛍️</div>
-                <strong>خریدار / مشتری</strong>
-                <span>جست‌وجو، ذخیره کالا، دنبال‌کردن فروشگاه‌ها و هماهنگی حضوری</span>
+                <div class="role-card-body">
+                  <strong>خریدار / مشتری</strong>
+                  <span class="role-card-desc">کالاهای نزدیک خود را پیدا کنید و حضوری هماهنگ شوید.</span>
+                </div>
               </div>
             </label>
           </div>
+
           <button class="button button-primary auth-submit" type="button" id="continueRoleButton">
             ادامه
           </button>
@@ -160,26 +409,28 @@
 
         <!-- Step 1: Phone -->
         <div class="auth-step" id="authPhoneStep" data-step="phone" hidden>
+          <h2 class="auth-step-title">شماره موبایل خود را وارد کنید</h2>
+          <p class="auth-step-help">
+            یک کد ۶ رقمی برای تأیید شماره به این موبایل ارسال می‌شود.
+          </p>
+
           <label class="auth-label" for="regPhone">شماره همراه</label>
-          <div class="auth-input-wrap">
-            <span class="auth-input-prefix">+۹۸</span>
-            <input
-              class="auth-input"
-              type="tel"
-              id="regPhone"
-              name="phone"
-              inputmode="numeric"
-              autocomplete="tel"
-              placeholder="۹۱۲۳۴۵۶۷۸۹"
-              maxlength="11"
-              required
-              dir="ltr"
-              aria-describedby="regPhoneHint"
-            >
-          </div>
+          <input
+            class="auth-input"
+            type="tel"
+            id="regPhone"
+            name="phone"
+            inputmode="numeric"
+            autocomplete="tel"
+            placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+            maxlength="11"
+            required
+            dir="ltr"
+            aria-describedby="regPhoneHint"
+          >
           <p class="auth-hint" id="regPhoneHint">مثال: ۰۹۱۲۳۴۵۶۷۸۹</p>
 
-          <label class="auth-label" for="regCaptcha">محاسبه امنیتی</label>
+          <label class="auth-label" for="regCaptcha">پاسخ محاسبه امنیتی</label>
           <div class="auth-captcha-row">
             <span class="auth-captcha-question" id="captchaQuestion" aria-live="polite">…</span>
             <input
@@ -217,9 +468,12 @@
 
         <!-- Step 2: OTP -->
         <div class="auth-step" id="authCodeStep" data-step="code" hidden>
-          <p class="auth-otp-info">
-            کد ۶ رقمی به <strong id="otpPhoneLabel">—</strong> ارسال شد.
+          <h2 class="auth-step-title">کد تأیید را وارد کنید</h2>
+          <p class="auth-step-help">
+            کد ۶ رقمی به <strong id="otpPhoneLabel" dir="ltr">—</strong> ارسال شد.
+            اگر دریافت نکردید، با دکمهٔ زیر شماره را تغییر دهید.
           </p>
+
           <label class="auth-label" for="regOtp">کد تأیید</label>
           <input
             class="auth-input auth-otp-input"
@@ -235,6 +489,7 @@
             aria-describedby="regOtpHint"
           >
           <p class="auth-hint" id="regOtpHint">کد تا ۵ دقیقه معتبر است.</p>
+
           <div class="auth-actions-row">
             <button class="button button-outline" type="button" id="backToPhoneButton">
               تغییر شماره
@@ -247,6 +502,11 @@
 
         <!-- Step 3: Profile -->
         <div class="auth-step" id="authProfileStep" data-step="profile" hidden>
+          <h2 class="auth-step-title">اطلاعات حساب را کامل کنید</h2>
+          <p class="auth-step-help">
+            این اطلاعات در پروفایل شما نمایش داده می‌شود.
+          </p>
+
           <label class="auth-label" for="regName">نام و نام خانوادگی</label>
           <input
             class="auth-input"
@@ -378,8 +638,7 @@
       </form>
 
       <div class="auth-footer-links">
-        <p>قبلاً ثبت‌نام کرده‌اید؟ <a href="/login">وارد شوید</a></p>
-        <p class="auth-note">ثبت‌نام فقط پس از تأیید کد پیامکی انجام می‌شود.</p>
+        <p class="auth-note">حساب شما فقط پس از تأیید کد پیامکی فعال می‌شود.</p>
       </div>
     </div>
 
