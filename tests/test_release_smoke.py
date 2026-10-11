@@ -106,7 +106,10 @@ def test_home_and_inner_pages_use_shared_navigation_and_install_script(client):
     for path in ("/", "/stores", "/login"):
         response = client.get(path)
         html = response.get_data(as_text=True)
-        assert 'class="mobile-bottom-nav"' not in html, path
+        if path == "/":
+            assert 'class="mobile-bottom-nav"' in html
+        else:
+            assert 'class="mobile-bottom-nav"' not in html, path
         assert 'class="site-header"' in html or path == "/login"
         assert 'id="installAppButton"' in html or path == "/login"
         assert 'static/js/pwa.js' in html, path
