@@ -1,27 +1,355 @@
 {% extends "base.html" %}
 {% block title %}مرکز راهنمایی و پشتیبانی | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Help center ── */
+  .page-heading {
+    padding: 1.75rem 0 1.35rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.6rem;
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 40rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  /* Help topic cards */
+  .help-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .help-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.95rem;
+    padding: 1.2rem 1.15rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .help-card:hover {
+    transform: translateY(-3px);
+    border-color: #0891B2;
+    box-shadow: 0 8px 24px rgba(14, 116, 144, 0.1);
+  }
+  .help-card-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .help-card:nth-child(1) .help-card-icon { background: #ECFEFF; color: #0E7490; }
+  .help-card:nth-child(2) .help-card-icon { background: #ECFDF5; color: #059669; }
+  .help-card:nth-child(3) .help-card-icon { background: #F5F3FF; color: #7C3AED; }
+  .help-card:nth-child(4) .help-card-icon { background: #FFF7ED; color: #C2410C; }
+  .help-card h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .help-card p {
+    margin: 0;
+    color: var(--color-muted, #64748B);
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .help-card-arrow {
+    margin-inline-start: auto;
+    align-self: center;
+    color: #94A3B8;
+    font-size: 1rem;
+    transition: color 0.15s, transform 0.15s;
+  }
+  .help-card:hover .help-card-arrow {
+    color: #0E7490;
+    transform: translateX(-3px);
+  }
+
+  /* FAQ panel */
+  .faq-panel {
+    padding: 1.5rem 1.4rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .faq-panel > h2 {
+    margin: 0 0 1.1rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    letter-spacing: -0.02em;
+  }
+
+  .faq-list {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .faq-list details {
+    border: 1px solid var(--color-line-soft, #E2E8F0);
+    border-radius: 12px;
+    background: #F8FAFC;
+    overflow: hidden;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .faq-list details[open] {
+    border-color: #A5F3FC;
+    background: #ECFEFF;
+  }
+  .faq-list summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.5;
+    user-select: none;
+  }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after {
+    content: "⌄";
+    margin-inline-start: auto;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: #E2E8F0;
+    color: #64748B;
+    font-size: 0.85rem;
+    transition: transform 0.2s ease, background 0.15s, color 0.15s;
+  }
+  .faq-list details[open] summary::after {
+    transform: rotate(180deg);
+    background: #0E7490;
+    color: #fff;
+  }
+  .faq-list details p {
+    margin: 0;
+    padding: 0 1rem 1rem;
+    padding-inline-start: 1rem;
+    color: var(--color-muted, #475569);
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+
+  .policy-callout {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-top: 1.25rem;
+    padding: 1.1rem 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #A5F3FC;
+    background: linear-gradient(135deg, #ECFEFF, #F0F9FF);
+    color: var(--color-ink, #0F172A);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .policy-callout-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #CFFAFE;
+    color: #0E7490;
+    font-size: 1.1rem;
+  }
+  .policy-callout a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .policy-callout a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .help-card-grid { grid-template-columns: 1fr; }
+    .help-card-arrow { display: none; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .help-card,
+    .faq-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .faq-list details {
+      background: #17243A;
+      border-color: #334155;
+    }
+    .faq-list details[open] {
+      background: #083344;
+      border-color: #155E75;
+    }
+    .faq-list summary::after {
+      background: #334155;
+      color: #B6C2D2;
+    }
+    .faq-list details[open] summary::after {
+      background: #22D3EE;
+      color: #042F3A;
+    }
+    .help-card:nth-child(1) .help-card-icon { background: #083344; color: #67E8F9; }
+    .help-card:nth-child(2) .help-card-icon { background: #052E24; color: #34D399; }
+    .help-card:nth-child(3) .help-card-icon { background: #1E1B4B; color: #A78BFA; }
+    .help-card:nth-child(4) .help-card-icon { background: #431407; color: #FB923C; }
+    .policy-callout {
+      background: linear-gradient(135deg, #083344, #0C2233);
+      border-color: #155E75;
+      color: #E2E8F0;
+    }
+    .policy-callout-icon {
+      background: #155E75;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-heading">
-  <span class="section-kicker">همراه شما در کی‌داره</span>
+  <span class="section-kicker"><span aria-hidden="true">💬</span> همراه شما در کی‌داره</span>
   <h1>چطور می‌توانیم کمکتان کنیم؟</h1>
-  <p>پاسخ پرسش‌های رایج درباره پیدا کردن کالا، ویترین فروشگاه، گفت‌وگو با فروشنده و استفاده امن از کی‌داره را اینجا پیدا کنید.</p>
+  <p>
+    پاسخ پرسش‌های رایج درباره پیدا کردن کالا، ویترین فروشگاه، گفت‌وگو با فروشنده
+    و استفاده امن از کی‌داره را اینجا پیدا کنید.
+  </p>
 </section>
+
 <section class="help-card-grid" aria-label="موضوعات راهنما">
-  <a class="help-card" href="/guide"><span class="help-card-icon" aria-hidden="true">⌕</span><span><h2>راهنمای شروع</h2><p>از جست‌وجوی کالا تا هماهنگی برای مراجعه حضوری؛ قدم‌به‌قدم.</p></span></a>
-  <a class="help-card" href="/safety"><span class="help-card-icon" aria-hidden="true">✓</span><span><h2>خرید امن و جلوگیری از کلاهبرداری</h2><p>نکته‌هایی برای بررسی فروشگاه، قیمت و شرایط معامله.</p></span></a>
-  <a class="help-card" href="/terms"><span class="help-card-icon" aria-hidden="true">§</span><span><h2>قوانین استفاده</h2><p>مسئولیت خریدار و فروشنده و محتوای مجاز در کی‌داره.</p></span></a>
-  <a class="help-card" href="/privacy"><span class="help-card-icon" aria-hidden="true">♧</span><span><h2>حریم خصوصی</h2><p>اطلاعات حساب و نکته‌های مراقبت از اطلاعات شخصی.</p></span></a>
+  <a class="help-card" href="/guide">
+    <span class="help-card-icon" aria-hidden="true">⌕</span>
+    <span>
+      <h2>راهنمای شروع</h2>
+      <p>از جست‌وجوی کالا تا هماهنگی برای مراجعه حضوری؛ قدم‌به‌قدم.</p>
+    </span>
+    <span class="help-card-arrow" aria-hidden="true">←</span>
+  </a>
+  <a class="help-card" href="/safety">
+    <span class="help-card-icon" aria-hidden="true">🛡</span>
+    <span>
+      <h2>خرید امن</h2>
+      <p>نکته‌هایی برای بررسی فروشگاه، قیمت و جلوگیری از کلاهبرداری.</p>
+    </span>
+    <span class="help-card-arrow" aria-hidden="true">←</span>
+  </a>
+  <a class="help-card" href="/terms">
+    <span class="help-card-icon" aria-hidden="true">§</span>
+    <span>
+      <h2>قوانین استفاده</h2>
+      <p>مسئولیت خریدار و فروشنده و محتوای مجاز در کی‌داره.</p>
+    </span>
+    <span class="help-card-arrow" aria-hidden="true">←</span>
+  </a>
+  <a class="help-card" href="/privacy">
+    <span class="help-card-icon" aria-hidden="true">🔒</span>
+    <span>
+      <h2>حریم خصوصی</h2>
+      <p>اطلاعات حساب و نکته‌های مراقبت از اطلاعات شخصی.</p>
+    </span>
+    <span class="help-card-arrow" aria-hidden="true">←</span>
+  </a>
 </section>
-<section class="page-panel" style="margin-top:18px">
-  <h2>پرسش‌های پرتکرار</h2>
+
+<section class="faq-panel" aria-labelledby="faqTitle">
+  <h2 id="faqTitle">پرسش‌های پرتکرار</h2>
   <div class="faq-list">
-    <details><summary>آیا می‌توانم کالا را آنلاین سفارش بدهم؟</summary><p>کی‌داره در حال حاضر ویترین کالاها و فروشگاه‌ها را نمایش می‌دهد تا برای خرید حضوری هماهنگ کنید؛ سبد خرید، پرداخت آنلاین کالا و ارسال سفارش در این نسخه ارائه نمی‌شود.</p></details>
-    <details><summary>چطور کالای مورد نظرم را پیدا کنم؟</summary><p>از بخش جست‌وجو نام کالا یا دسته‌بندی را انتخاب کنید و در صورت نیاز شهر را مشخص کنید. پیش از مراجعه، موجودی و نشانی را مستقیماً با فروشنده هماهنگ کنید.</p></details>
-    <details><summary>چطور ویترین فروشگاهم را بسازم؟</summary><p>از بخش «ویترین من» وارد شوید و با شماره همراه خود حساب بسازید یا وارد شوید. سپس اطلاعات فروشگاه و کالاها را با دقت تکمیل کنید.</p></details>
-    <details><summary>قیمت و موجودی کالاها قطعی است؟</summary><p>اطلاعات را فروشنده درج می‌کند و ممکن است تغییر کند. پیش از حرکت، قیمت، موجودی، ساعات کاری و محل مراجعه را دوباره تأیید کنید.</p></details>
-    <details><summary>اگر محتوای مشکوک یا فروشنده متخلف دیدم چه کنم؟</summary><p>از ابزار گزارش‌دهی موجود در صفحه مربوط استفاده کنید یا از بخش پشتیبانی پیام بفرستید. اطلاعات حساس خود مانند رمز یک‌بارمصرف یا اطلاعات بانکی را ارسال نکنید.</p></details>
-    <details><summary>آیا برای پیدا کردن کالا باید مکان‌یابی را فعال کنم؟</summary><p>خیر. می‌توانید شهر را خودتان انتخاب کنید. دسترسی به موقعیت مکانی را فقط در صورت نیاز و با انتخاب خودتان فعال کنید.</p></details>
+    <details>
+      <summary>آیا می‌توانم کالا را آنلاین سفارش بدهم؟</summary>
+      <p>
+        کی‌داره در حال حاضر ویترین کالاها و فروشگاه‌ها را نمایش می‌دهد تا برای خرید حضوری هماهنگ کنید؛
+        سبد خرید، پرداخت آنلاین کالا و ارسال سفارش در این نسخه ارائه نمی‌شود.
+      </p>
+    </details>
+    <details>
+      <summary>چطور کالای مورد نظرم را پیدا کنم؟</summary>
+      <p>
+        از بخش جست‌وجو نام کالا یا دسته‌بندی را انتخاب کنید و در صورت نیاز شهر را مشخص کنید.
+        پیش از مراجعه، موجودی و نشانی را مستقیماً با فروشنده هماهنگ کنید.
+      </p>
+    </details>
+    <details>
+      <summary>چطور ویترین فروشگاهم را بسازم؟</summary>
+      <p>
+        از بخش «ویترین من» وارد شوید و با شماره همراه خود حساب بسازید یا وارد شوید.
+        سپس اطلاعات فروشگاه و کالاها را با دقت تکمیل کنید.
+      </p>
+    </details>
+    <details>
+      <summary>قیمت و موجودی کالاها قطعی است؟</summary>
+      <p>
+        اطلاعات را فروشنده درج می‌کند و ممکن است تغییر کند.
+        پیش از حرکت، قیمت، موجودی، ساعات کاری و محل مراجعه را دوباره تأیید کنید.
+      </p>
+    </details>
+    <details>
+      <summary>اگر محتوای مشکوک یا فروشنده متخلف دیدم چه کنم؟</summary>
+      <p>
+        از ابزار گزارش‌دهی موجود در صفحه مربوط استفاده کنید یا از بخش پشتیبانی پیام بفرستید.
+        اطلاعات حساس خود مانند رمز یک‌بارمصرف یا اطلاعات بانکی را ارسال نکنید.
+      </p>
+    </details>
+    <details>
+      <summary>آیا برای پیدا کردن کالا باید مکان‌یابی را فعال کنم؟</summary>
+      <p>
+        خیر. می‌توانید شهر را خودتان انتخاب کنید.
+        دسترسی به موقعیت مکانی را فقط در صورت نیاز و با انتخاب خودتان فعال کنید.
+      </p>
+    </details>
   </div>
-  <div class="policy-callout">هنوز پاسخ خود را پیدا نکردید؟ به <a href="/support"><strong>بخش پشتیبانی</strong></a> بروید و موضوع را برای تیم کی‌داره توضیح دهید.</div>
+
+  <div class="policy-callout" role="note">
+    <span class="policy-callout-icon" aria-hidden="true">💬</span>
+    <div>
+      هنوز پاسخ خود را پیدا نکردید؟
+      به <a href="/support">بخش پشتیبانی</a> بروید و موضوع را برای تیم کی‌داره توضیح دهید.
+    </div>
+  </div>
 </section>
 {% endblock %}
