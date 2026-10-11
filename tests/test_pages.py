@@ -252,3 +252,18 @@ def test_header_search_icon_routes_to_dedicated_search_page(monkeypatch, tmp_pat
     assert 'id="pageQuery"' in search and 'value="گوشی"' in search
     assert 'name="category"' in search and "digital" in search
     assert 'id="pageCity"' in search and 'value="تهران"' in search
+
+
+def test_search_page_prefills_city_from_saved_home_city_and_supports_scope_expansion():
+    from pathlib import Path
+
+    script = Path("static/js/pages.js").read_text(encoding="utf-8")
+    template = Path("templates/pages/catalog/search.html").read_text(encoding="utf-8")
+    assert 'localStorage.getItem("kidareh.marketCity")' in script
+    assert 'params.set("province", cityProvince)' in script
+    assert 'params.set("scope", "country")' in script
+    assert 'data-search-scope = "province"' in script
+    assert 'data-search-scope = "country"' in script
+    assert 'در این شهر نتیجه‌ای پیدا نشد' in script
+    assert 'در استان ' in script
+    assert "search-expansion" in template
