@@ -442,6 +442,11 @@ def manage_listing(listing_id: int):
             return jsonify({"error": "listing_not_found"}), 404
         if row["owner_id"] != user["id"]:
             return jsonify({"error": "listing_forbidden", "message": "فقط صاحب آگهی می‌تواند آن را تغییر دهد."}), 403
+        if user.get("role") != "seller":
+            return jsonify({
+                "error": "seller_account_required",
+                "message": "مدیریت کالا فقط برای حساب فروشنده در دسترس است.",
+            }), 403
         if request.method == "DELETE":
             image_path = row["image_path"] if row["image_path"] else ""
             connection.execute("DELETE FROM listings WHERE id = ?", (listing_id,))
