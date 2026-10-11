@@ -391,6 +391,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/location-picker.js') }}?v=20261011-search-city-v1" defer></script>
 <script>
   window.KIDAREH_PAGE = {
     type: "search",
@@ -399,7 +400,6 @@
     city: {{ city|tojson }}
   };
 
-  <script src="{{ url_for('static', filename='js/location-picker.js') }}?v=20261011-search-city-v1" defer></script>
   /* Popular chips → fill query and submit */
   document.querySelectorAll("[data-fill-query]").forEach((btn) => {
     btn.addEventListener("click", () => {
