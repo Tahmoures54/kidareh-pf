@@ -1,41 +1,376 @@
 {% extends "base.html" %}
 {% block title %}پروفایل من | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Account / Profile ── */
+  .page-heading {
+    padding: 1.75rem 0 1.15rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.5rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 36rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .account-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.15rem;
+  }
+  .account-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line, #CBD5E1);
+    background: var(--color-surface, #fff);
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .account-subnav a:hover {
+    color: #0E7490;
+    border-color: #0891B2;
+    background: #ECFEFF;
+  }
+  .account-subnav a[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #0891B2, #0E7490);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .account-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.75rem;
+  }
+
+  .page-panel {
+    padding: 1.35rem 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .page-panel > h2 {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+
+  /* Status banner */
+  .status-panel {
+    padding: 0.95rem 1.05rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #F0F9FF, #ECFEFF);
+    border: 1px solid #BAE6FD;
+    color: var(--color-muted, #475569);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+  }
+
+  /* Profile form */
+  #profileEditForm {
+    display: grid;
+    gap: 0.85rem;
+  }
+  #profileEditForm[hidden] {
+    display: none !important;
+  }
+  .auth-label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-ink, #0F172A);
+  }
+  .auth-input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 11px;
+    background: #F8FAFC;
+    color: var(--color-ink, #0F172A);
+    font: inherit;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .auth-input:focus {
+    border-color: #0E7490;
+    box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+    background: #fff;
+  }
+  .auth-input[readonly] {
+    background: #F1F5F9;
+    color: #64748B;
+    cursor: default;
+  }
+  .auth-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.78rem;
+    color: #94A3B8;
+    line-height: 1.6;
+  }
+
+  .account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+  }
+  .account-actions .button {
+    min-height: 42px;
+    padding-inline: 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  #profileFeedback {
+    margin: 0.35rem 0 0;
+    min-height: 1.25em;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0E7490;
+  }
+  #profileFeedback:empty {
+    display: none;
+  }
+
+  /* Shortcuts */
+  .shortcut-list {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .shortcut-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: #F8FAFC;
+    color: var(--color-ink, #0F172A);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .shortcut-list a:hover {
+    background: #ECFEFF;
+    border-color: #A5F3FC;
+    transform: translateX(-2px);
+  }
+  .shortcut-list a span {
+    color: #94A3B8;
+    font-size: 0.95rem;
+    transition: color 0.15s;
+  }
+  .shortcut-list a:hover span {
+    color: #0E7490;
+  }
+  .shortcut-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin-inline-end: 0.5rem;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    vertical-align: middle;
+  }
+  .shortcut-list a:nth-child(1) .shortcut-icon { background: #FEF2F2; color: #DC2626; }
+  .shortcut-list a:nth-child(2) .shortcut-icon { background: #ECFEFF; color: #0E7490; }
+  .shortcut-list a:nth-child(3) .shortcut-icon { background: #F5F3FF; color: #7C3AED; }
+  .shortcut-list a:nth-child(4) .shortcut-icon { background: #FFFBEB; color: #B45309; }
+  .shortcut-list a:nth-child(5) .shortcut-icon { background: #ECFDF5; color: #059669; }
+
+  @media (max-width: 760px) {
+    .account-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .page-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .status-panel {
+      background: linear-gradient(135deg, #0C2233, #083344);
+      border-color: #155E75;
+      color: #B6C2D2;
+    }
+    .auth-input {
+      background: #17243A;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+    .auth-input:focus {
+      background: #111B2A;
+      border-color: #22D3EE;
+    }
+    .auth-input[readonly] {
+      background: #0B1322;
+      color: #94A3B8;
+    }
+    .shortcut-list a {
+      background: #17243A;
+      color: #E2E8F0;
+    }
+    .shortcut-list a:hover {
+      background: #083344;
+      border-color: #155E75;
+    }
+    .account-subnav a {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+      color: var(--color-muted, #B6C2D2);
+    }
+    .account-subnav a[aria-current="page"] {
+      background: linear-gradient(180deg, #0891B2, #0E7490);
+      color: #fff;
+      border-color: transparent;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-heading">
-  <span class="section-kicker">حساب کاربری شما</span>
+  <span class="section-kicker"><span aria-hidden="true">☺</span> حساب کاربری شما</span>
   <h1>پروفایل من</h1>
   <p>اطلاعاتت را مدیریت کن و سریع به بخش موردنیازت برو.</p>
 </section>
+
+<nav class="account-subnav" aria-label="بخش‌های حساب">
+  <a href="/account" aria-current="page">حساب من</a>
+  <a href="/saved">ذخیره‌ها</a>
+  <a href="/following">دنبال‌شده‌ها</a>
+  <a href="/messages">گفت‌وگوها</a>
+</nav>
+
 <section class="account-layout">
   <div class="page-panel">
-    <div id="accountStatus" class="status-panel" role="status" aria-live="polite">در حال بررسی وضعیت حساب…</div>
+    <div id="accountStatus" class="status-panel" role="status" aria-live="polite">
+      در حال بررسی وضعیت حساب…
+    </div>
+
     <form id="profileEditForm" class="auth-form" hidden>
-      <label class="auth-label" for="profileName">نام و نام خانوادگی</label>
-      <input class="auth-input" id="profileName" name="name" maxlength="80" autocomplete="name" required>
-      <label class="auth-label" for="profilePhone">شماره همراه تأییدشده</label>
-      <input class="auth-input" id="profilePhone" readonly dir="ltr" aria-describedby="phoneHelp">
-      <p id="phoneHelp" class="auth-hint">شماره همراه برای حفظ امنیت حساب از این بخش قابل تغییر نیست.</p>
-      <div class="account-actions">
-        <button class="button button-primary" type="submit" id="saveProfileButton">ذخیره تغییرات</button>
-        <button class="button button-outline" type="button" id="cancelProfileButton">انصراف</button>
+      <div>
+        <label class="auth-label" for="profileName">نام و نام خانوادگی</label>
+        <input
+          class="auth-input"
+          id="profileName"
+          name="name"
+          maxlength="80"
+          autocomplete="name"
+          required
+          placeholder="مثلاً علی رضایی"
+        >
       </div>
+
+      <div>
+        <label class="auth-label" for="profilePhone">شماره همراه تأییدشده</label>
+        <input
+          class="auth-input"
+          id="profilePhone"
+          readonly
+          dir="ltr"
+          aria-describedby="phoneHelp"
+        >
+        <p id="phoneHelp" class="auth-hint">
+          شماره همراه برای حفظ امنیت حساب از این بخش قابل تغییر نیست.
+        </p>
+      </div>
+
+      <div class="account-actions">
+        <button class="button button-primary" type="submit" id="saveProfileButton">
+          ذخیره تغییرات
+        </button>
+        <button class="button button-outline" type="button" id="cancelProfileButton">
+          انصراف
+        </button>
+      </div>
+
       <p id="profileFeedback" role="status" aria-live="polite"></p>
     </form>
+
     <div id="accountActions" class="account-actions">
       <a class="button button-primary" href="/register">ساخت حساب</a>
       <a class="button button-outline" href="/login">ورود</a>
     </div>
   </div>
+
   <div class="page-panel">
     <h2>میانبرهای من</h2>
     <div class="shortcut-list">
-      <a href="/saved">♡ کالاهای ذخیره‌شده <span>←</span></a>
-      <a href="/following">⌂ فروشگاه‌های دنبال‌شده <span>←</span></a>
-      <a href="/messages">گفت‌وگوها <span>←</span></a>
-      <a href="/support">پشتیبانی <span>←</span></a>
-      <a href="/seller">▦ مدیریت ویترین <span>←</span></a>
+      <a href="/saved">
+        <span><span class="shortcut-icon" aria-hidden="true">♡</span> کالاهای ذخیره‌شده</span>
+        <span aria-hidden="true">←</span>
+      </a>
+      <a href="/following">
+        <span><span class="shortcut-icon" aria-hidden="true">★</span> فروشگاه‌های دنبال‌شده</span>
+        <span aria-hidden="true">←</span>
+      </a>
+      <a href="/messages">
+        <span><span class="shortcut-icon" aria-hidden="true">💬</span> گفت‌وگوها</span>
+        <span aria-hidden="true">←</span>
+      </a>
+      <a href="/support">
+        <span><span class="shortcut-icon" aria-hidden="true">🛟</span> پشتیبانی</span>
+        <span aria-hidden="true">←</span>
+      </a>
+      <a href="/seller">
+        <span><span class="shortcut-icon" aria-hidden="true">▦</span> مدیریت ویترین</span>
+        <span aria-hidden="true">←</span>
+      </a>
     </div>
   </div>
 </section>
 {% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"account"};</script>{% endblock %}
+
+{% block scripts %}
+<script>
+  window.KIDAREH_PAGE = { type: "account" };
+</script>
+{% endblock %}
