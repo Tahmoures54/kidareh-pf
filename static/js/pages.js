@@ -67,6 +67,7 @@
       state.cursor=data.next_before_id||(items.length?items[items.length-1].id:null);
       window.__kidarehPageState[stateKey]=state;
       target.innerHTML=state.items.length?state.items.map(productCard).join(""):'<div class="empty-page-state">کالایی با این مشخصات پیدا نشد. عبارت یا فیلتر دیگری را امتحان کن.</div>';
+      if (!append && !state.items.length && typeof options.onEmpty === "function") options.onEmpty({ params, target });
       const count=document.querySelector("#pageResultsCount");if(count)count.textContent=fmt.format(state.items.length)+" کالا";
       let more=document.querySelector("#pageLoadMoreListings");
       if(!more){ more=document.createElement("button"); more.id="pageLoadMoreListings"; more.type="button"; more.className="button button-outline"; more.style.margin="1rem auto"; more.textContent="نمایش کالاهای بیشتر"; target.insertAdjacentElement("afterend", more); more.addEventListener("click",()=>loadListings(container, params, {append:true})); }
@@ -101,26 +102,135 @@
     const queryInput = document.querySelector("#pageQuery");
     const categoryInput = document.querySelector("#pageCategory");
     const cityInput = document.querySelector("#pageCity");
-    if (!form || !queryInput || !categoryInput || !cityInput) return;
-    const syncUrl = () => {
+    const target = document.querySelector("#pageListings");
+    if (!form || !queryInput || !categoryInput || !cityInput || !target) return;
+
+    const normalize = value => String(value || "").trim().replace(/[ي]/g, "ی").replace(/[ك]/g, "ک");
+    const paramsAtLoad = new URLSearchParams(window.location.search);
+    try {
+      if (!cityInput.value.trim() && !paramsAtLoad.has("city")) {
+        cityInput.value = localStorage.getItem("kidareh.marketCity") || "";
+      }
+    } catch (_) { /* Search remains available if browser storage is blocked. */ }
+
+    let cityProvince = paramsAtLoad.get("province") || "";
+    let scope = paramsAtLoad.get("scope") === "country" ? "country" : (cityProvince ? "province" : "city");
+    let requestSerial = 0;
+
+    async function resolveProvince() {
+      if (!cityInput.value.trim()) return "";
+      try {
+        const response = await fetch("/api/locations?q=" + encodeURIComponent(cityInput.value.trim()), {
+          credentials: "same-origin",
+          headers: { "Accept": "application/json" }
+        });
+        if (!response.ok) return "";
+        const data = await response.json();
+        const city = (data.items || []).find(item =>
+          item.type === "city" && normalize(item.name) === normalize(cityInput.value)
+        );
+        return city?.province || "";
+      } catch (_) { return ""; }
+    }
+
+    function currentParams() {
+      const params = { q: queryInput.value.trim(), category: categoryInput.value };
+      if (scope === "city" && cityInput.value.trim()) params.city = cityInput.value.trim();
+      if (scope === "province" && cityProvince) params.province = cityProvince;
+      return params;
+    }
+
+    function syncUrl() {
       const params = new URLSearchParams();
       if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
       if (categoryInput.value) params.set("category", categoryInput.value);
       if (cityInput.value.trim()) params.set("city", cityInput.value.trim());
+      if (scope === "province" && cityProvince) params.set("province", cityProvince);
+      if (scope === "country") params.set("scope", "country");
       window.history.pushState({ search: true }, "", "/search" + (params.size ? "?" + params.toString() : ""));
-    };
-    const run = () => loadListings("#pageListings", { q: queryInput.value.trim(), category: categoryInput.value, city: cityInput.value.trim() });
-    form.addEventListener("submit", event => { event.preventDefault(); syncUrl(); run(); });
-    window.addEventListener("popstate", () => {
+    }
+
+    function showEmptyOptions({ target: resultTarget }) {
+      const message = document.createElement("div");
+      message.className = "search-expansion";
+      const title = document.createElement("strong");
+      const description = document.createElement("p");
+      const actions = document.createElement("div");
+      actions.className = "search-expansion-actions";
+      if (scope === "city") {
+        title.textContent = "در این شهر نتیجه‌ای پیدا نشد";
+        description.textContent = cityProvince
+          ? "می‌خواهی همین عبارت را در کل استان " + cityProvince + " جست‌وجو کنیم؟"
+          : "می‌توانیم جست‌وجو را در سراسر کشور گسترش بدهیم.";
+        if (cityProvince) {
+          const provinceButton = document.createElement("button");
+          provinceButton.type = "button";
+          provinceButton.className = "button button-primary";
+          provinceButton.dataset.searchScope = "province";
+          provinceButton.textContent = "جست‌وجو در استان " + cityProvince;
+          actions.appendChild(provinceButton);
+        }
+        const countryButton = document.createElement("button");
+        countryButton.type = "button";
+        countryButton.className = "button button-outline";
+        countryButton.dataset.searchScope = "country";
+        countryButton.textContent = "جست‌وجو در سراسر کشور";
+        actions.appendChild(countryButton);
+      } else if (scope === "province") {
+        title.textContent = "در استان " + cityProvince + " نتیجه‌ای پیدا نشد";
+        description.textContent = "اگر مایل باشی، همین جست‌وجو را در سراسر کشور ادامه می‌دهیم.";
+        const countryButton = document.createElement("button");
+        countryButton.type = "button";
+        countryButton.className = "button button-primary";
+        countryButton.dataset.searchScope = "country";
+        countryButton.textContent = "جست‌وجو در سراسر کشور";
+        actions.appendChild(countryButton);
+      } else {
+        title.textContent = "نتیجه‌ای پیدا نشد";
+        description.textContent = "عبارت جست‌وجو یا دسته‌بندی را تغییر بده و دوباره امتحان کن.";
+      }
+      message.append(title, description, actions);
+      resultTarget.replaceChildren(message);
+    }
+
+    async function run(nextScope = scope, updateHistory = false) {
+      const serial = ++requestSerial;
+      scope = nextScope;
+      if (scope === "province" && !cityProvince) cityProvince = await resolveProvince();
+      if (scope === "province" && !cityProvince) scope = "country";
+      const params = currentParams();
+      if (updateHistory) syncUrl();
+      await loadListings("#pageListings", params, {
+        onEmpty: ({ target: resultTarget }) => {
+          if (serial === requestSerial) showEmptyOptions({ target: resultTarget });
+        }
+      });
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      cityProvince = await resolveProvince();
+      run("city", true);
+    });
+    target.addEventListener("click", event => {
+      const button = event.target.closest("[data-search-scope]");
+      if (!button) return;
+      event.preventDefault();
+      run(button.dataset.searchScope, true);
+    });
+    window.addEventListener("popstate", async () => {
       const params = new URLSearchParams(window.location.search);
       queryInput.value = params.get("q") || "";
       categoryInput.value = params.get("category") || "";
-      cityInput.value = params.get("city") || "";
-      run();
+      cityInput.value = params.get("city") || cityInput.value;
+      cityProvince = params.get("province") || "";
+      const nextScope = params.get("scope") === "country" ? "country" : (cityProvince ? "province" : "city");
+      if (nextScope === "city") cityProvince = await resolveProvince();
+      run(nextScope);
     });
-    await run();
+    cityInput.addEventListener("change", () => { cityProvince = ""; scope = "city"; });
+    await run(scope);
   }
-  function initStores(){ const input=document.querySelector("#storeQuery"),form=document.querySelector("#storeSearchForm"); const run=()=>loadStores("#pageStores",input?.value.trim()||""); form?.addEventListener("submit",e=>{e.preventDefault();run()});if(input)input.value=page.query||"";run(); }
   async function initStoreDetail(){
     try{
       const data=await api("/api/stores/"+page.storeId);const s=data.store;
