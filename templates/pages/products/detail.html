@@ -1,4 +1,317 @@
 {% extends "base.html" %}
 {% block title %}جزئیات کالا | کی‌داره{% endblock %}
-{% block content %}<section class="page-heading"><a class="back-link" href="/search">← بازگشت به جست‌وجو</a><span class="section-kicker">جزئیات کالا</span><h1 id="productTitle">در حال دریافت کالا…</h1></section><section id="productDetail" class="product-detail-panel"><div class="loading-card">در حال دریافت اطلاعات کالا…</div></section><aside class="trust-notice" role="note" aria-label="هشدار امنیتی خرید حضوری"><span aria-hidden="true">⚠</span><div><strong>هرگز قبل از بازدید بیعانه ندهید.</strong><p>خرید حضوری را در محل و پس از دیدن کالا انجام دهید. <a href="/safety">راهنمای خرید امن</a></p></div></aside><div class="page-panel"><p>سؤالی درباره این کالا دارید؟</p><button id="startConversation" class="button button-primary" type="button">گفت‌وگوی مستقیم با فروشنده</button></div>{% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"product-detail",productId:{{ product_id|tojson }}};</script><script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Product detail ── */
+  .page-heading {
+    padding: 1.5rem 0 1.1rem;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+    color: #0E7490;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .back-link:hover { opacity: 0.8; }
+
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.75rem 0 0;
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+
+  .product-detail-panel {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.85fr) 1.15fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 18px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.05);
+    margin-bottom: 1.15rem;
+    min-height: 280px;
+  }
+
+  /* Loading / skeleton inside panel */
+  .product-detail-panel > .loading-card,
+  .product-detail-loading {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(200px, 0.85fr) 1.15fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .pd-skel-art {
+    min-height: 260px;
+    border-radius: 14px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .pd-skel-body {
+    display: grid;
+    gap: 0.65rem;
+    padding-top: 0.5rem;
+  }
+  .pd-skel-line {
+    height: 14px;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .pd-skel-line.w-80 { width: 80%; }
+  .pd-skel-line.w-50 { width: 50%; }
+  .pd-skel-line.w-65 { width: 65%; }
+  .pd-skel-line.w-40 { width: 40%; height: 28px; border-radius: 8px; }
+  .pd-skel-art::after,
+  .pd-skel-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  /* Enhance injected product content */
+  .product-detail-panel .product-detail-art {
+    min-height: 260px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #ECFEFF, #F0F9FF);
+    font-size: 4rem;
+  }
+  .product-detail-panel .product-detail-art img {
+    width: 100%;
+    height: 100%;
+    max-height: 360px;
+    object-fit: cover;
+  }
+  .product-detail-panel .product-detail-copy h2 {
+    margin: 0.2rem 0 0.65rem;
+    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .product-detail-panel .product-detail-copy p {
+    color: var(--color-muted, #64748B);
+    line-height: 1.85;
+    font-size: 0.92rem;
+  }
+  .product-detail-panel .product-detail-price {
+    display: block;
+    margin: 1rem 0;
+    color: #0E7490;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  /* Trust notice */
+  .trust-notice {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 1.15rem;
+    padding: 1.05rem 1.15rem;
+    border-radius: 14px;
+    border: 1px solid #FDE68A;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    color: var(--color-ink, #0F172A);
+  }
+  .trust-notice > span {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #FDE68A;
+    color: #B45309;
+    font-size: 1.1rem;
+  }
+  .trust-notice strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: #92400E;
+    font-size: 0.95rem;
+  }
+  .trust-notice p {
+    margin: 0;
+    color: #78716C;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .trust-notice a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .trust-notice a:hover { text-decoration: underline; }
+
+  /* Chat CTA */
+  .product-chat-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.35rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    margin-bottom: 1.75rem;
+  }
+  .product-chat-panel p {
+    margin: 0;
+    color: var(--color-muted, #475569);
+    font-size: 0.92rem;
+    line-height: 1.7;
+    max-width: 28rem;
+  }
+  .product-chat-panel strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--color-ink, #0F172A);
+    font-size: 1rem;
+  }
+  #startConversation {
+    min-height: 46px;
+    padding-inline: 1.25rem;
+    font-weight: 700;
+    border-radius: 11px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 700px) {
+    .product-detail-panel,
+    .product-detail-panel > .loading-card,
+    .product-detail-loading {
+      grid-template-columns: 1fr;
+    }
+    .pd-skel-art { min-height: 200px; }
+    .product-chat-panel {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    #startConversation { width: 100%; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .product-detail-panel,
+    .product-chat-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .pd-skel-art,
+    .pd-skel-line {
+      background: #334155;
+    }
+    .trust-notice {
+      background: linear-gradient(135deg, #2E2208, #1C1917);
+      border-color: #92400E;
+      color: #E2E8F0;
+    }
+    .trust-notice strong { color: #FBBF24; }
+    .trust-notice p { color: #A8A29E; }
+    .trust-notice > span {
+      background: #92400E;
+      color: #FDE68A;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pd-skel-art::after,
+    .pd-skel-line::after { animation: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <a class="back-link" href="/search">← بازگشت به جست‌وجو</a>
+  <span class="section-kicker"><span aria-hidden="true">▦</span> جزئیات کالا</span>
+  <h1 id="productTitle">در حال دریافت کالا…</h1>
+</section>
+
+<!--
+  JS fills #productDetail with image + copy + price.
+  Skeleton shows until content arrives.
+-->
+<section id="productDetail" class="product-detail-panel" aria-live="polite">
+  <div class="product-detail-loading" aria-hidden="true">
+    <div class="pd-skel-art"></div>
+    <div class="pd-skel-body">
+      <div class="pd-skel-line w-80"></div>
+      <div class="pd-skel-line w-50"></div>
+      <div class="pd-skel-line w-65"></div>
+      <div class="pd-skel-line w-40"></div>
+      <div class="pd-skel-line w-65"></div>
+    </div>
+  </div>
+</section>
+
+<aside class="trust-notice" role="note" aria-label="هشدار امنیتی خرید حضوری">
+  <span aria-hidden="true">⚠</span>
+  <div>
+    <strong>هرگز قبل از بازدید بیعانه ندهید.</strong>
+    <p>
+      خرید حضوری را در محل و پس از دیدن کالا انجام دهید.
+      <a href="/safety">راهنمای خرید امن</a>
+    </p>
+  </div>
+</aside>
+
+<div class="product-chat-panel">
+  <div>
+    <strong>سؤالی درباره این کالا دارید؟</strong>
+    <p>مستقیماً با فروشنده گفت‌وگو کنید و موجودی، قیمت نهایی و ساعات مراجعه را هماهنگ کنید.</p>
+  </div>
+  <button id="startConversation" class="button button-primary" type="button">
+    گفت‌وگوی مستقیم با فروشنده
+  </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.KIDAREH_PAGE = {
+    type: "product-detail",
+    productId: {{ product_id|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>
+{% endblock %}
