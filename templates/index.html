@@ -100,6 +100,35 @@
       background: linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 45%, #F8FAFC 100%);
       box-shadow: 0 12px 40px rgba(15,23,42,0.06); position: relative; overflow: hidden;
     }
+    .home-message-row {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0.65rem 1rem;
+      margin: 0 0 1rem; min-height: 2.5rem;
+    }
+    .home-rotating-message {
+      flex: 1 1 280px; min-width: 0; min-height: 1.8em; margin: 0; padding: 0;
+      color: #0E7490; background: transparent; border: 0; box-shadow: none;
+      font-size: clamp(0.88rem, 1.6vw, 1rem); font-weight: 700; line-height: 1.8;
+      transition: opacity 180ms ease;
+    }
+    .home-rotating-message.is-changing { opacity: 0; }
+    .home-message-action {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      flex: 0 0 auto; min-height: 36px; padding: 0.45rem 0.85rem;
+      border: 1px solid #0E7490; border-radius: 8px;
+      background: #0E7490; color: #fff; font-size: 0.8rem; font-weight: 750;
+      text-decoration: none; white-space: nowrap;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+    .home-message-action:hover { background: #0C637A; border-color: #0C637A; }
+    .home-message-action:focus-visible { outline: 3px solid #67E8F9; outline-offset: 3px; }
+    @media (max-width: 480px) {
+      .home-message-row { align-items: flex-start; gap: 0.5rem; }
+      .home-message-action { min-height: 34px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .home-rotating-message, .home-message-action { transition: none; }
+    }
+
     .home-intro-eyebrow {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.3rem 0.75rem; border-radius: 999px;
@@ -417,12 +446,6 @@
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
-    <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
-    <a class="market-ticker-link" id="marketTickerLink" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
-  </div>
-
   <header class="site-header" id="siteHeader">
     <div class="brand-location-stack">
       <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
@@ -457,6 +480,10 @@
 
   <section class="home-intro" aria-labelledby="homeIntroTitle">
     <div class="home-intro-copy">
+      <div class="home-message-row">
+        <p class="home-rotating-message" id="homeRotatingMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+        <a class="home-message-action" id="homeMessageAction" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
+      </div>
       <span class="home-intro-eyebrow"><span aria-hidden="true">✦</span> بازار محلی، نزدیک شما</span>
       <h1 id="homeIntroTitle">دنبال چیزی هستی؟<br><span>اول ببین کی‌داره.</span></h1>
       <p>کالاها و خدمات فروشگاه‌های شهر را پیدا کن، گزینه‌ها را مقایسه کن و برای خرید حضوری آگاهانه‌تر تصمیم بگیر — بدون انتظار ارسال آنلاین.</p>
@@ -469,24 +496,6 @@
         <li><span aria-hidden="true">✓</span> انتخاب شهر دلخواه</li>
         <li><span aria-hidden="true">✓</span> هماهنگی برای خرید حضوری</li>
       </ul>
-    </div>
-    <div class="home-intro-art" aria-hidden="true">
-      <div class="home-intro-orbit home-intro-orbit-one"></div>
-      <div class="home-intro-orbit home-intro-orbit-two"></div>
-      <div class="home-intro-product-card">
-        <span class="home-intro-product-icon">⌕</span>
-        <span class="home-intro-product-line home-intro-product-line-wide"></span>
-        <span class="home-intro-product-line"></span>
-        <div class="home-intro-product-tags"><i></i><i></i><i></i></div>
-      </div>
-      <div class="home-intro-float home-intro-float-top">
-        <span>⌖</span>
-        <div><strong>بازار شهر تو</strong><small>انتخاب با خودت</small></div>
-      </div>
-      <div class="home-intro-float home-intro-float-bottom">
-        <span>✓</span>
-        <div><strong>خرید حضوری</strong><small>قبل از مراجعه بررسی کن</small></div>
-      </div>
     </div>
   </section>
 
@@ -627,33 +636,46 @@
         window.addEventListener("scroll", onScroll, { passive: true });
       }
 
-      const root = document.getElementById("marketTicker");
-      const message = document.getElementById("marketTickerMessage");
-      const link = document.getElementById("marketTickerLink");
-      if (!root || !message || !link) return;
+      const message = document.getElementById("homeRotatingMessage");
+      const action = document.getElementById("homeMessageAction");
+      if (!message || !action) return;
 
       const items = [
         { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "#listings" },
         { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
         { text: "دنبال کالای خاصی هستی؟ جست‌وجو و دسته‌بندی‌ها کمکت می‌کنند زودتر پیدایش کنی.", label: "جست‌وجو", href: "/search" },
-        { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
+        { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "فروشگاه‌ها", href: "/stores" },
         { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "#marketCityCombobox" }
       ];
 
       let index = 0;
       let timer = null;
+      let transitionTimer = null;
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      function show(next) {
-        index = (next + items.length) % items.length;
+      function renderCurrent() {
         message.textContent = items[index].text;
-        link.href = items[index].href;
-        link.innerHTML = "";
-        link.append(document.createTextNode(items[index].label + " "));
+        action.href = items[index].href;
+        action.replaceChildren(document.createTextNode(items[index].label + " "));
         const arrow = document.createElement("span");
         arrow.setAttribute("aria-hidden", "true");
         arrow.textContent = "←";
-        link.append(arrow);
+        action.append(arrow);
+      }
+
+      function showNext() {
+        index = (index + 1) % items.length;
+        if (transitionTimer !== null) window.clearTimeout(transitionTimer);
+        if (reduceMotion) {
+          renderCurrent();
+          return;
+        }
+        message.classList.add("is-changing");
+        transitionTimer = window.setTimeout(() => {
+          renderCurrent();
+          message.classList.remove("is-changing");
+          transitionTimer = null;
+        }, 180);
       }
 
       function stop() {
@@ -662,17 +684,16 @@
       function start() {
         stop();
         if (!reduceMotion && !document.hidden) {
-          timer = window.setInterval(() => show(index + 1), 5000);
+          timer = window.setInterval(showNext, 5000);
         }
       }
 
-      root.addEventListener("mouseenter", stop);
-      root.addEventListener("mouseleave", start);
-      root.addEventListener("focusin", stop);
-      root.addEventListener("focusout", (e) => { if (!root.contains(e.relatedTarget)) start(); });
+      message.addEventListener("mouseenter", stop);
+      message.addEventListener("mouseleave", start);
+      action.addEventListener("focus", stop);
+      action.addEventListener("blur", start);
       document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
-
-      show(0);
+      renderCurrent();
       start();
     })();
   </script>
