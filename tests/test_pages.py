@@ -164,17 +164,18 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
 
 
 
-def test_category_options_are_shared_across_home_search_seller_and_registration(monkeypatch, tmp_path):
+def test_category_options_are_shared_across_search_seller_and_registration(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "shared-categories.sqlite3")
     app_module.initialize_database()
     client = app_module.app.test_client()
 
     pages = {
-        "/": ('id="categorySelect"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
         "/search": ('id="pageCategory"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
         "/seller": ('name="category"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
         "/register": ('id="storeCategory"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
     }
+    home = client.get("/").get_data(as_text=True)
+    assert 'id="categorySelect"' not in home
     for path, markers in pages.items():
         response = client.get(path)
         html = response.get_data(as_text=True)
@@ -182,7 +183,6 @@ def test_category_options_are_shared_across_home_search_seller_and_registration(
         assert all(marker in html for marker in markers), path
         assert 'value="food"' in html, path
         assert 'value="fresh_produce"' in html, path
-
 
 def test_homepage_uses_seller_focused_hero_and_image_promo_carousel(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "seller-hero.sqlite3")
