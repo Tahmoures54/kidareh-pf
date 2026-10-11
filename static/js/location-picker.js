@@ -35,11 +35,11 @@
     timers.set(input, timer);
   }
 
-  function initCityCombobox() {
-    const root = document.getElementById("marketCityCombobox");
-    const input = document.getElementById("citySelect");
-    const list = document.getElementById("marketCityOptions");
-    const toggle = document.getElementById("toggleMarketCityPicker");
+  function initCityCombobox(rootId, inputId, listId, toggleId) {
+    const root = document.getElementById(rootId);
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    const toggle = document.getElementById(toggleId);
     if (!root || !input || !list) return;
 
     let requestNumber = 0;
@@ -190,7 +190,8 @@
   }
 
   function init() {
-    initCityCombobox();
+    initCityCombobox("marketCityCombobox", "citySelect", "marketCityOptions", "toggleMarketCityPicker");
+    initCityCombobox("searchCityCombobox", "pageCity", "searchCityOptions", "toggleSearchCityPicker");
     document.querySelectorAll("input[data-iran-location]").forEach((input) => {
       input.addEventListener("input", () => suggestDatalist(input));
       input.setAttribute("autocomplete", "off");
