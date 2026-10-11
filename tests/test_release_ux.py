@@ -95,17 +95,22 @@ def test_components_stylesheet_is_loaded_after_theme_overlay(client):
 
 
 # ---------- Mobile navigation & AIDA home ----------
-def test_mobile_bottom_nav_is_homepage_only_and_full_width(client):
+def test_shared_shell_stylesheet_owns_full_width_footer_and_hides_mobile_action_strip(client):
     home = client.get("/").get_data(as_text=True)
-    assert 'class="mobile-bottom-nav"' in home
-    assert 'href="/search"' in home
-    assert 'href="/stores"' in home
-    assert 'href="/seller"' in home
-    assert "linear-gradient(90deg, #0E7490, #0891B2)" in home
     stores = client.get("/stores").get_data(as_text=True)
-    assert 'class="mobile-bottom-nav"' in stores
+    css = read("static/css/site-shell.css")
+    assert "site-shell.css?v=20261011-shell-v1" in home
+    assert "site-shell.css?v=20261011-shell-v1" in stores
+    assert ".site-footer" in css
+    assert "width: 100% !important;" in css
+    assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
+    assert ".mobile-bottom-nav {\n  display: none !important;" in css
     assert 'class="site-header"' in home
     assert 'class="site-footer"' in home
+    for path in ("static/css/style.css", "static/css/pages.css", "static/css/components.css", "static/css/theme-mh.css"):
+        source = read(path)
+        assert ".site-footer" not in source, path
+        assert ".mobile-bottom-nav" not in source, path
 
 
 def test_home_has_single_primary_cta_above_the_fold():

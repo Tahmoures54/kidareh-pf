@@ -13,11 +13,11 @@
   <meta name="description" content="کی‌داره؛ ببین کی‌داره، حضوری بگیر — ویترین آنلاین فروش حضوری بدون هزینهٔ ارسال.">
   <title>ببین کی داره؟ حضوری بگیر!</title>
   <link rel="preload" href="{{ url_for('static', filename='fonts/Vazirmatn-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-shell-v1">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
   <style>
     /* ── Homepage polish ── */
     .skip-link {
@@ -385,48 +385,22 @@
     .seller-banner .button { position: relative; justify-self: start; margin-top: 0.35rem; }
 
     /* Mobile nav & footer */
-    .mobile-bottom-nav {
-      position: fixed; inset-inline: 0; bottom: 0; z-index: 50;
-      display: flex; justify-content: space-around; align-items: stretch;
-      min-height: 58px; padding-bottom: env(safe-area-inset-bottom, 0);
-      width: 100%; left: 0; right: 0; margin: 0; border-radius: 0;
-      padding-inline: max(0.35rem, env(safe-area-inset-left)) max(0.35rem, env(safe-area-inset-right));
-      background: linear-gradient(90deg, #0E7490, #0891B2); color: #F0F9FF;
-      border-top: 1px solid rgba(165,243,252,0.4); box-shadow: 0 -4px 20px rgba(15,23,42,0.14);
-    }
-    .mobile-nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 0.2rem; min-width: 0; min-height: 56px; padding: 0.45rem 0.15rem; color: #E0F2FE;
-      font-size: 0.7rem; font-weight: 700; text-decoration: none; text-align: center;
-    }
-    .mobile-nav-item span[aria-hidden] { font-size: 1.25rem; line-height: 1; }
-    .mobile-nav-item[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.14); }
-    .mobile-nav-item:focus-visible { outline: 2px solid #fff; outline-offset: -3px; border-radius: 8px; }
+    
+    
+    
+    
+    
     @media (max-width: 899px) { #main-content { padding-bottom: 5.5rem; } }
-    .mobile-nav-item[aria-current="page"], .mobile-nav-item:hover { color: #fff; background: rgba(255,255,255,0.12); }
-    .mobile-nav-item.nav-cta span[aria-hidden] {
-      width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
-      background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.28);
-      font-size: 1.35rem; box-shadow: 0 4px 12px rgba(14,116,144,0.2); margin-top: -0.25rem;
-    }
+    
+    
 
-    .site-footer {
-      width: min(1100px, calc(100% - 1.5rem));
-      margin: 2.5rem auto 1.5rem; padding: 1.5rem 0 1.25rem;
-      border-top: 1px solid #E2E8F0; display: grid; gap: 1rem;
-    }
-    .footer-top {
-      display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1.25rem;
-    }
-    .footer-links { display: flex; flex-wrap: wrap; gap: 0.45rem 1.1rem; }
-    .footer-links a { color: #64748B; font-size: 0.82rem; font-weight: 500; text-decoration: none; }
-    .footer-links a:hover { color: #0E7490; }
-    .footer-note { margin: 0; color: #64748B; font-size: 0.8rem; line-height: 1.65; }
-    .footer-bottom {
-      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
-      padding-top: 0.85rem; border-top: 1px solid #E2E8F0;
-      font-size: 0.72rem; color: #94A3B8;
-    }
+    
+    
+    
+    
+    
+    
+    
 
     .toast {
       position: fixed; inset-inline-start: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
@@ -440,8 +414,8 @@
 
     @media (min-width: 900px) {
       .desktop-nav { display: flex; }
-      .mobile-bottom-nav { display: none; }
-      .site-footer { margin-bottom: 2rem; }
+      
+      
       .toast { bottom: 1.5rem; }
     }
     @media (max-width: 760px) {
@@ -461,12 +435,13 @@
       .home-intro-copy > p, .section-subtitle, .trust-strip small { color: #B6C2D2; }
       .trust-strip, .categories-section, .listings-search { background: #111B2A; border-color: #334155; }
       .category-tile { background: #17243A; border-color: #334155; color: #E2E8F0; }
-      .mobile-bottom-nav { background: linear-gradient(90deg, #0C4A6E, #0E7490); border-top-color: rgba(165,243,252,0.35); }
+      
     }
     @media (prefers-reduced-motion: reduce) {
       .skeleton-block::after, .skeleton-line::after { animation: none; }
     }
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site-shell.css') }}?v=20261011-shell-v1">
 </head>
 <body>
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>

@@ -268,11 +268,11 @@ h1, h2, h3, p { margin-top: 0; }
 .seller-copy p { max-width: 480px; margin: 0; color: #ECFEFF; font-size: 12px; line-height: 2; }
 .button-light { position: relative; z-index: 1; background: white; color: #0E7490; }
 .button-light:hover { background: #ECFEFF; }
-.site-footer { width: min(1100px, calc(100% - 48px)); min-height: 105px; margin: 35px auto 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-top: 1px solid #E2E8F0; }
+
 .footer-brand .brand-mark { width: 35px; height: 35px; border-radius: 10px; font-size: 20px; }
 .footer-brand .brand-copy strong { font-size: 15px; }
-.site-footer > p { margin: 0; color: #64748B; font-size: 11px; }
-.footer-note { color: #94A3B8; font-size: 9px; }
+
+
 .toast { position: fixed; z-index: 20; inset-inline-end: 50%; bottom: 24px; max-width: min(90vw, 450px); padding: 12px 20px; border: 1px solid #ffffff2b; border-radius: 10px; background: #0F172A; color: white; box-shadow: 0 12px 35px rgba(15,23,42,.2); font-size: 11px; opacity: 0; pointer-events: none; transform: translate(50%, 12px); transition: opacity .2s, transform .2s; }
 .toast.visible { opacity: 1; transform: translate(50%, 0); }
 @media (max-width: 960px) {
@@ -319,7 +319,7 @@ h1, h2, h3, p { margin-top: 0; }
   .seller-banner { width: calc(100% - 24px); flex-direction: column; padding: 24px 18px; border-radius: 14px; text-align: center; }
   .seller-art { flex-basis: 100px; height: 100px; }
   .seller-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-  .site-footer { width: calc(100% - 24px); flex-direction: column; text-align: center; min-height: 0; padding: 20px 0; }
+  
 }
 
 
@@ -355,7 +355,7 @@ h1, h2, h3, p { margin-top: 0; }
 .market-city-picker:focus-within { border-color: #0891B2; box-shadow: 0 0 0 3px #0891B21A; }
 .market-section-title { display: inline-flex; align-items: center; gap: 8px; padding-inline: 3px; animation: marketTitleGlow 3.2s ease-in-out infinite; }
 .market-section-title::before { content: ''; width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: #0EA5A4; box-shadow: 0 0 0 0 #0EA5A455; animation: marketDotPulse 2s ease-out infinite; }
-@keyframes marketTitleGlow { 0%,100% { text-shadow: 0 0 0 rgba(8,145,178,0); } 50% { text-shadow: 0 0 15px rgba(8,145,178,.22); } }
+@keyframes marketTitleGlow { 0%, 100% { text-shadow: 0 0 0 rgba(8,145,178,0); } 50% { text-shadow: 0 0 15px rgba(8,145,178,.22); } }
 @keyframes marketDotPulse { 0% { box-shadow: 0 0 0 0 #0EA5A455; } 70% { box-shadow: 0 0 0 8px #0EA5A400; } 100% { box-shadow: 0 0 0 0 #0EA5A400; } }
 @media (prefers-reduced-motion: reduce) { .market-section-title, .market-section-title::before { animation: none !important; } }
 @media (max-width: 700px) {

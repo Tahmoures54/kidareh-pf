@@ -70,10 +70,7 @@
   outline-offset: 0;
   border-color: var(--color-focus);
 }
-.field[aria-invalid="true"] input,
-.field.has-error input,
-.field.has-error select,
-.field.has-error textarea { border-color: var(--color-danger); background: var(--color-danger-soft); }
+.field[aria-invalid="true"] input, .field.has-error input, .field.has-error select, .field.has-error textarea { border-color: var(--color-danger); background: var(--color-danger-soft); }
 .field-error {
   display: flex;
   align-items: center;
@@ -110,7 +107,7 @@
 }
 .badge-success { background: var(--color-success-soft); color: var(--color-success); }
 .badge-warning { background: var(--color-warning-soft); color: var(--color-warning); }
-.badge-danger  { background: var(--color-danger-soft);  color: var(--color-danger); }
+.badge-danger { background: var(--color-danger-soft);  color: var(--color-danger); }
 .badge-neutral { background: var(--color-surface-2); color: var(--color-muted); }
 .badge-verified::before { content: "✓"; }
 
@@ -208,30 +205,25 @@
 }
 
 /* ---------- Touch targets (Fitts's law) ---------- */
-@media (max-width: 760px) {
-  .mobile-bottom-nav .mobile-nav-item { min-height: 52px; min-width: 52px; }
-}
+
 
 /* ---------- Dark mode surfaces ---------- */
 @media (prefers-color-scheme: dark) {
   body, .inner-page { background: var(--color-page); color: var(--color-ink); }
-  .site-header, .market-ticker, .site-footer, .mobile-bottom-nav,
-  .page-panel, .listing-card, .card, .modal, .product-detail-panel,
-  .metric-card, .community-list-item, .chat-bubble, .store-card,
-  .page-store-card, .hero, .home-intro, .search-panel, .auth-card {
+  .site-header, .market-ticker, .page-panel, .listing-card, .card, .modal, .product-detail-panel, .metric-card, .community-list-item, .chat-bubble, .store-card, .page-store-card, .hero, .home-intro, .search-panel, .auth-card {
     background: var(--color-surface);
     color: var(--color-ink);
     border-color: var(--color-line);
   }
-  .mobile-bottom-nav, .site-header { border-color: var(--color-line-soft); }
+  .site-header { border-color: var(--color-line-soft); }
   .button-quiet, .button-outline { color: var(--color-primary); border-color: var(--color-line); background: transparent; }
   .search-panel input, .search-field input, .city-field select, input, select, textarea {
     background-color: var(--color-surface-2);
     color: var(--color-ink);
     border-color: var(--color-line);
   }
-  .mobile-nav-item { color: var(--color-muted); }
-  .mobile-nav-item[aria-current="page"] { color: var(--color-primary); }
+  
+  
   .toast { background: var(--color-surface-2); color: var(--color-ink); border: 1px solid var(--color-line); }
   .page-heading h1, .page-heading h2, h1, h2, h3 { color: var(--color-ink); }
   .muted, .muted-copy, .page-store-copy small, .page-store-copy p, .listing-card small { color: var(--color-muted); }

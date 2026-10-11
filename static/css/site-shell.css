@@ -1,0 +1,97 @@
+/* Kidareh site shell: single source of truth for the shared footer and mobile-only strip. */
+:root {
+  --kidareh-turquoise-dark: #0E7490;
+  --kidareh-turquoise: #0891B2;
+  --kidareh-turquoise-light: #CFFAFE;
+  --kidareh-footer-text: #ECFEFF;
+}
+
+.site-footer {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box !important;
+  margin: 28px 0 0 !important;
+  padding: 24px max(16px, calc((100% - 1160px) / 2)) calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(207, 250, 254, .35) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise)) !important;
+  color: var(--kidareh-footer-text) !important;
+  box-shadow: none;
+}
+
+.site-footer .footer-links {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 20px;
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+}
+
+.site-footer .footer-links a {
+  color: var(--kidareh-footer-text) !important;
+  font-size: .82rem;
+  font-weight: 650;
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+
+.site-footer .footer-links a:hover,
+.site-footer .footer-links a:focus-visible {
+  color: #FFFFFF !important;
+  text-decoration: underline;
+}
+
+.site-footer .footer-bottom {
+  display: flex !important;
+  justify-content: center;
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(207, 250, 254, .28);
+  color: var(--kidareh-turquoise-light) !important;
+  text-align: center;
+}
+
+/* The separate mobile action strip is intentionally not displayed. */
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+body {
+  padding-bottom: 0 !important;
+}
+
+@media (max-width: 899px) {
+  #main-content {
+    padding-bottom: 1.25rem !important;
+  }
+
+  .site-footer {
+    margin-top: 20px !important;
+    padding-inline: 16px !important;
+  }
+
+  .site-footer .footer-links {
+    gap: 10px 14px;
+  }
+}
+
+@media (min-width: 900px) {
+  .site-footer {
+    margin-top: 28px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer a {
+    transition: none !important;
+  }
+}

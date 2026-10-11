@@ -28,10 +28,10 @@
   <meta name="twitter:title" content="{{ meta_title or 'ببین کی داره؟ حضوری بگیر!' }}">
   <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
   <link rel="preload" href="{{ url_for('static', filename='fonts/Vazirmatn-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-shell-v1">
   <style>
     /* ── Base layout enhancements ── */
     .skip-link {
@@ -224,127 +224,27 @@
     }
 
     /* Mobile bottom nav */
-    .mobile-bottom-nav {
-      position: fixed;
-      inset-inline: 0;
-      bottom: 0;
-      z-index: 50;
-      width: 100%;
-      margin: 0;
-      display: flex;
-      justify-content: space-around;
-      align-items: stretch;
-      min-height: 60px;
-      padding: 0 max(0.25rem, env(safe-area-inset-left)) env(safe-area-inset-bottom, 0) max(0.25rem, env(safe-area-inset-right));
-      background: linear-gradient(90deg, #0E7490, #0891B2);
-      color: #F0F9FF;
-      border-top: 1px solid rgba(165, 243, 252, 0.4);
-      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.14);
-    }
-    .mobile-nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.15rem;
-      min-height: 52px;
-      padding: 0.4rem 0.25rem;
-      color: #E0F2FE;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: color 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .mobile-nav-item span[aria-hidden] {
-      font-size: 1.35rem;
-      line-height: 1;
-      transition: transform 0.2s ease;
-    }
-    .mobile-nav-item:hover,
-    .mobile-nav-item[aria-current="page"] {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.12);
-    }
-    .mobile-nav-item:focus-visible {
-      outline: 2px solid #fff;
-      outline-offset: -3px;
-      border-radius: 8px;
-    }
-    .mobile-nav-item[aria-current="page"] span[aria-hidden] {
-      transform: scale(1.12);
-    }
-    .mobile-nav-item.nav-cta {
-      position: relative;
-    }
-    .mobile-nav-item.nav-cta span[aria-hidden] {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      color: #fff;
-      font-size: 1.4rem;
-      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.2);
-      margin-top: -0.25rem;
-    }
-    .mobile-nav-item.nav-cta small {
-      margin-top: 0.15rem;
-    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     /* Footer */
-    .site-footer {
-      width: min(1160px, calc(100% - 2rem));
-      margin: 0 auto 5rem;
-      padding: 2rem 0 1.5rem;
-      border-top: 1px solid var(--color-line-soft, #E2E8F0);
-      display: grid;
-      gap: 1.5rem;
-    }
-    .footer-top {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1.5rem;
-    }
+    
+    
     .footer-brand .brand-copy small {
       max-width: 220px;
     }
-    .footer-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1.25rem;
-    }
-    .footer-links a {
-      color: var(--color-muted, #475569);
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-    .footer-links a:hover {
-      color: var(--color-primary, #0E7490);
-    }
-    .footer-note {
-      margin: 0;
-      color: var(--color-muted, #64748B);
-      font-size: 0.8rem;
-      line-height: 1.6;
-    }
-    .footer-bottom {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--color-line-soft, #E2E8F0);
-      font-size: 0.75rem;
-      color: var(--color-muted, #64748B);
-    }
+    
+    
+    
+    
+    
 
     /* Toast */
     .toast {
@@ -373,9 +273,9 @@
 
     @media (min-width: 900px) {
       .desktop-nav { display: flex; }
-      .mobile-bottom-nav { display: none; }
+      
       .page-shell { padding-bottom: 2.5rem; }
-      .site-footer { margin-bottom: 2rem; }
+      
       .toast { bottom: 1.5rem; }
     }
 
@@ -409,25 +309,21 @@
         background: color-mix(in srgb, var(--color-surface, #111B2A) 90%, transparent);
         border-bottom-color: var(--color-line, #334155);
       }
-      .mobile-bottom-nav {
-        background: linear-gradient(90deg, #0C4A6E, #0E7490);
-        border-top-color: rgba(165, 243, 252, 0.35);
-      }
+      
       .market-ticker {
         background: linear-gradient(90deg, #0C4A6E, #0E7490);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .brand-mark,
-      .mobile-nav-item span[aria-hidden],
-      .toast {
+      .brand-mark, .toast {
         transition: none !important;
       }
     }
   </style>
   {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site-shell.css') }}?v=20261011-shell-v1">
 </head>
 <body class="inner-page">
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
