@@ -1,42 +1,391 @@
 {% extends "base.html" %}
 {% block title %}راهنمای خرید امن | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Safety guide page ── */
+  .page-heading {
+    padding: 1.75rem 0 1.25rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.6rem;
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  .policy-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 1.5rem;
+    align-items: start;
+    padding-bottom: 2rem;
+  }
+  .policy-content {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .safety-card {
+    padding: 1.4rem 1.3rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-line, #CBD5E1);
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .safety-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .safety-card-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 1.25rem;
+  }
+  .safety-card-icon.before {
+    background: #ECFEFF;
+    color: #0E7490;
+  }
+  .safety-card-icon.during {
+    background: #FFFBEB;
+    color: #B45309;
+  }
+  .safety-card-icon.warning {
+    background: #FEF2F2;
+    color: #B91C1C;
+  }
+  .safety-card h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .safety-card-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .safety-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .safety-list li {
+    position: relative;
+    padding: 0.75rem 0.9rem;
+    padding-inline-start: 2.5rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--color-ink, #0F172A);
+  }
+
+  /* Positive checklist (before / during) */
+  .safety-list.check li {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+  }
+  .safety-list.check li::before {
+    content: "✓";
+    position: absolute;
+    inset-inline-start: 0.75rem;
+    top: 0.8rem;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: #DCFCE7;
+    color: #059669;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  /* Warning list */
+  .safety-list.warn li {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    color: #7F1D1D;
+  }
+  .safety-list.warn li::before {
+    content: "!";
+    position: absolute;
+    inset-inline-start: 0.75rem;
+    top: 0.8rem;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: #FEE2E2;
+    color: #DC2626;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .policy-callout {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1.15rem 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #FDE68A;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    color: var(--color-ink, #0F172A);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .policy-callout-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #FDE68A;
+    color: #B45309;
+    font-size: 1.1rem;
+  }
+  .policy-callout strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: #92400E;
+  }
+  .policy-callout a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .policy-callout a:hover { text-decoration: underline; }
+
+  /* Sidebar */
+  .policy-toc {
+    position: sticky;
+    top: 80px;
+    display: grid;
+    gap: 0.35rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .policy-toc-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .policy-toc a {
+    display: block;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+  }
+  .policy-toc a:hover,
+  .policy-toc a:focus-visible {
+    color: #0E7490;
+    background: #ECFEFF;
+  }
+  .policy-toc-divider {
+    height: 1px;
+    margin: 0.45rem 0;
+    background: var(--color-line-soft, #E2E8F0);
+  }
+  .policy-toc-related {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-muted, #94A3B8);
+  }
+
+  @media (max-width: 860px) {
+    .policy-layout { grid-template-columns: 1fr; }
+    .policy-toc {
+      position: static;
+      order: -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.85rem;
+    }
+    .policy-toc-title,
+    .policy-toc-divider,
+    .policy-toc-related { width: 100%; }
+    .policy-toc a {
+      padding: 0.4rem 0.7rem;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      font-size: 0.78rem;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .safety-card,
+    .policy-toc {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .safety-card-icon.before { background: #083344; color: #67E8F9; }
+    .safety-card-icon.during { background: #2E2208; color: #FBBF24; }
+    .safety-card-icon.warning { background: #2D1111; color: #F87171; }
+    .safety-list.check li {
+      background: #052E24;
+      border-color: #065F46;
+      color: #A7F3D0;
+    }
+    .safety-list.check li::before {
+      background: #064E3B;
+      color: #34D399;
+    }
+    .safety-list.warn li {
+      background: #2D1111;
+      border-color: #7F1D1D;
+      color: #FECACA;
+    }
+    .safety-list.warn li::before {
+      background: #450A0A;
+      color: #F87171;
+    }
+    .policy-callout {
+      background: linear-gradient(135deg, #2E2208, #1C1917);
+      border-color: #92400E;
+      color: #E2E8F0;
+    }
+    .policy-callout strong { color: #FBBF24; }
+    .policy-callout-icon {
+      background: #92400E;
+      color: #FDE68A;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-heading">
-  <span class="section-kicker">با دقت انتخاب کنید</span>
+  <span class="section-kicker"><span aria-hidden="true">🛡</span> با دقت انتخاب کنید</span>
   <h1>راهنمای خرید امن</h1>
-  <p>کی‌داره راه پیدا کردن کالا و فروشگاه را آسان‌تر می‌کند؛ تصمیم نهایی و هماهنگی معامله باید با بررسی و احتیاط انجام شود.</p>
+  <p>
+    کی‌داره راه پیدا کردن کالا و فروشگاه را آسان‌تر می‌کند؛
+    تصمیم نهایی و هماهنگی معامله باید با بررسی و احتیاط انجام شود.
+  </p>
 </section>
+
 <div class="policy-layout">
   <div class="policy-content">
-    <section class="page-panel">
-      <h2>پیش از مراجعه</h2>
-      <ul class="policy-list">
+
+    <section class="safety-card" id="before">
+      <div class="safety-card-header">
+        <span class="safety-card-icon before" aria-hidden="true">①</span>
+        <div>
+          <h2>پیش از مراجعه</h2>
+          <p class="safety-card-subtitle">قبل از رفتن به فروشگاه، این موارد را روشن کنید.</p>
+        </div>
+      </div>
+      <ul class="safety-list check">
         <li>قیمت، موجودی، نشانی دقیق، ساعات کاری و شرایط تحویل را با فروشنده تأیید کنید.</li>
         <li>اگر قیمت یا پیشنهاد به‌طور غیرعادی وسوسه‌کننده است، بیشتر بررسی کنید و برای تصمیم‌گیری عجله نکنید.</li>
         <li>درباره وضعیت کالا، اصالت، لوازم همراه، ضمانت و امکان بررسی پیش از خرید سؤال کنید.</li>
         <li>برای معامله حضوری، محل عمومی و امن را ترجیح دهید و در صورت امکان فرد مورد اعتمادی را مطلع کنید.</li>
       </ul>
     </section>
-    <section class="page-panel">
-      <h2>هنگام گفت‌وگو و پرداخت</h2>
-      <ul class="policy-list">
+
+    <section class="safety-card" id="during">
+      <div class="safety-card-header">
+        <span class="safety-card-icon during" aria-hidden="true">②</span>
+        <div>
+          <h2>هنگام گفت‌وگو و پرداخت</h2>
+          <p class="safety-card-subtitle">از اطلاعات حساس خود محافظت کنید.</p>
+        </div>
+      </div>
+      <ul class="safety-list check">
         <li>رمز یک‌بارمصرف، رمز کارت، اطلاعات ورود یا کد تأیید حساب خود را برای هیچ‌کس ارسال نکنید.</li>
         <li>برای دریافت پول، نصب برنامه ناشناس یا ورود به لینک پرداختی که به آن اطمینان ندارید، اقدام نکنید.</li>
         <li>پیش از پرداخت، کالا را بررسی کنید و مبلغ و شرایط نهایی را روشن کنید.</li>
         <li>اگر معامله با توضیحات اولیه متفاوت شد، می‌توانید آن را متوقف کنید.</li>
       </ul>
     </section>
-    <section class="page-panel">
-      <h2>نشانه‌های هشدار</h2>
-      <ul class="policy-list">
+
+    <section class="safety-card" id="warnings">
+      <div class="safety-card-header">
+        <span class="safety-card-icon warning" aria-hidden="true">⚠</span>
+        <div>
+          <h2>نشانه‌های هشدار</h2>
+          <p class="safety-card-subtitle">اگر یکی از این موارد را دیدید، محتاط باشید یا معامله را متوقف کنید.</p>
+        </div>
+      </div>
+      <ul class="safety-list warn">
         <li>فشار برای واریز فوری بیعانه یا انتقال وجه به حساب نامرتبط.</li>
         <li>امتناع از ارائه اطلاعات معقول درباره کالا یا فروشگاه.</li>
         <li>درخواست مدارک هویتی یا اطلاعات بانکی غیرضروری.</li>
         <li>لینک‌ها، رسیدها یا پیام‌هایی که شما را برای وارد کردن رمز یا اطلاعات کارت هدایت می‌کنند.</li>
       </ul>
     </section>
-    <div class="policy-callout"><strong>نکته مهم:</strong> کی‌داره ویترین و ابزار ارتباط را فراهم می‌کند و تضمین‌کننده کیفیت کالا، هویت همه فروشندگان یا نتیجه معامله نیست. محتوای مشکوک را از طریق <a href="/support"><strong>پشتیبانی</strong></a> گزارش کنید.</div>
+
+    <div class="policy-callout" role="note">
+      <span class="policy-callout-icon" aria-hidden="true">!</span>
+      <div>
+        <strong>نکته مهم</strong>
+        کی‌داره ویترین و ابزار ارتباط را فراهم می‌کند و تضمین‌کننده کیفیت کالا، هویت همه فروشندگان یا نتیجه معامله نیست.
+        محتوای مشکوک را از طریق <a href="/support">پشتیبانی</a> گزارش کنید.
+      </div>
+    </div>
+
   </div>
-  <aside class="policy-toc" aria-label="پیوندهای مرتبط"><strong>پیوندهای مفید</strong><a href="/help">مرکز راهنما</a><a href="/guide">راهنمای کاربر</a><a href="/terms">قوانین استفاده</a><a href="/privacy">حریم خصوصی</a></aside>
+
+  <aside class="policy-toc" aria-label="فهرست مطالب و پیوندهای مرتبط">
+    <p class="policy-toc-title">فهرست مطالب</p>
+    <a href="#before">پیش از مراجعه</a>
+    <a href="#during">گفت‌وگو و پرداخت</a>
+    <a href="#warnings">نشانه‌های هشدار</a>
+    <div class="policy-toc-divider" aria-hidden="true"></div>
+    <p class="policy-toc-related">پیوندهای مفید</p>
+    <a href="/help">مرکز راهنما</a>
+    <a href="/guide">راهنمای کاربر</a>
+    <a href="/terms">قوانین استفاده</a>
+    <a href="/privacy">حریم خصوصی</a>
+    <a href="/support">پشتیبانی</a>
+  </aside>
 </div>
 {% endblock %}
