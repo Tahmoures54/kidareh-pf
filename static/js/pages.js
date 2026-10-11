@@ -229,6 +229,7 @@
       run(nextScope);
     });
     cityInput.addEventListener("change", () => { cityProvince = ""; scope = "city"; });
+    if (scope === "city") cityProvince = await resolveProvince();
     await run(scope);
   }
   async function initStoreDetail(){
