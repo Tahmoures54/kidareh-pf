@@ -3,27 +3,427 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0E7490">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0E7490" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B1322" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="کی‌داره">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <meta name="description" content="کی‌داره؛ ببین کی‌داره، حضوری بگیر — ویترین آنلاین فروش حضوری بدون هزینهٔ ارسال.">
   <title>ببین کی داره؟ حضوری بگیر!</title>
   <link rel="preload" href="{{ url_for('static', filename='fonts/Vazirmatn-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+  <style>
+    /* ── Homepage polish ── */
+    .skip-link {
+      position: absolute; inset-inline-start: 1rem; top: -100px; z-index: 1000;
+      padding: 0.6rem 1.1rem; border-radius: 10px;
+      background: var(--color-primary, #0E7490); color: #fff;
+      font-weight: 700; font-size: 0.9rem; transition: top 0.2s ease;
+    }
+    .skip-link:focus { top: 0.75rem; outline: 3px solid #0891B2; outline-offset: 2px; }
+
+    .market-ticker {
+      display: flex; align-items: center; gap: 0.75rem; min-height: 38px;
+      padding: 0.45rem max(1rem, env(safe-area-inset-right)) 0.45rem max(1rem, env(safe-area-inset-left));
+      background: linear-gradient(90deg, #0E7490, #0891B2); color: #F0F9FF;
+      font-size: 0.8rem; font-weight: 600; overflow: hidden;
+    }
+    .market-ticker-mark { flex-shrink: 0; opacity: 0.85; }
+    .market-ticker-message {
+      margin: 0; flex: 1 1 auto; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .market-ticker-link {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.25rem 0.7rem; border-radius: 999px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(165,243,252,0.4);
+      color: #ECFEFF; font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+      text-decoration: none; transition: background 0.2s, border-color 0.2s;
+    }
+    .market-ticker-link:hover { background: rgba(255,255,255,0.25); border-color: #67E8F9; }
+
+    .site-header {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      min-height: 64px; padding: 0.55rem max(1.1rem, env(safe-area-inset-right)) 0.55rem max(1.1rem, env(safe-area-inset-left));
+      background: color-mix(in srgb, var(--color-surface, #fff) 92%, transparent);
+      backdrop-filter: blur(12px) saturate(1.2); -webkit-backdrop-filter: blur(12px) saturate(1.2);
+      border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+      transition: box-shadow 0.25s ease;
+    }
+    .site-header.is-scrolled { box-shadow: 0 4px 20px rgba(15,23,42,0.08); }
+
+    .brand-location-stack {
+      display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; min-width: 0;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 0.55rem; text-decoration: none; color: inherit; flex-shrink: 0; }
+    .brand-mark {
+      width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px;
+      background: linear-gradient(145deg, #0891B2, #0E7490); color: #fff;
+      font-size: 1.25rem; font-weight: 800; box-shadow: 0 4px 12px rgba(14,116,144,0.28);
+    }
+    .brand-copy { display: flex; flex-direction: column; line-height: 1.3; }
+    .brand-copy strong { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand-copy small { color: var(--color-muted, #475569); font-size: 0.68rem; font-weight: 500; }
+
+    .header-city-status {
+      display: none; padding: 0.2rem 0.65rem; border-radius: 999px;
+      background: #ECFEFF; color: #0E7490; font-size: 0.72rem; font-weight: 700;
+      border: 1px solid #A5F3FC;
+    }
+    @media (min-width: 640px) { .header-city-status { display: inline-flex; } }
+
+    .desktop-nav { display: none; align-items: center; gap: 0.15rem; }
+    .desktop-nav a {
+      padding: 0.4rem 0.8rem; border-radius: 999px; color: #64748B;
+      font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color 0.2s, background 0.2s;
+    }
+    .desktop-nav a:hover, .desktop-nav a.active {
+      color: #0E7490; background: #ECFEFF;
+    }
+    .header-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+    .header-actions .button { min-height: 38px; padding-inline: 0.85rem; font-size: 0.78rem; }
+
+    /* Hero */
+    .home-intro {
+      width: min(1100px, calc(100% - 1.5rem));
+      margin: 1.25rem auto 0;
+      padding: 2rem 1.75rem;
+      display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.5rem; align-items: center;
+      border-radius: 22px; border: 1px solid #E2E8F0;
+      background: linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 45%, #F8FAFC 100%);
+      box-shadow: 0 12px 40px rgba(15,23,42,0.06); position: relative; overflow: hidden;
+    }
+    .home-intro-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.75rem; border-radius: 999px;
+      background: rgba(255,255,255,0.75); border: 1px solid #A5F3FC;
+      color: #0E7490; font-size: 0.78rem; font-weight: 700;
+    }
+    .home-intro h1 {
+      margin: 0.9rem 0 0.7rem; font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 800; line-height: 1.35; letter-spacing: -0.03em; color: #0F172A;
+    }
+    .home-intro h1 span { color: #0E7490; }
+    .home-intro-copy > p {
+      margin: 0 0 1.25rem; max-width: 32rem; color: #64748B;
+      font-size: 0.95rem; line-height: 1.85;
+    }
+    .home-intro-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.1rem; }
+    .home-intro-secondary {
+      background: rgba(255,255,255,0.7); border: 1px solid #CBD5E1; color: #0E7490;
+    }
+    .home-intro-secondary:hover { background: #fff; border-color: #0E7490; }
+    .home-intro-points {
+      display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin: 0; padding: 0; list-style: none;
+    }
+    .home-intro-points li {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      color: #475569; font-size: 0.82rem; font-weight: 600;
+    }
+    .home-intro-points li span { color: #059669; font-weight: 800; }
+
+    .home-intro-art {
+      position: relative; min-height: 260px; display: grid; place-items: center;
+    }
+    .home-intro-orbit {
+      position: absolute; border-radius: 50%; border: 1px solid rgba(14,116,144,0.12);
+    }
+    .home-intro-orbit-one { width: 220px; height: 220px; }
+    .home-intro-orbit-two { width: 160px; height: 160px; border-color: rgba(14,116,144,0.2); }
+    .home-intro-product-card {
+      position: relative; z-index: 1; width: 180px; padding: 1.1rem;
+      border-radius: 16px; background: rgba(255,255,255,0.92);
+      border: 1px solid #fff; box-shadow: 0 16px 40px rgba(15,23,42,0.1);
+      display: grid; gap: 0.55rem; transform: rotate(-3deg);
+    }
+    .home-intro-product-icon {
+      width: 42px; height: 42px; display: grid; place-items: center;
+      border-radius: 12px; background: #ECFEFF; color: #0E7490; font-size: 1.3rem;
+    }
+    .home-intro-product-line {
+      display: block; height: 7px; border-radius: 99px; background: #E2E8F0;
+    }
+    .home-intro-product-line-wide { width: 72%; background: #A5F3FC; }
+    .home-intro-product-line:not(.home-intro-product-line-wide) { width: 48%; }
+    .home-intro-product-tags { display: flex; gap: 0.35rem; }
+    .home-intro-product-tags i {
+      display: block; width: 36px; height: 10px; border-radius: 99px; background: #F1F5F9;
+    }
+    .home-intro-float {
+      position: absolute; z-index: 2; display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.55rem 0.75rem; border-radius: 12px;
+      background: rgba(255,255,255,0.95); border: 1px solid #fff;
+      box-shadow: 0 6px 20px rgba(15,23,42,0.08); font-size: 0.72rem;
+    }
+    .home-intro-float span {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border-radius: 9px; background: #ECFEFF; color: #0E7490; font-size: 0.95rem;
+    }
+    .home-intro-float strong { display: block; font-size: 0.75rem; color: #0F172A; }
+    .home-intro-float small { color: #64748B; font-size: 0.65rem; }
+    .home-intro-float-top { top: 12px; inset-inline-end: 0; }
+    .home-intro-float-bottom { bottom: 16px; inset-inline-start: 0; }
+    .home-intro-float-bottom span { background: #ECFDF5; color: #059669; font-weight: 800; }
+
+    /* Trust strip */
+    .trust-strip {
+      width: min(1000px, calc(100% - 1.5rem));
+      margin: 1.25rem auto 0; padding: 1rem 1.25rem;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+      border: 1px solid #E2E8F0; border-radius: 16px; background: #fff;
+      box-shadow: 0 2px 12px rgba(15,23,42,0.04);
+    }
+    .trust-strip > div { display: flex; align-items: center; gap: 0.7rem; justify-content: center; }
+    .trust-icon {
+      width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0;
+      border-radius: 11px; background: #ECFEFF; color: #0E7490; font-size: 1.15rem;
+    }
+    .trust-strip b { display: block; font-size: 0.82rem; color: #0F172A; }
+    .trust-strip small { display: block; margin-top: 0.1rem; color: #64748B; font-size: 0.7rem; }
+
+    /* Categories */
+    .categories-section {
+      width: min(1100px, calc(100% - 1.5rem));
+      margin: 1.75rem auto 0; padding: 1.35rem 1.25rem;
+      border: 1px solid #E2E8F0; border-radius: 18px;
+      background: linear-gradient(135deg, #fff 0%, #F8FAFC 100%);
+      box-shadow: 0 8px 28px rgba(15,23,42,0.04);
+    }
+    .categories-section .section-heading { margin-bottom: 1rem; }
+    .category-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.7rem;
+    }
+    .category-tile {
+      min-height: 108px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.55rem; padding: 0.85rem 0.5rem; border: 1px solid #E2E8F0; border-radius: 14px;
+      background: #fff; color: #334155; font-size: 0.82rem; font-weight: 700;
+      text-decoration: none; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.03);
+    }
+    .category-tile:hover {
+      transform: translateY(-3px); border-color: #0891B2; color: #0E7490;
+      box-shadow: 0 6px 18px rgba(14,116,144,0.1);
+    }
+    .category-symbol {
+      width: 46px; height: 46px; display: grid; place-items: center;
+      border-radius: 12px; font-size: 1.35rem;
+    }
+    .symbol-1 { background: #e6f5e9; color: #4b9b6a; }
+    .symbol-2 { background: #e8f2fc; color: #4988c3; }
+    .symbol-3 { background: #fff0e5; color: #cb8952; }
+    .symbol-4 { background: #f4eafa; color: #9868b5; }
+    .symbol-5 { background: #ECFEFF; color: #0E7490; }
+    .symbol-6 { background: #fff4d9; color: #c39a3f; }
+
+    /* Listings section */
+    .listings-section {
+      width: min(1100px, calc(100% - 1.5rem));
+      margin: 2rem auto 0;
+    }
+    .section-heading {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap;
+    }
+    .section-kicker {
+      display: block; margin-bottom: 0.2rem; color: #0E7490;
+      font-size: 0.78rem; font-weight: 700;
+    }
+    .section-heading h2 { margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: -0.03em; color: #0F172A; }
+    .section-subtitle { margin: 0.35rem 0 0; color: #64748B; font-size: 0.85rem; line-height: 1.7; max-width: 36rem; }
+    .results-count {
+      display: inline-flex; align-items: center; padding: 0.35rem 0.75rem;
+      border-radius: 10px; background: #ECFEFF; color: #0E7490;
+      font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+    }
+
+    .listings-search {
+      width: 100%; max-width: 780px; min-height: 56px; padding: 0.4rem;
+      display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;
+      background: #fff; border: 1px solid #CBD5E1; border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(15,23,42,0.06); margin-bottom: 0.75rem;
+    }
+    .search-field, .category-field {
+      display: flex; align-items: center; gap: 0.45rem; min-width: 0; padding: 0 0.6rem;
+    }
+    .search-field { flex: 1 1 160px; }
+    .category-field { flex: 0 1 150px; }
+    .field-icon { color: #0E7490; font-size: 1.15rem; flex-shrink: 0; }
+    .search-field input, .category-field select {
+      width: 100%; min-width: 0; border: 0; outline: 0; background: transparent;
+      color: #0F172A; font-size: 0.88rem; font-family: inherit;
+    }
+    .search-divider { width: 1px; height: 28px; background: #E2E8F0; flex-shrink: 0; }
+    .button-search {
+      min-height: 44px; padding-inline: 1.1rem; border: 0; border-radius: 10px;
+      background: #0E7490; color: #fff; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    }
+    .button-search:hover { background: #0C637A; }
+    .nearby-search-button {
+      min-height: 44px; font-size: 0.8rem; white-space: nowrap;
+    }
+
+    .listings-popular {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem;
+      margin-bottom: 1.1rem; color: #64748B; font-size: 0.78rem;
+    }
+    .listings-popular button {
+      padding: 0.25rem 0.7rem; border: 1px solid #CBD5E1; border-radius: 999px;
+      background: #fff; color: #64748B; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .listings-popular button:hover { color: #0E7490; border-color: #0891B2; background: #ECFEFF; }
+
+    .listing-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem;
+    }
+    .loading-card, .skeleton-card {
+      min-height: 220px; border-radius: 14px; border: 1px solid #E2E8F0;
+      background: #fff; padding: 1rem; display: grid; gap: 0.65rem; align-content: start;
+    }
+    .skeleton-block {
+      height: 130px; border-radius: 12px; background: #F1F5F9;
+      position: relative; overflow: hidden;
+    }
+    .skeleton-block::after, .skeleton-line::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-line {
+      height: 12px; border-radius: 6px; background: #F1F5F9; position: relative; overflow: hidden;
+    }
+    .skeleton-line.w-70 { width: 70%; }
+    .skeleton-line.w-40 { width: 40%; }
+    @keyframes shimmer { to { transform: translateX(100%); } }
+
+    .empty-state {
+      grid-column: 1 / -1; display: grid; justify-items: center; gap: 0.6rem;
+      padding: 2.5rem 1.5rem; border: 1px dashed #CBD5E1; border-radius: 16px;
+      background: #F8FAFC; text-align: center; color: #64748B;
+    }
+    .empty-state span { font-size: 2.2rem; }
+    .empty-state h3 { margin: 0; color: #0F172A; font-size: 1.15rem; }
+    .empty-state p { margin: 0; max-width: 28rem; line-height: 1.7; }
+
+    /* Seller CTA */
+    .seller-banner {
+      width: min(1100px, calc(100% - 1.5rem));
+      margin: 2.25rem auto 0; padding: 1.75rem 1.5rem;
+      border-radius: 18px; position: relative; overflow: hidden;
+      background: linear-gradient(145deg, #0B1622 0%, #122033 50%, #0E7490 160%);
+      color: #F0F9FF; display: grid; gap: 0.85rem;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.15);
+    }
+    .seller-banner::before {
+      content: ""; position: absolute; top: -30%; inset-inline-start: -8%;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(8,145,178,0.3), transparent 70%);
+      pointer-events: none;
+    }
+    .seller-banner h2 { margin: 0; font-size: clamp(1.2rem, 2.5vw, 1.6rem); font-weight: 800; position: relative; }
+    .seller-banner p { margin: 0; max-width: 36rem; color: #CBD5E1; font-size: 0.9rem; line-height: 1.75; position: relative; }
+    .seller-banner .button { position: relative; justify-self: start; margin-top: 0.35rem; }
+
+    /* Mobile nav & footer */
+    .mobile-bottom-nav {
+      position: fixed; inset-inline: 0; bottom: 0; z-index: 50;
+      display: flex; justify-content: space-around; align-items: stretch;
+      min-height: 58px; padding-bottom: env(safe-area-inset-bottom, 0);
+      background: color-mix(in srgb, #fff 94%, transparent);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid #E2E8F0; box-shadow: 0 -4px 20px rgba(15,23,42,0.05);
+    }
+    .mobile-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.1rem; min-height: 52px; padding: 0.35rem 0.2rem; color: #64748B;
+      font-size: 0.68rem; font-weight: 600; text-decoration: none;
+    }
+    .mobile-nav-item span[aria-hidden] { font-size: 1.3rem; line-height: 1; }
+    .mobile-nav-item[aria-current="page"], .mobile-nav-item:hover { color: #0E7490; }
+    .mobile-nav-item.nav-cta span[aria-hidden] {
+      width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+      background: linear-gradient(145deg, #0891B2, #0E7490); color: #fff;
+      font-size: 1.35rem; box-shadow: 0 4px 12px rgba(14,116,144,0.35); margin-top: -1rem;
+    }
+
+    .site-footer {
+      width: min(1100px, calc(100% - 1.5rem));
+      margin: 2.5rem auto 5.5rem; padding: 1.5rem 0 1.25rem;
+      border-top: 1px solid #E2E8F0; display: grid; gap: 1rem;
+    }
+    .footer-top {
+      display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1.25rem;
+    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0.45rem 1.1rem; }
+    .footer-links a { color: #64748B; font-size: 0.82rem; font-weight: 500; text-decoration: none; }
+    .footer-links a:hover { color: #0E7490; }
+    .footer-note { margin: 0; color: #64748B; font-size: 0.8rem; line-height: 1.65; }
+    .footer-bottom {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
+      padding-top: 0.85rem; border-top: 1px solid #E2E8F0;
+      font-size: 0.72rem; color: #94A3B8;
+    }
+
+    .toast {
+      position: fixed; inset-inline-start: 50%; bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+      z-index: 60; transform: translateX(-50%) translateY(12px);
+      max-width: min(400px, calc(100% - 1.5rem)); padding: 0.7rem 1rem;
+      border-radius: 12px; background: #0F172A; color: #F8FAFC;
+      font-size: 0.85rem; font-weight: 600; box-shadow: 0 12px 32px rgba(15,23,42,0.25);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+    }
+    .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+    @media (min-width: 900px) {
+      .desktop-nav { display: flex; }
+      .mobile-bottom-nav { display: none; }
+      .site-footer { margin-bottom: 2rem; }
+      .toast { bottom: 1.5rem; }
+    }
+    @media (max-width: 760px) {
+      .home-intro {
+        grid-template-columns: 1fr; padding: 1.4rem 1.15rem;
+      }
+      .home-intro-art { min-height: 200px; order: -1; }
+      .trust-strip { grid-template-columns: 1fr; gap: 0.6rem; }
+      .trust-strip > div { justify-content: flex-start; }
+      .listings-search { flex-direction: column; align-items: stretch; }
+      .search-divider { display: none; }
+      .search-field, .category-field { width: 100%; }
+      .button-search, .nearby-search-button { width: 100%; }
+    }
+    @media (prefers-color-scheme: dark) {
+      .site-header { background: color-mix(in srgb, #111B2A 90%, transparent); border-bottom-color: #334155; }
+      .home-intro { background: linear-gradient(135deg, #0C2233, #111B2A 60%, #0B1322); border-color: #334155; }
+      .home-intro h1 { color: #E2E8F0; }
+      .home-intro-copy > p, .section-subtitle, .trust-strip small { color: #B6C2D2; }
+      .trust-strip, .categories-section, .listings-search { background: #111B2A; border-color: #334155; }
+      .category-tile { background: #17243A; border-color: #334155; color: #E2E8F0; }
+      .mobile-bottom-nav { background: color-mix(in srgb, #111B2A 92%, transparent); border-top-color: #334155; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-block::after, .skeleton-line::after { animation: none; }
+    }
+  </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="market-ticker" id="marketTicker" aria-label="پیام‌های راهنمای کی‌داره">
+
+  <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
     <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+    <p class="market-ticker-message" id="marketTickerMessage" aria-live="off">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
     <a class="market-ticker-link" id="marketTickerLink" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
   </div>
 
-  <header class="site-header">
+  <header class="site-header" id="siteHeader">
     <div class="brand-location-stack">
       <a class="brand" href="/" aria-label="صفحه اصلی کی‌داره">
         <span class="brand-mark">ک</span>
@@ -37,15 +437,21 @@
       </div>
       <span class="header-city-status" id="activeMarketCity">بازار تهران</span>
     </div>
+
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
-      <a class="active" href="/">خانه</a>
+      <a class="active" href="/" aria-current="page">خانه</a>
       <a href="/search">جست‌وجوی کالا</a>
       <a href="/stores">فروشگاه‌ها</a>
       <a href="/seller">ویترین من</a>
     </nav>
+
     <div class="header-actions">
-      <a class="button button-quiet" id="headerLoginLink" href="/login">ورود</a><a class="button button-quiet" id="headerRegisterLink" href="/register">ثبت‌نام</a><a class="button button-quiet" id="headerAccountLink" href="/account" hidden>حساب من</a><button class="button button-quiet" id="headerLogoutButton" type="button" hidden>خروج از حساب</button>
-      <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> دیدن ویترین‌ها</a><button class="button button-quiet" id="installAppButton" type="button" hidden>نصب اپ</button>
+      <a class="button button-quiet" id="headerLoginLink" href="/login">ورود</a>
+      <a class="button button-quiet" id="headerRegisterLink" href="/register">ثبت‌نام</a>
+      <a class="button button-quiet" id="headerAccountLink" href="/account" hidden>حساب من</a>
+      <button class="button button-quiet" id="headerLogoutButton" type="button" hidden>خروج</button>
+      <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> ویترین‌ها</a>
+      <button class="button button-quiet" id="installAppButton" type="button" hidden>نصب اپ</button>
     </div>
   </header>
 
@@ -53,7 +459,7 @@
     <div class="home-intro-copy">
       <span class="home-intro-eyebrow"><span aria-hidden="true">✦</span> بازار محلی، نزدیک شما</span>
       <h1 id="homeIntroTitle">دنبال چیزی هستی؟<br><span>اول ببین کی‌داره.</span></h1>
-      <p>کالاها و خدمات فروشگاه‌های شهر را پیدا کن، گزینه‌ها را مقایسه کن و برای خرید حضوری آگاهانه‌تر تصمیم بگیر.</p>
+      <p>کالاها و خدمات فروشگاه‌های شهر را پیدا کن، گزینه‌ها را مقایسه کن و برای خرید حضوری آگاهانه‌تر تصمیم بگیر — بدون انتظار ارسال آنلاین.</p>
       <div class="home-intro-actions">
         <a class="button button-primary" href="#listings">دیدن کالاهای شهر <span aria-hidden="true">←</span></a>
         <a class="button home-intro-secondary" href="/seller">ساخت ویترین فروشگاه</a>
@@ -73,13 +479,71 @@
         <span class="home-intro-product-line"></span>
         <div class="home-intro-product-tags"><i></i><i></i><i></i></div>
       </div>
-      <div class="home-intro-float home-intro-float-top"><span>⌖</span><div><strong>بازار شهر تو</strong><small>انتخاب با خودت</small></div></div>
-      <div class="home-intro-float home-intro-float-bottom"><span>✓</span><div><strong>خرید حضوری</strong><small>قبل از مراجعه بررسی کن</small></div></div>
+      <div class="home-intro-float home-intro-float-top">
+        <span>⌖</span>
+        <div><strong>بازار شهر تو</strong><small>انتخاب با خودت</small></div>
+      </div>
+      <div class="home-intro-float home-intro-float-bottom">
+        <span>✓</span>
+        <div><strong>خرید حضوری</strong><small>قبل از مراجعه بررسی کن</small></div>
+      </div>
     </div>
   </section>
 
+  <div class="trust-strip" aria-label="مزایای کی‌داره">
+    <div>
+      <span class="trust-icon" aria-hidden="true">⌕</span>
+      <div><b>جست‌وجوی سریع</b><small>کالا و خدمات شهر</small></div>
+    </div>
+    <div>
+      <span class="trust-icon" aria-hidden="true">⌂</span>
+      <div><b>ویترین محلی</b><small>فروشگاه‌های واقعی</small></div>
+    </div>
+    <div>
+      <span class="trust-icon" aria-hidden="true">✓</span>
+      <div><b>خرید حضوری</b><small>بدون ارسال آنلاین</small></div>
+    </div>
+  </div>
+
   <datalist id="iranCityOptions"></datalist>
+
   <main id="main-content">
+    <section class="categories-section" aria-labelledby="categoriesTitle">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">دسته‌بندی‌ها</span>
+          <h2 id="categoriesTitle">چه می‌خوای پیدا کنی؟</h2>
+        </div>
+        <a class="text-link" href="/search" style="color:#0E7490;font-size:0.85rem;font-weight:700;text-decoration:none;">همه دسته‌ها ←</a>
+      </div>
+      <div class="category-grid">
+        <a class="category-tile" href="/search?category=electronics" data-category="electronics">
+          <span class="category-symbol symbol-2" aria-hidden="true">📱</span>
+          الکترونیک
+        </a>
+        <a class="category-tile" href="/search?category=home" data-category="home">
+          <span class="category-symbol symbol-3" aria-hidden="true">🏠</span>
+          خانه و آشپزخانه
+        </a>
+        <a class="category-tile" href="/search?category=fashion" data-category="fashion">
+          <span class="category-symbol symbol-4" aria-hidden="true">👕</span>
+          پوشاک
+        </a>
+        <a class="category-tile" href="/search?category=services" data-category="services">
+          <span class="category-symbol symbol-5" aria-hidden="true">🔧</span>
+          خدمات
+        </a>
+        <a class="category-tile" href="/search?category=food" data-category="food">
+          <span class="category-symbol symbol-1" aria-hidden="true">🍎</span>
+          خوراکی
+        </a>
+        <a class="category-tile" href="/search?category=other" data-category="other">
+          <span class="category-symbol symbol-6" aria-hidden="true">✦</span>
+          سایر
+        </a>
+      </div>
+    </section>
+
     <section class="section listings-section" id="listings">
       <div class="section-heading">
         <div>
@@ -89,6 +553,7 @@
         </div>
         <span class="results-count" id="resultsCount">در حال بارگذاری…</span>
       </div>
+
       <form class="search-panel listings-search" id="searchForm" role="search">
         <label class="search-field">
           <span class="field-icon" aria-hidden="true">⌕</span>
@@ -105,30 +570,86 @@
         <button class="button button-search" type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
         <button class="button button-outline nearby-search-button" id="nearbyListingsButton" type="button">⌖ کالاهای اطراف من</button>
       </form>
+
       <div class="popular-searches listings-popular">
         <span>جست‌وجوهای محبوب:</span>
         <button type="button" data-search="گوشی">گوشی</button>
         <button type="button" data-search="میز">میز</button>
         <button type="button" data-search="خدمات">خدمات</button>
+        <button type="button" data-search="لباس">لباس</button>
+        <button type="button" data-search="لپ‌تاپ">لپ‌تاپ</button>
       </div>
-      <div class="listing-grid" id="listingGrid" aria-live="polite"><div class="loading-card">داریم کالاها رو آماده می‌کنیم…</div></div>
-      <div class="empty-state" id="emptyState" hidden><span>⌕</span><h3>چیزی پیدا نشد</h3><p>عبارت جست‌وجو یا فیلترها را تغییر بده و دوباره امتحان کن.</p><button class="button button-primary" id="clearFilters" type="button">نمایش همه کالاها</button></div>
+
+      <div class="listing-grid" id="listingGrid" aria-live="polite">
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-block"></div>
+          <div class="skeleton-line w-70"></div>
+          <div class="skeleton-line w-40"></div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-block"></div>
+          <div class="skeleton-line w-70"></div>
+          <div class="skeleton-line w-40"></div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-block"></div>
+          <div class="skeleton-line w-70"></div>
+          <div class="skeleton-line w-40"></div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState" hidden>
+        <span aria-hidden="true">⌕</span>
+        <h3>چیزی پیدا نشد</h3>
+        <p>عبارت جست‌وجو یا فیلترها را تغییر بده و دوباره امتحان کن.</p>
+        <button class="button button-primary" id="clearFilters" type="button">نمایش همه کالاها</button>
+      </div>
     </section>
 
-    </main>
+    <aside class="seller-banner" aria-labelledby="sellerBannerTitle">
+      <h2 id="sellerBannerTitle">فروشگاه داری؟ ویترینت را آنلاین کن</h2>
+      <p>در چند دقیقه کالاهایت را با قیمت و عکس شفاف بچین، لینک ویترین را در واتساپ و شبکه‌های اجتماعی پخش کن و مشتری را به سمت مغازه‌ات بکش — نه اینکه منتظر عبور عابر بمانی.</p>
+      <a class="button button-primary" href="/seller">ساخت ویترین رایگان <span aria-hidden="true">←</span></a>
+    </aside>
+  </main>
 
   <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
-    <a class="mobile-nav-item" href="/" aria-label="خانه"><span aria-hidden="true">⌂</span><small>خانه</small></a>
-    <a class="mobile-nav-item" href="/search" aria-label="جست‌وجو"><span aria-hidden="true">⌕</span><small>جست‌وجو</small></a>
-    <a class="mobile-nav-item" href="/seller" aria-label="ثبت آگهی"><span aria-hidden="true">＋</span><small>ثبت</small></a>
-    <a class="mobile-nav-item" href="/account" aria-label="پروفایل"><span aria-hidden="true">☺</span><small>پروفایل</small></a>
+    <a class="mobile-nav-item" href="/" aria-current="page" aria-label="خانه">
+      <span aria-hidden="true">⌂</span><small>خانه</small>
+    </a>
+    <a class="mobile-nav-item" href="/search" aria-label="جست‌وجو">
+      <span aria-hidden="true">⌕</span><small>جست‌وجو</small>
+    </a>
+    <a class="mobile-nav-item nav-cta" href="/seller" aria-label="ثبت آگهی">
+      <span aria-hidden="true">＋</span><small>ثبت</small>
+    </a>
+    <a class="mobile-nav-item" href="/account" aria-label="پروفایل">
+      <span aria-hidden="true">☺</span><small>پروفایل</small>
+    </a>
   </nav>
 
   <footer class="site-footer">
-    <a class="brand footer-brand" href="/"><span class="brand-mark">ک</span><span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span></a>
-    <nav class="footer-links" aria-label="پیوندهای مفید"><a href="/search">جست‌وجوی کالا</a><a href="/stores">فروشگاه‌ها</a><a href="/seller">ساخت ویترین</a><a href="/help">راهنما</a><a href="/guide">راهنمای کاربر</a><a href="/safety">خرید امن</a><a href="/terms">قوانین استفاده</a><a href="/privacy">حریم خصوصی</a></nav>
-    <p>ویترین فروشگاه‌های شهر؛ انتخاب آگاهانه‌تر، خرید حضوری ساده‌تر.</p>
-    <span class="footer-note">بازار محلی برای انتخاب آگاهانه‌تر و خرید حضوری</span>
+    <div class="footer-top">
+      <a class="brand footer-brand" href="/">
+        <span class="brand-mark">ک</span>
+        <span class="brand-copy"><strong>کی‌داره</strong><small>ببین کی داره؟ حضوری بگیر!</small></span>
+      </a>
+      <nav class="footer-links" aria-label="پیوندهای مفید">
+        <a href="/search">جست‌وجوی کالا</a>
+        <a href="/stores">فروشگاه‌ها</a>
+        <a href="/seller">ساخت ویترین</a>
+        <a href="/help">راهنما</a>
+        <a href="/guide">راهنمای کاربر</a>
+        <a href="/safety">خرید امن</a>
+        <a href="/terms">قوانین استفاده</a>
+        <a href="/privacy">حریم خصوصی</a>
+      </nav>
+    </div>
+    <p class="footer-note">ویترین فروشگاه‌های شهر؛ انتخاب آگاهانه‌تر، خرید حضوری ساده‌تر.</p>
+    <div class="footer-bottom">
+      <span>بازار محلی برای انتخاب آگاهانه‌تر و خرید حضوری</span>
+      <span>© ۲۰۲۶ کی‌داره</span>
+    </div>
   </footer>
 
   <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
@@ -136,8 +657,65 @@
   <script src="{{ url_for('static', filename='js/location-picker.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa-rules.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/pwa-rules.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/onboarding.js') }}" defer></script>
+  <script>
+    (() => {
+      const header = document.getElementById("siteHeader");
+      if (header) {
+        const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 8);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+      }
+
+      const root = document.getElementById("marketTicker");
+      const message = document.getElementById("marketTickerMessage");
+      const link = document.getElementById("marketTickerLink");
+      if (!root || !message || !link) return;
+
+      const items = [
+        { text: "کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.", label: "دیدن کالاها", href: "#listings" },
+        { text: "فروشگاه‌دار هستی؟ ویترینت را رایگان بساز و به مشتری‌های شهر معرفی کن.", label: "ساخت ویترین", href: "/seller" },
+        { text: "دنبال کالای خاصی هستی؟ جست‌وجو و دسته‌بندی‌ها کمکت می‌کنند زودتر پیدایش کنی.", label: "جست‌وجو", href: "/search" },
+        { text: "کی‌داره برای خرید حضوری است؛ کالاها را ببین و برای مراجعه آماده شو.", label: "کشف فروشگاه‌ها", href: "/stores" },
+        { text: "شهر بازار را خودت انتخاب کن؛ مکان‌یابی فقط با درخواست خودت انجام می‌شود.", label: "انتخاب شهر", href: "#marketCityCombobox" }
+      ];
+
+      let index = 0;
+      let timer = null;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function show(next) {
+        index = (next + items.length) % items.length;
+        message.textContent = items[index].text;
+        link.href = items[index].href;
+        link.innerHTML = "";
+        link.append(document.createTextNode(items[index].label + " "));
+        const arrow = document.createElement("span");
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "←";
+        link.append(arrow);
+      }
+
+      function stop() {
+        if (timer !== null) { window.clearInterval(timer); timer = null; }
+      }
+      function start() {
+        stop();
+        if (!reduceMotion && !document.hidden) {
+          timer = window.setInterval(() => show(index + 1), 5200);
+        }
+      }
+
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", start);
+      root.addEventListener("focusin", stop);
+      root.addEventListener("focusout", (e) => { if (!root.contains(e.relatedTarget)) start(); });
+      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+
+      show(0);
+      start();
+    })();
+  </script>
 </body>
 </html>
