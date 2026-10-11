@@ -343,3 +343,17 @@ def test_header_navigation_is_deduplicated_and_auth_actions_have_feedback(client
     assert "header-auth-button:active" in css
     assert "header-auth-button:focus-visible" in css
     assert "prefers-reduced-motion: reduce" in css
+
+
+def test_legal_links_are_hidden_until_auth_state_is_confirmed_and_store_label_is_clear(client):
+    home = client.get("/").get_data(as_text=True)
+    stores = client.get("/stores").get_data(as_text=True)
+    auth_script = read("static/js/header-auth.js")
+
+    assert 'id="legalLinks"' in home and 'id="legalLinks"' in stores
+    assert 'aria-label="پیوندهای حقوقی" hidden' in home
+    assert 'aria-label="پیوندهای حقوقی" hidden' in stores
+    assert 'setVisible(legalLinks, signedIn)' in auth_script
+    assert 'id="headerSellerLink"' in home and "مدیریت فروشگاه" in home
+    assert 'id="mobileSellerLink"' in home and "مدیریت فروشگاه" in home
+    assert "مدیریت فروشگاه و ویترین آنلاین" in home

@@ -4,6 +4,7 @@
   const registerLink = document.querySelector("#headerRegisterLink");
   const accountLink = document.querySelector("#headerAccountLink");
   const logoutButton = document.querySelector("#headerLogoutButton");
+  const legalLinks = document.querySelector("#legalLinks");
   if (!loginLink || !registerLink || !accountLink || !logoutButton) return;
 
   const setVisible = (element, visible) => {
@@ -29,6 +30,7 @@
       setVisible(registerLink, !signedIn);
       setVisible(accountLink, signedIn);
       setVisible(logoutButton, signedIn);
+      if (legalLinks) setVisible(legalLinks, signedIn);
     })
     .catch(() => {
       // Keep guest navigation visible if session verification is temporarily unavailable.

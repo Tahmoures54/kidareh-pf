@@ -51,7 +51,7 @@
 
       <nav class="desktop-nav" aria-label="ناوبری اصلی">
         <a href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}>فروشگاه‌ها</a>
-        <a href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>پنل فروشنده</a>
+        <a id="headerSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}>مدیریت فروشگاه</a>
         <a href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %}>گفت‌وگوها</a>
         <a href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}>پشتیبانی</a>
       </nav>
@@ -73,7 +73,7 @@
     <a class="mobile-nav-item" href="/" {% if request.path == '/' %}aria-current="page"{% endif %}><span aria-hidden="true">⌂</span><span>خانه</span></a>
     <a class="mobile-nav-item" href="/search" {% if request.path.startswith('/search') %}aria-current="page"{% endif %}><span aria-hidden="true">⌕</span><span>جست‌وجو</span></a>
     <a class="mobile-nav-item" href="/stores" {% if request.path.startswith('/stores') or request.path.startswith('/store/') %}aria-current="page"{% endif %}><span aria-hidden="true">▦</span><span>فروشگاه‌ها</span></a>
-    <a class="mobile-nav-item nav-cta" href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}><span aria-hidden="true">＋</span><span>ساخت ویترین</span></a>
+    <a class="mobile-nav-item nav-cta" id="mobileSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %}><span aria-hidden="true">＋</span><span>مدیریت فروشگاه</span></a>
     <a class="mobile-nav-item" href="/support" {% if request.path.startswith('/support') %}aria-current="page"{% endif %}><span aria-hidden="true">؟</span><span>پشتیبانی</span></a>
   </nav>
 
@@ -88,6 +88,8 @@
       <a href="/help">راهنما</a>
       <a href="/guide">راهنمای کاربر</a>
       <a href="/safety">خرید امن</a>
+    </nav>
+    <nav class="footer-links" id="legalLinks" aria-label="پیوندهای حقوقی" hidden>
       <a href="/terms">قوانین استفاده</a>
       <a href="/privacy">حریم خصوصی</a>
     </nav>
@@ -99,6 +101,7 @@
   <script src="{{ url_for('static', filename='js/pwa-rules.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/reports.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/header-auth.js') }}" defer></script>
   {% block scripts %}{% endblock %}
 
   <script>
