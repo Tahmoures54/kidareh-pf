@@ -96,7 +96,30 @@
       more.style.display=state.hasMore?"block":"none";
     }catch(e){if(!append) target.innerHTML='<div class="empty-page-state">'+escapeHTML(e.message)+'</div>';}
   }
-  async function initSearch(){ const form=document.querySelector("#pageSearchForm"); const run=()=>loadListings("#pageListings",{q:document.querySelector("#pageQuery").value.trim(),category:document.querySelector("#pageCategory").value,city:document.querySelector("#pageCity").value.trim()}); form?.addEventListener("submit",e=>{e.preventDefault();run()}); await run(); }
+  async function initSearch(){
+    const form = document.querySelector("#pageSearchForm");
+    const queryInput = document.querySelector("#pageQuery");
+    const categoryInput = document.querySelector("#pageCategory");
+    const cityInput = document.querySelector("#pageCity");
+    if (!form || !queryInput || !categoryInput || !cityInput) return;
+    const syncUrl = () => {
+      const params = new URLSearchParams();
+      if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
+      if (categoryInput.value) params.set("category", categoryInput.value);
+      if (cityInput.value.trim()) params.set("city", cityInput.value.trim());
+      window.history.pushState({ search: true }, "", "/search" + (params.size ? "?" + params.toString() : ""));
+    };
+    const run = () => loadListings("#pageListings", { q: queryInput.value.trim(), category: categoryInput.value, city: cityInput.value.trim() });
+    form.addEventListener("submit", event => { event.preventDefault(); syncUrl(); run(); });
+    window.addEventListener("popstate", () => {
+      const params = new URLSearchParams(window.location.search);
+      queryInput.value = params.get("q") || "";
+      categoryInput.value = params.get("category") || "";
+      cityInput.value = params.get("city") || "";
+      run();
+    });
+    await run();
+  }
   function initStores(){ const input=document.querySelector("#storeQuery"),form=document.querySelector("#storeSearchForm"); const run=()=>loadStores("#pageStores",input?.value.trim()||""); form?.addEventListener("submit",e=>{e.preventDefault();run()});if(input)input.value=page.query||"";run(); }
   async function initStoreDetail(){
     try{
