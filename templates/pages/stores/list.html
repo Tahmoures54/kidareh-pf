@@ -1,7 +1,718 @@
+```html
 {% extends "base.html" %}
+
 {% block title %}ویترین فروشگاه‌ها | کی‌داره{% endblock %}
+
 {% block content %}
-<section class="page-heading"><span class="section-kicker">آدم‌ها و کسب‌وکارهای واقعی</span><h1>ویترین فروشگاه‌ها</h1><p>فروشگاه‌ها را بگرد، محصولاتشان را ببین و هر وقت خواستی دنبالشان کن.</p></section>
-<section class="page-panel"><form id="storeSearchForm" class="page-search"><label class="sr-only" for="storeQuery">جست‌وجوی فروشگاه</label><input id="storeQuery" placeholder="نام فروشگاه یا شهر…"><button class="button button-primary" type="submit">پیدا کن</button></form><div class="page-results-head"><h2>فروشگاه‌های بازار</h2><span id="pageResultsCount"></span></div><div id="pageStores" class="page-store-grid"><div class="loading-card">در حال بارگذاری ویترین‌ها…</div></div></section>
+
+<style>
+/* =========================================
+   KIDAREH — STORES DIRECTORY
+   Scoped styles; safe for base.html
+========================================= */
+
+.stores-page {
+    --stores-primary: #087f8c;
+    --stores-primary-dark: #06636e;
+    --stores-accent: #b9f2e8;
+    --stores-ink: #15343b;
+    --stores-muted: #71858b;
+    --stores-line: #e5eeee;
+    --stores-surface: #ffffff;
+
+    direction: rtl;
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding: 22px 20px 48px;
+    color: var(--stores-ink);
+    box-sizing: border-box;
+}
+
+.stores-page *,
+.stores-page *::before,
+.stores-page *::after {
+    box-sizing: border-box;
+}
+
+/* Hero */
+
+.stores-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: clamp(28px, 5vw, 58px);
+    border-radius: 30px;
+    background:
+        radial-gradient(
+            circle at 7% 10%,
+            rgba(185, 242, 232, .75),
+            transparent 30%
+        ),
+        linear-gradient(125deg, #effbf8 0%, #e2f5f5 52%, #f5fbfa 100%);
+    border: 1px solid #dcefeb;
+    margin-bottom: 25px;
+}
+
+.stores-hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 230px;
+    height: 230px;
+    left: -75px;
+    bottom: -110px;
+    border: 1px solid rgba(8, 127, 140, .15);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 24px rgba(8, 127, 140, .035),
+        0 0 0 48px rgba(8, 127, 140, .025);
+    pointer-events: none;
+}
+
+.stores-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 750px;
+}
+
+.stores-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 13px;
+    border: 1px solid rgba(8, 127, 140, .14);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .72);
+    color: var(--stores-primary-dark);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.stores-eyebrow-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #16a085;
+    box-shadow: 0 0 0 4px rgba(22, 160, 133, .12);
+}
+
+.stores-hero h1 {
+    margin: 0 0 16px;
+    color: #123c43;
+    font-size: clamp(27px, 4.3vw, 44px);
+    font-weight: 900;
+    letter-spacing: -.9px;
+    line-height: 1.55;
+}
+
+.stores-hero h1 span {
+    color: var(--stores-primary);
+}
+
+.stores-hero-description {
+    max-width: 610px;
+    margin: 0;
+    color: #526e73;
+    font-size: clamp(14px, 1.6vw, 16px);
+    line-height: 2.1;
+}
+
+/* Search panel */
+
+.stores-search-panel {
+    position: relative;
+    z-index: 2;
+    margin: -2px 0 34px;
+    padding: 19px;
+    border: 1px solid var(--stores-line);
+    border-radius: 23px;
+    background: var(--stores-surface);
+    box-shadow: 0 10px 34px rgba(22, 65, 70, .055);
+}
+
+.stores-search-heading {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 15px;
+}
+
+.stores-search-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 43px;
+    width: 43px;
+    height: 43px;
+    border-radius: 14px;
+    background: #e8f8f5;
+    color: var(--stores-primary);
+}
+
+.stores-search-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.stores-search-heading h2 {
+    margin: 0 0 3px;
+    color: var(--stores-ink);
+    font-size: 16px;
+    font-weight: 850;
+}
+
+.stores-search-heading p {
+    margin: 0;
+    color: var(--stores-muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.stores-search-form {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+}
+
+.stores-search-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.stores-search-input-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 20px;
+    height: 20px;
+    color: #82989c;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.stores-search-input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 54px;
+    padding: 12px 47px 12px 15px;
+    border: 1px solid #dfeaea;
+    border-radius: 15px;
+    outline: none;
+    background: #f8fbfb;
+    color: var(--stores-ink);
+    font: inherit;
+    font-size: 14px;
+    transition:
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+.stores-search-input::placeholder {
+    color: #91a3a7;
+}
+
+.stores-search-input:hover {
+    border-color: #b8dcd8;
+}
+
+.stores-search-input:focus {
+    border-color: var(--stores-primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(8, 127, 140, .09);
+}
+
+.stores-search-button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-width: 125px;
+    min-height: 54px;
+    padding: 12px 22px;
+    border: 0;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #0b9298, #08717e);
+    box-shadow: 0 6px 15px rgba(8, 127, 140, .16);
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 850;
+    cursor: pointer;
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        filter .2s ease;
+}
+
+.stores-search-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.stores-search-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 9px 21px rgba(8, 127, 140, .23);
+    filter: brightness(1.04);
+}
+
+.stores-search-button:active {
+    transform: translateY(0);
+}
+
+.stores-search-button:focus-visible,
+.stores-search-input:focus-visible {
+    outline: 3px solid rgba(8, 127, 140, .35);
+    outline-offset: 3px;
+}
+
+/* Results heading */
+
+.stores-results {
+    min-width: 0;
+}
+
+.stores-results-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stores-results-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.stores-results-marker {
+    flex: 0 0 5px;
+    width: 5px;
+    height: 35px;
+    border-radius: 99px;
+    background: var(--stores-primary);
+}
+
+.stores-results-title h2 {
+    margin: 0;
+    color: var(--stores-ink);
+    font-size: clamp(18px, 2.5vw, 23px);
+    font-weight: 900;
+    line-height: 1.6;
+}
+
+.stores-results-title p {
+    margin: 3px 0 0;
+    color: var(--stores-muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.stores-results-badge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border: 1px solid #e1efec;
+    border-radius: 12px;
+    background: #f1faf8;
+    color: #477d78;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.stores-results-badge svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* Store cards: compatible with dynamically rendered content */
+
+.stores-page .page-store-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 20px;
+    min-width: 0;
+}
+
+.stores-page .page-store-grid > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.stores-page .page-store-grid > a,
+.stores-page .page-store-grid > article {
+    border: 1px solid #e4eeee;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 5px 20px rgba(20, 60, 65, .035);
+    overflow: hidden;
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        border-color .22s ease;
+}
+
+.stores-page .page-store-grid > a:hover,
+.stores-page .page-store-grid > article:hover {
+    transform: translateY(-4px);
+    border-color: #b8e0d9;
+    box-shadow: 0 14px 30px rgba(20, 90, 90, .09);
+}
+
+.stores-page .page-store-grid img {
+    max-width: 100%;
+    height: auto;
+}
+
+.stores-page .page-store-grid .loading-card {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 25px;
+    border: 1px dashed #c9e1dc;
+    border-radius: 19px;
+    background: #f8fcfb;
+    color: #62827e;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Respect the existing site's empty/error state if present */
+
+.stores-page .page-store-grid:empty {
+    min-height: 90px;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+    .stores-page .page-store-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .stores-hero {
+        border-radius: 25px;
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .stores-page {
+        padding: 13px 12px 30px;
+    }
+
+    .stores-hero {
+        padding: 26px 20px 30px;
+        margin-bottom: 18px;
+        border-radius: 23px;
+    }
+
+    .stores-hero h1 {
+        font-size: 29px;
+        letter-spacing: -.5px;
+        line-height: 1.65;
+    }
+
+    .stores-hero-description {
+        font-size: 13px;
+        line-height: 2;
+    }
+
+    .stores-eyebrow {
+        margin-bottom: 14px;
+        font-size: 11px;
+    }
+
+    .stores-search-panel {
+        padding: 15px;
+        margin-bottom: 27px;
+        border-radius: 19px;
+    }
+
+    .stores-search-heading {
+        gap: 9px;
+    }
+
+    .stores-search-icon {
+        flex-basis: 39px;
+        width: 39px;
+        height: 39px;
+    }
+
+    .stores-search-form {
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .stores-search-input {
+        min-height: 51px;
+        font-size: 13px;
+    }
+
+    .stores-search-button {
+        width: 100%;
+        min-height: 49px;
+    }
+
+    .stores-results-heading {
+        align-items: flex-start;
+        margin-bottom: 15px;
+        gap: 8px;
+    }
+
+    .stores-results-title {
+        gap: 9px;
+    }
+
+    .stores-results-title h2 {
+        font-size: 18px;
+    }
+
+    .stores-results-title p {
+        font-size: 11px;
+    }
+
+    .stores-results-badge {
+        padding: 7px 8px;
+        gap: 5px;
+        font-size: 10px;
+    }
+
+    .stores-page .page-store-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
+    }
+
+    .stores-page .page-store-grid > a:hover,
+    .stores-page .page-store-grid > article:hover {
+        transform: none;
+    }
+}
+
+/* Small phones */
+
+@media (max-width: 360px) {
+    .stores-page {
+        padding-inline: 9px;
+    }
+
+    .stores-hero {
+        padding-inline: 16px;
+    }
+
+    .stores-results-badge {
+        font-size: 9px;
+    }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+    .stores-page *,
+    .stores-page *::before,
+    .stores-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+</style>
+
+<div class="stores-page">
+
+    <!-- Hero -->
+    <section class="stores-hero"
+             aria-labelledby="storesPageTitle">
+
+        <div class="stores-hero-inner">
+
+            <div class="stores-eyebrow">
+                <span class="stores-eyebrow-dot"
+                      aria-hidden="true"></span>
+                ویترین کسب‌وکارهای کی‌داره
+            </div>
+
+            <h1 id="storesPageTitle">
+                فروشگاه‌ها را کشف کن،
+                <br>
+                <span>انتخاب با توست.</span>
+            </h1>
+
+            <p class="stores-hero-description">
+                از فروشگاه‌های اطرافت گرفته تا کسب‌وکارهای موردعلاقه‌ات؛
+                ویترین‌ها را ببین، محصولات را مقایسه کن و
+                انتخابت را آگاهانه انجام بده.
+            </p>
+
+        </div>
+    </section>
+
+    <!-- Search -->
+    <section class="stores-search-panel"
+             aria-labelledby="storesSearchTitle">
+
+        <div class="stores-search-heading">
+
+            <div class="stores-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                    <path d="m16 16 4.2 4.2"></path>
+                </svg>
+            </div>
+
+            <div>
+                <h2 id="storesSearchTitle">
+                    دنبال چه فروشگاهی هستی؟
+                </h2>
+                <p>
+                    نام فروشگاه یا شهر را وارد کن.
+                </p>
+            </div>
+
+        </div>
+
+        <form id="storeSearchForm"
+              class="stores-search-form"
+              role="search">
+
+            <label class="stores-search-input-wrap"
+                   for="storeQuery">
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                    <path d="m16 16 4.2 4.2"></path>
+                </svg>
+
+                <input
+                    id="storeQuery"
+                    class="stores-search-input"
+                    type="search"
+                    name="q"
+                    placeholder="مثلاً: پوشاک، لوازم خانگی، تهران..."
+                    autocomplete="off"
+                    aria-label="جست‌وجوی فروشگاه بر اساس نام یا شهر"
+                    value="{{ query|default('', true) }}"
+                >
+
+            </label>
+
+            <button class="stores-search-button"
+                    type="submit">
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                    <path d="m16 16 4.2 4.2"></path>
+                </svg>
+
+                جست‌وجوی فروشگاه
+
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- Results -->
+    <section class="stores-results"
+             aria-labelledby="storesResultsTitle">
+
+        <div class="stores-results-heading">
+
+            <div class="stores-results-title">
+
+                <span class="stores-results-marker"
+                      aria-hidden="true"></span>
+
+                <div>
+                    <h2 id="storesResultsTitle">
+                        ویترین فروشگاه‌ها
+                    </h2>
+
+                    <p>
+                        فروشگاه‌ها را ببین و محصولاتشان را کشف کن.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="stores-results-badge">
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                </svg>
+
+                <span>فهرست فروشگاه‌ها</span>
+
+            </div>
+
+        </div>
+
+        <div id="pageStores"
+             class="page-store-grid"
+             aria-live="polite"
+             aria-busy="true">
+
+            <div class="loading-card">
+                در حال بارگذاری ویترین فروشگاه‌ها...
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
 {% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"stores",query:{{ query|tojson }}};</script>{% endblock %}
+
+{% block scripts %}
+<script>
+window.KIDAREH_PAGE = {
+    type: "stores",
+    query: {{ query|default('', true)|tojson }}
+};
+</script>
+{% endblock %}
+```
