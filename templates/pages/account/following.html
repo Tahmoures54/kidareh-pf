@@ -1,4 +1,320 @@
 {% extends "base.html" %}
 {% block title %}فروشگاه‌های دنبال‌شده | کی‌داره{% endblock %}
-{% block content %}<section class="page-heading"><span class="section-kicker">دنبال کن تا دوباره پیدایشان کنی</span><h1>فروشگاه‌های دنبال‌شده</h1><p>ویترین‌هایی که دنبال کرده‌ای، یک‌جا.</p></section><section class="page-panel"><div class="page-results-head"><h2>فروشگاه‌های من</h2></div><div id="pageStores" class="page-store-grid"></div></section>{% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"following"};</script>{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Following / Saved account pages ── */
+  .page-heading {
+    padding: 1.75rem 0 1.25rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.55rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 36rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  /* Account sub-nav */
+  .account-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .account-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line, #CBD5E1);
+    background: var(--color-surface, #fff);
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .account-subnav a:hover {
+    color: #0E7490;
+    border-color: #0891B2;
+    background: #ECFEFF;
+  }
+  .account-subnav a[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #0891B2, #0E7490);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .page-panel {
+    padding: 1.35rem 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+
+  .page-results-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .page-results-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .results-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  /* Store grid — keeps compatibility with pages.css */
+  .page-store-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    min-height: 120px;
+  }
+
+  /* Skeleton placeholders while JS loads */
+  .following-skeleton {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-line-soft, #E2E8F0);
+    border-radius: 14px;
+    background: #F8FAFC;
+  }
+  .following-skeleton-mark {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .following-skeleton-lines {
+    flex: 1;
+    display: grid;
+    gap: 0.45rem;
+    padding-top: 0.2rem;
+  }
+  .following-skeleton-line {
+    height: 11px;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .following-skeleton-line.w-60 { width: 60%; }
+  .following-skeleton-line.w-40 { width: 40%; }
+  .following-skeleton-line.w-80 { width: 80%; }
+  .following-skeleton-mark::after,
+  .following-skeleton-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  /* Empty state (shown by JS when grid is empty, or as fallback) */
+  .following-empty {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: center;
+    gap: 0.65rem;
+    padding: 2.5rem 1.5rem;
+    border: 1px dashed var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: #F8FAFC;
+    text-align: center;
+    color: var(--color-muted, #64748B);
+  }
+  .following-empty-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: #ECFEFF;
+    color: #0E7490;
+    font-size: 1.6rem;
+  }
+  .following-empty h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .following-empty p {
+    margin: 0;
+    max-width: 28rem;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+  .following-empty .button {
+    margin-top: 0.35rem;
+  }
+
+  /* Hint under grid */
+  .following-hint {
+    margin: 1rem 0 0;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 620px) {
+    .page-store-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .page-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .account-subnav a {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+      color: var(--color-muted, #B6C2D2);
+    }
+    .account-subnav a[aria-current="page"] {
+      background: linear-gradient(180deg, #0891B2, #0E7490);
+      color: #fff;
+      border-color: transparent;
+    }
+    .following-skeleton {
+      background: #17243A;
+      border-color: #334155;
+    }
+    .following-skeleton-mark,
+    .following-skeleton-line {
+      background: #334155;
+    }
+    .following-empty {
+      background: #17243A;
+      border-color: #334155;
+      color: #B6C2D2;
+    }
+    .following-empty-icon {
+      background: #083344;
+      color: #67E8F9;
+    }
+    .results-badge {
+      background: #083344;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .following-skeleton-mark::after,
+    .following-skeleton-line::after {
+      animation: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <span class="section-kicker"><span aria-hidden="true">★</span> دنبال کن تا دوباره پیدایشان کنی</span>
+  <h1>فروشگاه‌های دنبال‌شده</h1>
+  <p>ویترین‌هایی که دنبال کرده‌ای، یک‌جا — تا سریع‌تر به کالاهای جدیدشان برسی.</p>
+</section>
+
+<nav class="account-subnav" aria-label="بخش‌های حساب">
+  <a href="/account">حساب من</a>
+  <a href="/saved">ذخیره‌ها</a>
+  <a href="/following" aria-current="page">دنبال‌شده‌ها</a>
+  <a href="/messages">گفت‌وگوها</a>
+</nav>
+
+<section class="page-panel">
+  <div class="page-results-head">
+    <h2>فروشگاه‌های من</h2>
+    <span class="results-badge" id="followingCount" hidden>۰ فروشگاه</span>
+  </div>
+
+  <!--
+    JS fills #pageStores with store cards.
+    Skeletons show until content arrives; empty state is a fallback
+    if the grid stays empty (JS may replace the whole content).
+  -->
+  <div id="pageStores" class="page-store-grid" aria-live="polite">
+    <div class="following-skeleton" aria-hidden="true">
+      <div class="following-skeleton-mark"></div>
+      <div class="following-skeleton-lines">
+        <div class="following-skeleton-line w-60"></div>
+        <div class="following-skeleton-line w-40"></div>
+        <div class="following-skeleton-line w-80"></div>
+      </div>
+    </div>
+    <div class="following-skeleton" aria-hidden="true">
+      <div class="following-skeleton-mark"></div>
+      <div class="following-skeleton-lines">
+        <div class="following-skeleton-line w-60"></div>
+        <div class="following-skeleton-line w-40"></div>
+        <div class="following-skeleton-line w-80"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="following-hint">
+    هنوز فروشگاهی دنبال نکرده‌ای؟ از
+    <a href="/stores" style="color:#0E7490;font-weight:700;text-decoration:none;">فهرست فروشگاه‌ها</a>
+    ویترین‌های شهر را ببین و دنبال کن.
+  </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.KIDAREH_PAGE = { type: "following" };
+</script>
+{% endblock %}
