@@ -105,8 +105,13 @@ def test_mobile_bottom_nav_has_four_primary_tabs(client):
 
 def test_home_has_single_primary_cta_above_the_fold():
     html = read("templates/index.html")
-    hero = html[html.index('class="home-intro"'):html.index('class="home-intro-art"')]
+    hero_start = html.index('<section class="home-intro"')
+    hero_end = html.index('<div class="trust-strip"', hero_start)
+    hero = html[hero_start:hero_end]
+    assert 'id="homeRotatingMessage"' in hero
+    assert 'id="homeMessageAction"' in hero
     assert hero.count("button-primary") == 1
+    assert 'class="home-intro-art"' not in hero
 
 
 # ---------- PWA manifest / icons / shortcuts ----------
