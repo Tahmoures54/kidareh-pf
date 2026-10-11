@@ -214,9 +214,11 @@
   font-weight: 700;
 }
 
+/* Prefix stays on the LEFT of the phone input, regardless of page RTL. */
 .auth-input-wrap {
   display: flex;
   align-items: stretch;
+  direction: ltr;
   border: 1px solid #CBD5E1;
   border-radius: 12px;
   background: #F8FAFC;
@@ -238,7 +240,7 @@
   color: #64748B;
   font-size: 0.9rem;
   font-weight: 600;
-  border-inline-start: 1px solid #E2E8F0;
+  border-inline-end: 1px solid #E2E8F0;
   direction: ltr;
 }
 
@@ -261,6 +263,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  text-align: left;
 }
 
 .auth-input:focus {
@@ -639,8 +642,10 @@
     border-radius: 18px;
   }
 
+  /* Natural top-to-bottom order: back button first, primary CTA last
+     (closer to the thumb). */
   .auth-actions-row {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
   .auth-captcha-row {
@@ -659,7 +664,10 @@
 }
 
 
-/* Registration: single-column composition with the turquoise welcome panel above the form. */
+/* =========================================================
+   Registration: single-column composition with the turquoise
+   welcome panel above the form.
+   ========================================================= */
 .auth-page[data-auth-mode="register"] .auth-shell {
   grid-template-columns: minmax(0, 1fr);
   width: min(620px, 100%);
@@ -754,7 +762,7 @@
   }
 
   .auth-page[data-auth-mode="register"] .auth-visual {
-    padding: 18px 18px;
+    padding: 14px 16px;
   }
 
   .auth-page[data-auth-mode="register"] .auth-visual-inner {
@@ -762,21 +770,28 @@
   }
 
   .auth-page[data-auth-mode="register"] .auth-brand-mark {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    font-size: 1.25rem;
   }
 
   .auth-page[data-auth-mode="register"] .auth-visual h2 {
-    font-size: 1.08rem;
+    font-size: 1.02rem;
   }
 
   .auth-page[data-auth-mode="register"] .auth-visual p {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  /* Hide the benefit list on small screens to keep the header compact. */
+  .auth-page[data-auth-mode="register"] .auth-benefits {
+    display: none;
   }
 
   .auth-page[data-auth-mode="register"] .auth-panel {
-    padding: 24px 16px 22px;
+    padding: 22px 16px 20px;
   }
 
   .auth-page[data-auth-mode="register"] .auth-panel-header {
@@ -808,14 +823,17 @@
 
   .auth-page[data-auth-mode="register"] .auth-security-strip {
     align-items: flex-start;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.76rem;
   }
 
   .auth-page[data-auth-mode="register"] .auth-feedback {
     overflow-wrap: anywhere;
   }
 
+  /* Natural top-to-bottom order: back button first, primary CTA last. */
   .auth-page[data-auth-mode="register"] .auth-actions-row {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
   .auth-page[data-auth-mode="register"] .auth-captcha-row {
