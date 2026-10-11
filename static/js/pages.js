@@ -108,14 +108,17 @@
     const normalize = value => String(value || "").trim().replace(/[ي]/g, "ی").replace(/[ك]/g, "ک");
     const paramsAtLoad = new URLSearchParams(window.location.search);
     try {
-      if (!cityInput.value.trim() && !paramsAtLoad.has("city")) {
-        cityInput.value = localStorage.getItem("kidareh.marketCity") || "";
+      if (!paramsAtLoad.has("city")) {
+        const savedCity = localStorage.getItem("kidareh.marketCity") || "";
+        if (savedCity) cityInput.value = savedCity;
       }
     } catch (_) { /* Search remains available if browser storage is blocked. */ }
 
     let cityProvince = paramsAtLoad.get("province") || "";
     let scope = paramsAtLoad.get("scope") === "country" ? "country" : (cityProvince ? "province" : "city");
     let requestSerial = 0;
+    let nearbyCoords = null;
+    const nearbyButton = document.querySelector("#pageNearbySearchButton");
 
     async function resolveProvince() {
       if (!cityInput.value.trim()) return "";
@@ -135,8 +138,15 @@
 
     function currentParams() {
       const params = { q: queryInput.value.trim(), category: categoryInput.value };
-      if (scope === "city" && cityInput.value.trim()) params.city = cityInput.value.trim();
-      if (scope === "province" && cityProvince) params.province = cityProvince;
+      if (nearbyCoords) {
+        params.lat = String(nearbyCoords.lat);
+        params.lon = String(nearbyCoords.lon);
+        params.radius_km = "25";
+      } else if (scope === "city" && cityInput.value.trim()) {
+        params.city = cityInput.value.trim();
+      } else if (scope === "province" && cityProvince) {
+        params.province = cityProvince;
+      }
       return params;
     }
 
@@ -209,6 +219,7 @@
 
     form.addEventListener("submit", async event => {
       event.preventDefault();
+      nearbyCoords = null;
       cityProvince = await resolveProvince();
       run("city", true);
     });
@@ -228,7 +239,40 @@
       if (nextScope === "city") cityProvince = await resolveProvince();
       run(nextScope);
     });
-    cityInput.addEventListener("change", () => { cityProvince = ""; scope = "city"; });
+    cityInput.addEventListener("change", () => {
+      cityProvince = "";
+      scope = "city";
+      nearbyCoords = null;
+      try {
+        if (cityInput.value.trim()) localStorage.setItem("kidareh.marketCity", cityInput.value.trim());
+        else localStorage.removeItem("kidareh.marketCity");
+      } catch (_) { /* Manual city selection still works without storage. */ }
+      run("city", true);
+    });
+
+    nearbyButton?.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        nearbyButton.textContent = "مکان‌یابی در این مرورگر پشتیبانی نمی‌شود";
+        return;
+      }
+      const originalLabel = "⌖ یافتن کالاهای اطراف من";
+      nearbyButton.disabled = true;
+      nearbyButton.textContent = "در حال دریافت موقعیت…";
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          nearbyCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
+          nearbyButton.disabled = false;
+          nearbyButton.textContent = "کالاهای اطراف من ✓";
+          run(scope, false);
+        },
+        () => {
+          nearbyButton.disabled = false;
+          nearbyButton.textContent = originalLabel;
+          notify("موقعیت دریافت نشد؛ اجازهٔ مکان‌یابی را بررسی کن یا شهر را انتخاب کن.");
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+      );
+    });
     if (scope === "city") cityProvince = await resolveProvince();
     await run(scope);
   }
