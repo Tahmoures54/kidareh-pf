@@ -31,6 +31,18 @@
       setVisible(accountLink, signedIn);
       setVisible(logoutButton, signedIn);
       if (legalLinks) setVisible(legalLinks, signedIn);
+
+      // A guest has no account yet: protected actions start the registration
+      // flow, while the intended internal destination survives OTP verification.
+      document.querySelectorAll(
+        'a[href^="/seller"], a[href="/monetization"], a[href="/account"], ' +
+        'a[href="/saved"], a[href="/following"], a[href="/messages"], ' +
+        'a[href="/support"], a[href="/admin"], a[href="/admin/reports"]'
+      ).forEach((link) => {
+        if (signedIn) return;
+        const target = new URL(link.getAttribute("href"), window.location.origin);
+        link.href = "/register?next=" + encodeURIComponent(target.pathname + target.search);
+      });
     })
     .catch(() => {
       // Keep guest navigation visible if session verification is temporarily unavailable.
