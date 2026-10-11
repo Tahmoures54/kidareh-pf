@@ -1,314 +1,256 @@
 {% extends "base.html" %}
-{% block title %}محصولات ذخیره‌شده | کی‌داره{% endblock %}
+{% block title %}پشتیبانی کی‌داره | ثبت و پیگیری درخواست{% endblock %}
 
 {% block head %}
 <style>
-  /* ── Saved listings ── */
-  .page-heading {
-    padding: 1.75rem 0 1.15rem;
-  }
-  .page-heading .section-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
-    color: #DC2626;
-    font-size: 0.78rem;
-    font-weight: 700;
-  }
-  .page-heading h1 {
-    margin: 0.85rem 0 0.5rem;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--color-ink, #0F172A);
-    line-height: 1.35;
-  }
-  .page-heading p {
-    margin: 0;
-    max-width: 38rem;
-    color: var(--color-muted, #64748B);
-    font-size: 0.92rem;
-    line-height: 1.8;
-  }
-
-  .account-subnav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 1.15rem;
-  }
-  .account-subnav a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid var(--color-line, #CBD5E1);
-    background: var(--color-surface, #fff);
-    color: var(--color-muted, #64748B);
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-  }
-  .account-subnav a:hover {
-    color: #0E7490;
-    border-color: #0891B2;
-    background: #ECFEFF;
-  }
-  .account-subnav a[aria-current="page"] {
-    color: #fff;
-    background: linear-gradient(180deg, #0891B2, #0E7490);
-    border-color: transparent;
-    font-weight: 700;
-  }
-
-  .page-panel {
-    padding: 1.35rem 1.25rem;
-    border: 1px solid var(--color-line, #CBD5E1);
-    border-radius: 16px;
-    background: var(--color-surface, #fff);
-    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
-    margin-bottom: 1.5rem;
-  }
-
-  .page-results-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 1.1rem;
-    flex-wrap: wrap;
-  }
-  .page-results-head h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--color-ink, #0F172A);
-  }
-  .results-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    background: #FEF2F2;
-    color: #DC2626;
-    font-size: 0.78rem;
-    font-weight: 700;
-  }
-
-  #clearSaved {
-    min-height: 38px;
-    padding-inline: 0.95rem;
-    font-size: 0.8rem;
-    font-weight: 700;
-    border-radius: 10px;
-  }
-
-  /* Grid — compatible with pages.css .page-card-grid */
-  .page-card-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.9rem;
-    min-height: 120px;
-  }
-
-  /* Skeleton while JS loads */
-  .saved-skeleton {
-    border: 1px solid var(--color-line-soft, #E2E8F0);
-    border-radius: 14px;
-    background: #F8FAFC;
-    overflow: hidden;
-  }
-  .saved-skeleton-art {
-    height: 140px;
-    background: #E2E8F0;
-    position: relative;
-    overflow: hidden;
-  }
-  .saved-skeleton-body {
-    padding: 0.9rem;
-    display: grid;
-    gap: 0.45rem;
-  }
-  .saved-skeleton-line {
-    height: 11px;
-    border-radius: 6px;
-    background: #E2E8F0;
-    position: relative;
-    overflow: hidden;
-  }
-  .saved-skeleton-line.w-70 { width: 70%; }
-  .saved-skeleton-line.w-45 { width: 45%; }
-  .saved-skeleton-line.w-55 { width: 55%; }
-  .saved-skeleton-art::after,
-  .saved-skeleton-line::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  @keyframes shimmer {
-    to { transform: translateX(100%); }
-  }
-
-  #savedHint {
-    margin: 1rem 0 0;
-    color: var(--color-muted, #64748B);
-    font-size: 0.85rem;
-    line-height: 1.75;
-  }
-  #savedHint:empty {
-    display: none;
-  }
-
-  .saved-footer-hint {
-    margin: 0;
-    color: var(--color-muted, #64748B);
-    font-size: 0.82rem;
-    line-height: 1.7;
-  }
-  .saved-footer-hint a {
-    color: #0E7490;
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .saved-footer-hint a:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 850px) {
-    .page-card-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  @media (max-width: 520px) {
-    .page-card-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .page-panel {
-      background: var(--color-surface, #111B2A);
-      border-color: var(--color-line, #334155);
-    }
-    .account-subnav a {
-      background: var(--color-surface, #111B2A);
-      border-color: var(--color-line, #334155);
-      color: var(--color-muted, #B6C2D2);
-    }
-    .account-subnav a[aria-current="page"] {
-      background: linear-gradient(180deg, #0891B2, #0E7490);
-      color: #fff;
-      border-color: transparent;
-    }
-    .saved-skeleton {
-      background: #17243A;
-      border-color: #334155;
-    }
-    .saved-skeleton-art,
-    .saved-skeleton-line {
-      background: #334155;
-    }
-    .results-badge {
-      background: #2D1111;
-      color: #F87171;
-    }
-    .page-heading .section-kicker {
-      background: #2D1111;
-      border-color: #7F1D1D;
-      color: #F87171;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .saved-skeleton-art::after,
-    .saved-skeleton-line::after {
-      animation: none;
-    }
-  }
+  .support-heading{padding:1.6rem 0 1.1rem}
+  .support-heading .section-kicker{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border:1px solid #A5F3FC;border-radius:999px;background:#ECFEFF;color:#0E7490;font-size:.78rem;font-weight:800}
+  .support-heading h1{margin:.8rem 0 .45rem;font-size:clamp(1.5rem,3vw,2rem);font-weight:850;line-height:1.4;color:var(--color-ink,#0F172A)}
+  .support-heading p{margin:0;max-width:45rem;color:var(--color-muted,#64748B);font-size:.92rem;line-height:1.9}
+  .support-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.78fr);gap:1rem;align-items:start;padding-bottom:2rem}
+  .support-panel{min-width:0;padding:1.2rem;border:1px solid var(--color-line,#CBD5E1);border-radius:16px;background:var(--color-surface,#fff);box-shadow:0 2px 12px rgba(15,23,42,.04)}
+  .support-panel h2{margin:0 0 .9rem;font-size:1.08rem;font-weight:850;color:var(--color-ink,#0F172A)}
+  .support-form{display:grid;gap:.85rem}
+  .support-field{display:grid;gap:.4rem}
+  .support-field label{font-size:.85rem;font-weight:750;color:var(--color-ink,#0F172A)}
+  .support-field input,.support-field select,.support-field textarea,.support-reply textarea{width:100%;min-height:44px;padding:.75rem .85rem;border:1px solid var(--color-line,#CBD5E1);border-radius:11px;background:var(--color-surface,#fff);color:var(--color-ink,#0F172A);font:inherit;font-size:.9rem}
+  .support-field textarea,.support-reply textarea{min-height:135px;resize:vertical;line-height:1.8}
+  .support-field input:focus-visible,.support-field select:focus-visible,.support-field textarea:focus-visible,.support-reply textarea:focus-visible{outline:3px solid rgba(8,145,178,.2);border-color:#0891B2}
+  .support-note{margin:0;color:var(--color-muted,#64748B);font-size:.8rem;line-height:1.8}
+  .support-message{display:none;margin:0 0 .85rem;padding:.7rem .85rem;border-radius:10px;font-size:.85rem;line-height:1.7}
+  .support-message.visible{display:block}
+  .support-message.error{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+  .support-message.success{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+  .support-button{min-height:45px;padding:.7rem 1rem;border:0;border-radius:11px;background:linear-gradient(100deg,#0E7490,#0891B2);color:white;font:inherit;font-weight:800;cursor:pointer}
+  .support-button:disabled{opacity:.65;cursor:wait}
+  .support-ticket-list{display:grid;gap:.65rem}
+  .support-ticket{width:100%;display:grid;gap:.4rem;text-align:right;padding:.9rem;border:1px solid var(--color-line,#CBD5E1);border-radius:12px;background:var(--color-surface,#fff);color:inherit;font:inherit;cursor:pointer}
+  .support-ticket:hover,.support-ticket[aria-current=true]{border-color:#0891B2;background:#ECFEFF}
+  .support-ticket-title{font-weight:800;font-size:.9rem;line-height:1.6}
+  .support-ticket-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;color:var(--color-muted,#64748B);font-size:.75rem}
+  .support-status{display:inline-flex;padding:.18rem .5rem;border-radius:999px;background:#F1F5F9;color:#475569;font-weight:800}
+  .support-status.open{background:#FEF3C7;color:#92400E}.support-status.in_progress{background:#DBEAFE;color:#1D4ED8}.support-status.answered{background:#D1FAE5;color:#065F46}.support-status.closed{background:#E2E8F0;color:#334155}
+  .support-empty{padding:1rem;border:1px dashed var(--color-line,#CBD5E1);border-radius:12px;color:var(--color-muted,#64748B);font-size:.86rem;line-height:1.8}
+  .support-conversation{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-line,#CBD5E1)}
+  .support-conversation[hidden]{display:none}
+  .support-conversation-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.9rem}
+  .support-conversation-head h3{margin:0;font-size:1rem;font-weight:850;line-height:1.6;overflow-wrap:anywhere}
+  .support-messages{display:grid;gap:.7rem;margin-bottom:1rem}
+  .support-bubble{padding:.8rem .9rem;border:1px solid var(--color-line,#CBD5E1);border-radius:12px;background:var(--color-surface,#fff);overflow-wrap:anywhere}
+  .support-bubble.admin{border-color:#A5F3FC;background:#ECFEFF}
+  .support-bubble p{margin:.4rem 0 0;white-space:pre-wrap;line-height:1.85;font-size:.88rem}
+  .support-bubble small{color:var(--color-muted,#64748B);font-size:.74rem}
+  .support-reply{display:grid;gap:.6rem}
+  .support-reply[hidden]{display:none}
+  .support-quick-links{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .support-quick-links a{display:inline-flex;align-items:center;padding:.45rem .7rem;border:1px solid var(--color-line,#CBD5E1);border-radius:9px;color:#0E7490;text-decoration:none;font-size:.8rem;font-weight:750}
+  @media(max-width:760px){.support-layout{grid-template-columns:1fr}.support-layout .support-compose{order:0}.support-layout .support-history{order:1}}
+  @media(prefers-color-scheme:dark){.support-panel{background:var(--color-surface,#111B2A);border-color:var(--color-line,#334155)}.support-heading .section-kicker{background:#083344;border-color:#155E75;color:#67E8F9}.support-ticket:hover,.support-ticket[aria-current=true]{background:#083344;border-color:#155E75}.support-status{background:#334155;color:#E2E8F0}.support-status.open{background:#422006;color:#FCD34D}.support-status.in_progress{background:#172554;color:#BFDBFE}.support-status.answered{background:#064E3B;color:#A7F3D0}.support-status.closed{background:#334155;color:#E2E8F0}.support-bubble.admin{background:#083344;border-color:#155E75}.support-message.error{background:#450A0A;color:#FECACA;border-color:#7F1D1D}.support-message.success{background:#052E24;color:#A7F3D0;border-color:#065F46}}
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-heading">
-  <span class="section-kicker"><span aria-hidden="true">♡</span> برای بعد نگه دار</span>
-  <h1>محصولات ذخیره‌شده</h1>
-  <p>
-    کالاهایی را که پسندیده‌ای اینجا پیدا کن.
-    ذخیرهٔ مهمان روی همین دستگاه نگهداری می‌شود؛ با ورود، روی حسابت هم می‌ماند.
-  </p>
+<section class="support-heading">
+  <span class="section-kicker"><span aria-hidden="true">💬</span> ارتباط با تیم کی‌داره</span>
+  <h1>پشتیبانی و پیگیری درخواست‌ها</h1>
+  <p>مشکل حساب، خطای سایت، گزارش تخلف یا پرسشی درباره استفاده از کی‌داره دارید؟ درخواستتان را ثبت کنید و پاسخ تیم پشتیبانی را همین‌جا پیگیری کنید.</p>
+  <div class="support-quick-links" aria-label="راهنماهای مرتبط">
+    <a href="/help">پرسش‌های رایج</a><a href="/guide">راهنمای کاربر</a><a href="/safety">خرید امن</a>
+  </div>
 </section>
 
-<nav class="account-subnav" aria-label="بخش‌های حساب">
-  <a href="/account">حساب من</a>
-  <a href="/saved" aria-current="page">ذخیره‌ها</a>
-  <a href="/following">دنبال‌شده‌ها</a>
-  <a href="/messages">گفت‌وگوها</a>
-</nav>
-
-<section class="page-panel">
-  <div class="page-results-head">
-    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-      <h2>فهرست ذخیره‌ها</h2>
-      <span class="results-badge" id="savedCount" hidden>۰ کالا</span>
-    </div>
-    <button id="clearSaved" class="button button-outline" type="button">
-      پاک‌کردن ذخیره‌ها
-    </button>
-  </div>
-
-  <!--
-    JS fills #pageListings with product cards.
-    Skeletons show until content arrives.
-  -->
-  <div id="pageListings" class="page-card-grid" aria-live="polite">
-    <div class="saved-skeleton" aria-hidden="true">
-      <div class="saved-skeleton-art"></div>
-      <div class="saved-skeleton-body">
-        <div class="saved-skeleton-line w-70"></div>
-        <div class="saved-skeleton-line w-45"></div>
-        <div class="saved-skeleton-line w-55"></div>
+<div class="support-layout">
+  <section class="support-panel support-compose" aria-labelledby="supportFormTitle">
+    <h2 id="supportFormTitle">ثبت درخواست جدید</h2>
+    <p id="supportFormMessage" class="support-message" role="status" aria-live="polite"></p>
+    <form id="supportForm" class="support-form">
+      <div class="support-field">
+        <label for="supportCategory">موضوع درخواست</label>
+        <select id="supportCategory" name="category" required>
+          <option value="general">سؤال عمومی</option>
+          <option value="account">حساب کاربری و ورود</option>
+          <option value="listing">کالا یا فروشگاه</option>
+          <option value="payment">پرداخت و هزینه‌ها</option>
+          <option value="technical">مشکل فنی سایت</option>
+          <option value="other">سایر موارد</option>
+        </select>
       </div>
-    </div>
-    <div class="saved-skeleton" aria-hidden="true">
-      <div class="saved-skeleton-art"></div>
-      <div class="saved-skeleton-body">
-        <div class="saved-skeleton-line w-70"></div>
-        <div class="saved-skeleton-line w-45"></div>
-        <div class="saved-skeleton-line w-55"></div>
+      <div class="support-field">
+        <label for="supportTitle">عنوان درخواست</label>
+        <input id="supportTitle" name="title" type="text" minlength="3" maxlength="120" required placeholder="مثلاً نمی‌توانم وارد حسابم شوم">
       </div>
-    </div>
-    <div class="saved-skeleton" aria-hidden="true">
-      <div class="saved-skeleton-art"></div>
-      <div class="saved-skeleton-body">
-        <div class="saved-skeleton-line w-70"></div>
-        <div class="saved-skeleton-line w-45"></div>
-        <div class="saved-skeleton-line w-55"></div>
+      <div class="support-field">
+        <label for="supportBody">شرح مشکل یا پرسش</label>
+        <textarea id="supportBody" name="body" minlength="10" maxlength="4000" required placeholder="چه اتفاقی افتاده؟ اگر خطایی می‌بینید، متن آن را هم بنویسید."></textarea>
       </div>
+      <p class="support-note">لطفاً رمز ورود، رمز یک‌بارمصرف یا اطلاعات بانکی را در متن درخواست ننویسید.</p>
+      <button class="support-button" id="supportSubmit" type="submit">ثبت درخواست</button>
+    </form>
+  </section>
+
+  <section class="support-panel support-history" aria-labelledby="supportHistoryTitle">
+    <h2 id="supportHistoryTitle">درخواست‌های قبلی من</h2>
+    <p id="supportListMessage" class="support-message" role="status" aria-live="polite"></p>
+    <div id="supportTicketList" class="support-ticket-list" aria-live="polite">
+      <div class="support-empty">در حال دریافت درخواست‌ها…</div>
     </div>
-  </div>
-
-  <p id="savedHint" class="muted-copy"></p>
-
-  <p class="saved-footer-hint">
-    هنوز چیزی ذخیره نکرده‌ای؟ از
-    <a href="/search">جست‌وجوی کالا</a>
-    یا
-    <a href="/">صفحه اصلی</a>
-    کالاهای شهر را ببین و ذخیره کن.
-  </p>
-</section>
+    <section id="supportConversation" class="support-conversation" hidden aria-labelledby="supportConversationTitle">
+      <div class="support-conversation-head">
+        <h3 id="supportConversationTitle">گفت‌وگوی درخواست</h3>
+        <span id="supportConversationStatus" class="support-status">باز</span>
+      </div>
+      <div id="supportMessages" class="support-messages" aria-live="polite"></div>
+      <form id="supportReplyForm" class="support-reply">
+        <label for="supportReplyBody">پاسخ شما</label>
+        <textarea id="supportReplyBody" name="body" maxlength="4000" required placeholder="پیام خود را بنویسید…"></textarea>
+        <button class="support-button" id="supportReplySubmit" type="submit">ارسال پاسخ</button>
+      </form>
+    </section>
+  </section>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  window.KIDAREH_PAGE = { type: "saved" };
+(() => {
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const form = document.getElementById("supportForm");
+  const submit = document.getElementById("supportSubmit");
+  const formMessage = document.getElementById("supportFormMessage");
+  const listMessage = document.getElementById("supportListMessage");
+  const list = document.getElementById("supportTicketList");
+  const conversation = document.getElementById("supportConversation");
+  const conversationTitle = document.getElementById("supportConversationTitle");
+  const conversationStatus = document.getElementById("supportConversationStatus");
+  const messages = document.getElementById("supportMessages");
+  const replyForm = document.getElementById("supportReplyForm");
+  const replyBody = document.getElementById("supportReplyBody");
+  const replySubmit = document.getElementById("supportReplySubmit");
+  let activeTicketId = null;
+  const statusLabels = {open:"در انتظار بررسی",in_progress:"در حال بررسی",answered:"پاسخ داده شده",closed:"بسته شده"};
+  const categoryLabels = {general:"عمومی",account:"حساب کاربری",listing:"کالا یا فروشگاه",payment:"پرداخت",technical:"فنی",other:"سایر"};
+  const showMessage = (element, message, kind) => {
+    element.textContent = message;
+    element.className = "support-message visible " + kind;
+  };
+  const clearMessage = (element) => {
+    element.textContent = "";
+    element.className = "support-message";
+  };
+  const request = async (url, options = {}) => {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      headers: {Accept:"application/json", ...(options.body ? {"Content-Type":"application/json"} : {}), ...(options.method && options.method !== "GET" ? {"X-CSRF-Token":csrf} : {}), ...(options.headers || {})},
+      ...options
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) throw new Error("برای استفاده از پشتیبانی دوباره وارد حساب شوید.");
+      throw new Error(data.message || (data.error === "ticket_closed" ? "این درخواست بسته شده است." : "انجام درخواست ممکن نشد؛ دوباره تلاش کنید."));
+    }
+    return data;
+  };
+  const make = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const renderTickets = (items) => {
+    list.replaceChildren();
+    if (!items.length) {
+      list.append(make("div","support-empty","هنوز درخواستی ثبت نکرده‌اید. فرم را پر کنید تا درخواست شما در همین بخش قابل پیگیری باشد."));
+      return;
+    }
+    items.forEach((ticket) => {
+      const button = make("button","support-ticket", "");
+      button.type = "button";
+      button.setAttribute("aria-current", String(ticket.id === activeTicketId));
+      button.append(make("span","support-ticket-title", "#" + ticket.id + " — " + ticket.title));
+      const meta = make("span","support-ticket-meta");
+      meta.append(make("span","support-status " + ticket.status, statusLabels[ticket.status] || ticket.status));
+      meta.append(make("span","",categoryLabels[ticket.category] || "عمومی"));
+      meta.append(make("span","",ticket.updated_at || ticket.created_at || ""));
+      if (Number(ticket.new_replies) > 0) meta.append(make("span","support-status answered","پاسخ جدید"));
+      button.append(meta);
+      button.addEventListener("click", () => loadTicket(ticket.id));
+      list.append(button);
+    });
+  };
+  const loadTickets = async () => {
+    try {
+      const data = await request("/api/support/tickets");
+      renderTickets(data.items || []);
+      clearMessage(listMessage);
+    } catch (error) {
+      list.replaceChildren(make("div","support-empty",error.message));
+      showMessage(listMessage,error.message,"error");
+    }
+  };
+  const loadTicket = async (id) => {
+    activeTicketId = id;
+    try {
+      const data = await request("/api/support/tickets/" + encodeURIComponent(id));
+      const ticket = data.ticket;
+      conversation.hidden = false;
+      conversationTitle.textContent = "#" + ticket.id + " — " + ticket.title;
+      conversationStatus.textContent = statusLabels[ticket.status] || ticket.status;
+      conversationStatus.className = "support-status " + ticket.status;
+      messages.replaceChildren();
+      (data.items || []).forEach((item) => {
+        const bubble = make("article","support-bubble" + (item.is_admin_reply ? " admin" : ""));
+        bubble.append(make("small","", (item.is_admin_reply ? "پشتیبانی کی‌داره" : "شما") + (item.created_at ? " · " + item.created_at : "")));
+        bubble.append(make("p","",item.body));
+        messages.append(bubble);
+      });
+      replyForm.hidden = ticket.status === "closed";
+      renderTickets((await request("/api/support/tickets")).items || []);
+      conversation.scrollIntoView({behavior:"smooth",block:"nearest"});
+    } catch (error) {
+      showMessage(listMessage,error.message,"error");
+    }
+  };
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearMessage(formMessage);
+    submit.disabled = true;
+    submit.textContent = "در حال ثبت…";
+    const payload = {
+      category: document.getElementById("supportCategory").value,
+      title: document.getElementById("supportTitle").value.trim(),
+      body: document.getElementById("supportBody").value.trim()
+    };
+    try {
+      const data = await request("/api/support/tickets",{method:"POST",body:JSON.stringify(payload)});
+      form.reset();
+      showMessage(formMessage,"درخواست شما با شماره #" + data.id + " ثبت شد. پاسخ را از فهرست درخواست‌های قبلی پیگیری کنید.","success");
+      await loadTickets();
+      await loadTicket(data.id);
+    } catch (error) {
+      showMessage(formMessage,error.message,"error");
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "ثبت درخواست";
+    }
+  });
+  replyForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!activeTicketId) return;
+    replySubmit.disabled = true;
+    replySubmit.textContent = "در حال ارسال…";
+    try {
+      await request("/api/support/tickets/" + encodeURIComponent(activeTicketId) + "/messages",{method:"POST",body:JSON.stringify({body:replyBody.value.trim()})});
+      replyBody.value = "";
+      showMessage(listMessage,"پاسخ شما ارسال شد.","success");
+      await loadTicket(activeTicketId);
+    } catch (error) {
+      showMessage(listMessage,error.message,"error");
+    } finally {
+      replySubmit.disabled = false;
+      replySubmit.textContent = "ارسال پاسخ";
+    }
+  });
+  loadTickets();
+})();
 </script>
 {% endblock %}
