@@ -1,57 +1,739 @@
 {% extends "base.html" %}
 {% block title %}فروشگاه تگ کالاها | کی‌داره{% endblock %}
+
 {% block head %}
 <style>
-.tag-hero{position:relative;overflow:hidden;margin-bottom:22px;padding:clamp(24px,4vw,42px);border-radius:26px;background:radial-gradient(circle at 10% 15%,#2aa69d55,transparent 35%),linear-gradient(125deg,#103c4b,#087f8c 68%,#149f9b);color:#fff}
-.tag-hero:after{content:"🏷️";position:absolute;inset-inline-start:clamp(18px,5vw,58px);bottom:-18px;font-size:clamp(100px,16vw,180px);opacity:.13;transform:rotate(-18deg)}
-.tag-hero h1{max-width:700px;margin:12px 0;font-size:clamp(1.8rem,4vw,2.7rem);line-height:1.45}
-.tag-hero p{max-width:690px;color:#e1fbf7;line-height:2}
-.tag-free-note{display:flex;gap:12px;align-items:flex-start;margin:18px 0;padding:16px;border:1px solid #b8e8d8;border-radius:17px;background:#effcf6;color:#245b4e;line-height:1.9}
-.tag-free-note strong{display:block}
-.tag-store-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:16px;margin:18px 0 28px}
-.tag-product-card{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid #e0eae8;border-radius:22px;background:#fff;box-shadow:0 10px 28px #153d4308}
-.tag-product-card h2{margin:0;color:#183f43;font-size:1.12rem}
-.tag-product-card p{margin:0;color:#6a8182;line-height:1.9;font-size:13px;flex:1}
-.tag-product-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:17px;background:#eff8f5;font-size:30px}
-.tag-product-price{color:#073b4c;font-size:1.45rem;font-weight:900}
-.tag-product-price small{color:#6c8384;font-size:.8rem;font-weight:500}
-.tag-product-card ul{padding-inline-end:20px;margin:0;color:#4d6869;line-height:2;font-size:12px}
-.tag-select{display:grid;gap:7px;color:#496669;font-size:13px}
-.tag-select select{width:100%;min-height:45px;padding:10px;border:1px solid #dce9e7;border-radius:12px;background:#fbfdfc;color:#24484b;font:inherit}
-.tag-buy-status{min-height:24px;color:#087f8c;line-height:1.9}
-.tag-owned-list{display:grid;gap:10px}
-.tag-owned-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid #e4eeec;border-radius:15px;background:#fff}
-.tag-owned-item strong,.tag-owned-item small{display:block}
-.tag-owned-item small{margin-top:4px;color:#809393}
-.tag-active{display:inline-flex;padding:5px 9px;border-radius:9px;background:#e3f8ec;color:#187345;font-size:11px;font-weight:800}
-@media(max-width:560px){.tag-owned-item{align-items:flex-start;flex-direction:column}}
+  /* ═══════════════════════════════════════════
+     Tag store — revenue center
+     IDs/classes for payment JS preserved
+     ═══════════════════════════════════════════ */
+
+  .tag-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.15rem;
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(42, 166, 157, 0.35), transparent 38%),
+      radial-gradient(circle at 88% 80%, rgba(20, 159, 155, 0.2), transparent 40%),
+      linear-gradient(125deg, #103C4B 0%, #087F8C 65%, #149F9B 100%);
+    color: #fff;
+    box-shadow: 0 14px 40px rgba(16, 60, 75, 0.28);
+  }
+  .tag-hero::after {
+    content: "🏷️";
+    position: absolute;
+    inset-inline-start: clamp(1rem, 5vw, 3.5rem);
+    bottom: -1.1rem;
+    font-size: clamp(5.5rem, 16vw, 10rem);
+    opacity: 0.12;
+    transform: rotate(-18deg);
+    pointer-events: none;
+  }
+  .tag-hero .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(185, 255, 255, 0.35);
+    color: #B9FFFF;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .tag-hero h1 {
+    max-width: 42rem;
+    margin: 0.85rem 0 0.55rem;
+    font-size: clamp(1.65rem, 3.8vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.4;
+    color: #fff;
+  }
+  .tag-hero p {
+    max-width: 42rem;
+    margin: 0 0 1.15rem;
+    color: #E1FBF7;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+  .tag-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    position: relative;
+    z-index: 1;
+  }
+  .tag-hero .button {
+    min-height: 44px;
+    font-weight: 700;
+    border-radius: 11px;
+  }
+  .tag-hero .button-outline {
+    background: #fff;
+    color: #07515A;
+    border-color: #fff;
+  }
+  .tag-hero .button-ghost {
+    background: transparent;
+    color: #B9FFFF;
+    border: 1px solid rgba(185, 255, 255, 0.4);
+  }
+
+  /* Seller subnav */
+  .seller-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+  }
+  .seller-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid #CBD5E1;
+    background: #fff;
+    color: #64748B;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .seller-subnav a:hover {
+    color: #0E7490;
+    border-color: #0891B2;
+    background: #ECFEFF;
+  }
+  .seller-subnav a[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #0D9488, #0F766E);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  /* Value props strip */
+  .tag-value-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .tag-value-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid #E0EAE8;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(21, 61, 67, 0.04);
+  }
+  .tag-value-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    font-size: 1.15rem;
+  }
+  .tag-value-item:nth-child(1) .tag-value-icon { background: #ECFDF5; }
+  .tag-value-item:nth-child(2) .tag-value-icon { background: #ECFEFF; }
+  .tag-value-item:nth-child(3) .tag-value-icon { background: #FFF7ED; }
+  .tag-value-item strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #183F43;
+  }
+  .tag-value-item span {
+    font-size: 0.78rem;
+    color: #6A8182;
+    line-height: 1.65;
+  }
+
+  /* Free note */
+  .tag-free-note {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin: 0 0 1.35rem;
+    padding: 1.05rem 1.15rem;
+    border: 1px solid #B8E8D8;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #EFFCF6, #F0FDF4);
+    color: #245B4E;
+    line-height: 1.85;
+    font-size: 0.88rem;
+  }
+  .tag-free-note-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #A7F3D0;
+    color: #065F46;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+  .tag-free-note strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: #064E3B;
+  }
+
+  /* How it works */
+  .tag-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .tag-step {
+    position: relative;
+    padding: 1.1rem 1.05rem;
+    border: 1px solid #E0EAE8;
+    border-radius: 14px;
+    background: #fff;
+  }
+  .tag-step-num {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 0.55rem;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #0D9488, #0F766E);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+  .tag-step strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #183F43;
+  }
+  .tag-step p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6A8182;
+    line-height: 1.7;
+  }
+
+  /* Package cards */
+  .tag-section-title {
+    margin: 0 0 0.85rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .tag-store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+    margin: 0 0 1rem;
+  }
+  .tag-product-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.35rem 1.25rem;
+    border: 1px solid #E0EAE8;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(21, 61, 67, 0.05);
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .tag-product-card:hover {
+    border-color: #14B8A6;
+    box-shadow: 0 14px 32px rgba(13, 148, 136, 0.12);
+    transform: translateY(-3px);
+  }
+  .tag-product-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .tag-product-icon {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    background: #EFF8F5;
+    font-size: 1.75rem;
+  }
+  .money-tag,
+  .tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: #E6F7F5;
+    color: #0F766E;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Live badge preview on card */
+  .tag-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .tag-preview.sale {
+    background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+    color: #B91C1C;
+    border: 1px solid #FECACA;
+  }
+  .tag-preview.special {
+    background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+    color: #6D28D9;
+    border: 1px solid #DDD6FE;
+  }
+  .tag-preview.discount {
+    background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+    color: #C2410C;
+    border: 1px solid #FED7AA;
+  }
+
+  .tag-product-card h2 {
+    margin: 0;
+    color: #183F43;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+  .tag-product-card > p {
+    margin: 0;
+    color: #6A8182;
+    line-height: 1.8;
+    font-size: 0.85rem;
+    flex: 1;
+  }
+  .tag-product-price {
+    color: #073B4C;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .tag-product-price small {
+    color: #6C8384;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .tag-product-card ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .tag-product-card ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    color: #4D6869;
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+  .tag-product-card ul li::before {
+    content: "✓";
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ECFDF5;
+    color: #0F766E;
+    font-size: 0.65rem;
+    font-weight: 800;
+    margin-top: 0.15rem;
+  }
+  .tag-select {
+    display: grid;
+    gap: 0.4rem;
+    color: #496669;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .tag-select select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #DCE9E7;
+    border-radius: 11px;
+    background: #FBFDFC;
+    color: #24484B;
+    font: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .tag-select select:focus {
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+  }
+  .tag-buy-button {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 0.15rem;
+    font-weight: 700;
+    border-radius: 11px;
+    background: linear-gradient(180deg, #0D9488, #0F766E) !important;
+    border: none !important;
+    box-shadow: 0 6px 16px rgba(15, 118, 110, 0.25);
+  }
+  .tag-buy-button:hover:not(:disabled) {
+    background: #0F766E !important;
+  }
+  .tag-buy-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  /* Status feedback */
+  .tag-buy-status {
+    min-height: 1.4em;
+    margin: 0.5rem 0 1.25rem;
+    color: #0F766E;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.75;
+  }
+  .tag-buy-status:not(:empty) {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+  }
+  .tag-buy-status.is-error:not(:empty) {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #B91C1C;
+  }
+  .tag-buy-status.is-success:not(:empty) {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+    color: #047857;
+  }
+
+  /* Owned listings */
+  .tag-owned-panel {
+    padding: 1.35rem 1.25rem;
+    border: 1px solid #E0EAE8;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(21, 61, 67, 0.04);
+    margin-bottom: 1.75rem;
+  }
+  .tag-owned-panel h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .tag-owned-panel .muted-copy {
+    margin: 0 0 1rem;
+    color: #6A8182;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .tag-owned-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .tag-owned-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding: 0.95rem 1.05rem;
+    border: 1px solid #E4EEEC;
+    border-radius: 14px;
+    background: #FBFDFC;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .tag-owned-item:hover {
+    border-color: #99F6E4;
+    background: #F0FDFA;
+  }
+  .tag-owned-item strong {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #183F43;
+  }
+  .tag-owned-item small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #809393;
+    font-size: 0.78rem;
+  }
+  .tag-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 9px;
+    background: #E3F8EC;
+    color: #187345;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .tag-active::before {
+    content: "●";
+    font-size: 0.55rem;
+    color: #22C55E;
+  }
+
+  /* Trust footer */
+  .tag-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    color: #64748B;
+    font-size: 0.82rem;
+  }
+  .tag-trust span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  @media (max-width: 700px) {
+    .tag-value-strip,
+    .tag-steps {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .tag-owned-item {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .tag-value-item,
+    .tag-step,
+    .tag-product-card,
+    .tag-owned-panel,
+    .tag-owned-item {
+      background: #111B2A;
+      border-color: #334155;
+    }
+    .tag-owned-item { background: #17243A; }
+    .tag-product-card h2,
+    .tag-owned-panel h2,
+    .tag-owned-item strong,
+    .tag-value-item strong,
+    .tag-step strong,
+    .tag-section-title {
+      color: #E2E8F0;
+    }
+    .tag-product-card > p,
+    .tag-product-card ul li,
+    .tag-value-item span,
+    .tag-step p,
+    .tag-owned-panel .muted-copy {
+      color: #B6C2D2;
+    }
+    .tag-product-price { color: #5EEAD4; }
+    .tag-select select {
+      background: #17243A;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+    .tag-free-note {
+      background: linear-gradient(135deg, #052E24, #064E3B);
+      border-color: #065F46;
+      color: #A7F3D0;
+    }
+    .tag-free-note strong { color: #6EE7B7; }
+    .seller-subnav a {
+      background: #111B2A;
+      border-color: #334155;
+      color: #B6C2D2;
+    }
+    .seller-subnav a[aria-current="page"] {
+      background: linear-gradient(180deg, #0D9488, #0F766E);
+      color: #fff;
+      border-color: transparent;
+    }
+    .tag-trust {
+      background: #17243A;
+      border-color: #334155;
+      color: #B6C2D2;
+    }
+  }
 </style>
 {% endblock %}
+
 {% block content %}
+<!-- Hero -->
 <section class="tag-hero">
-  <span class="section-kicker" style="color:#b9ffff">ویترین تگ‌های کی‌داره</span>
+  <span class="section-kicker"><span aria-hidden="true">🏷️</span> ویترین تگ‌های کی‌داره</span>
   <h1>کالایت رایگان؛ تگش به انتخاب تو.</h1>
-  <p>برای هر کالا می‌توانی یک تگ چشم‌گیر مثل «حراج»، «فروش ویژه» یا «تخفیف‌دار» انتخاب کنی. تگ روی همان کالا نمایش داده می‌شود و بعد از مدت خریداری‌شده خودکار منقضی می‌شود.</p>
-  <a class="button button-outline" style="background:#fff;color:#07515a;border-color:#fff" href="/seller">بازگشت به ویترین من</a>
+  <p>
+    برای هر کالا می‌توانی یک تگ چشم‌گیر مثل «حراج»، «فروش ویژه» یا «تخفیف‌دار» انتخاب کنی.
+    تگ روی همان کالا نمایش داده می‌شود و بعد از مدت خریداری‌شده خودکار منقضی می‌شود.
+  </p>
+  <div class="tag-hero-actions">
+    <a class="button button-outline" href="/seller">بازگشت به ویترین من</a>
+    <a class="button button-ghost" href="#tagPackages">مشاهده تگ‌ها ↓</a>
+  </div>
 </section>
-<div class="tag-free-note"><span style="font-size:24px">✓</span><div><strong>انتشار کالا همیشه رایگان است.</strong> برای استفاده از تگ هیچ اجباری وجود ندارد. ابتدا کالا را رایگان ثبت کن، سپس در صورت نیاز تگ دلخواه را بخر. خرید تگ تضمین‌کننده فروش کالا نیست.</div></div>
+
+<nav class="seller-subnav" aria-label="بخش‌های پنل فروشنده">
+  <a href="/seller">ویترین من</a>
+  <a href="/seller/tags" aria-current="page">تگ کالاها</a>
+  <a href="/monetization">تبلیغات و نشان</a>
+</nav>
+
+<!-- Value props -->
+<section class="tag-value-strip" aria-label="مزایای تگ">
+  <div class="tag-value-item">
+    <span class="tag-value-icon" aria-hidden="true">👁</span>
+    <div>
+      <strong>جلب توجه در فهرست</strong>
+      <span>تگ رنگی کنار عنوان کالا، نگاه خریدار را نگه می‌دارد.</span>
+    </div>
+  </div>
+  <div class="tag-value-item">
+    <span class="tag-value-icon" aria-hidden="true">⏱</span>
+    <div>
+      <strong>زمان‌دار و شفاف</strong>
+      <span>مدت اعتبار مشخص است؛ بعد از پایان خودکار حذف می‌شود.</span>
+    </div>
+  </div>
+  <div class="tag-value-item">
+    <span class="tag-value-icon" aria-hidden="true">🎯</span>
+    <div>
+      <strong>روی همان کالا</strong>
+      <span>تگ فقط به کالای انتخابی شما می‌چسبد، نه کل ویترین.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Free first -->
+<div class="tag-free-note" role="note">
+  <span class="tag-free-note-icon" aria-hidden="true">✓</span>
+  <div>
+    <strong>انتشار کالا همیشه رایگان است.</strong>
+    برای استفاده از تگ هیچ اجباری وجود ندارد. ابتدا کالا را رایگان ثبت کن، سپس در صورت نیاز تگ دلخواه را بخر.
+    خرید تگ تضمین‌کننده فروش کالا نیست.
+  </div>
+</div>
+
+<!-- How it works -->
+<section class="tag-steps" aria-label="مراحل خرید تگ">
+  <div class="tag-step">
+    <span class="tag-step-num">۱</span>
+    <strong>کالا را انتخاب کن</strong>
+    <p>از فهرست کالاهای ویترینت، کالایی که می‌خواهی برجسته شود را برگزین.</p>
+  </div>
+  <div class="tag-step">
+    <span class="tag-step-num">۲</span>
+    <strong>تگ را بخر</strong>
+    <p>بستهٔ مناسب را انتخاب و از درگاه امن زیبال پرداخت کن.</p>
+  </div>
+  <div class="tag-step">
+    <span class="tag-step-num">۳</span>
+    <strong>روی کالا ظاهر می‌شود</strong>
+    <p>تگ فوراً فعال می‌شود و تا پایان مدت روی همان کالا می‌ماند.</p>
+  </div>
+</section>
+
+<!-- Packages -->
+<h2 class="tag-section-title" id="tagPackages">تگ‌های قابل خرید</h2>
 <section class="tag-store-grid" aria-label="تگ‌های قابل خرید">
-{% for package in tag_packages %}
-<article class="tag-product-card">
-  <span class="tag-product-icon">{{ package.icon }}</span><span class="money-tag">{{ package.tag }}</span>
-  <h2>{{ package.name }}</h2><p>{{ package.description }}</p>
-  <div class="tag-product-price">{{ "{:,}".format(package.price) }} <small>تومان · {{ package.days }} روز</small></div>
-  <ul>{% for feature in package.features %}<li>{{ feature }}</li>{% endfor %}</ul>
-  <label class="tag-select">برای کدام کالا؟
-    <select class="tag-listing-select" aria-label="انتخاب کالا برای {{ package.name }}"><option value="">در حال بارگذاری کالاها…</option></select>
-  </label>
-  <button class="button button-primary tag-buy-button" type="button" data-package="{{ package.id }}">انتخاب کالا و پرداخت</button>
-</article>
-{% endfor %}
+  {% for package in tag_packages %}
+  <article class="tag-product-card">
+    <div class="tag-product-card-top">
+      <span class="tag-product-icon" aria-hidden="true">{{ package.icon }}</span>
+      <span class="money-tag">{{ package.tag }}</span>
+    </div>
+
+    {# Visual preview of how the tag looks on a listing #}
+    {% if package.id == 'listing_tag_sale' or 'sale' in package.id %}
+    <span class="tag-preview sale" aria-hidden="true">🏷 حراج</span>
+    {% elif package.id == 'listing_tag_special' or 'special' in package.id %}
+    <span class="tag-preview special" aria-hidden="true">⭐ فروش ویژه</span>
+    {% elif package.id == 'listing_tag_discount' or 'discount' in package.id %}
+    <span class="tag-preview discount" aria-hidden="true">٪ تخفیف‌دار</span>
+    {% else %}
+    <span class="tag-preview special" aria-hidden="true">{{ package.tag }}</span>
+    {% endif %}
+
+    <h2>{{ package.name }}</h2>
+    <p>{{ package.description }}</p>
+    <div class="tag-product-price">
+      {{ "{:,}".format(package.price) }}
+      <small>تومان · {{ package.days }} روز</small>
+    </div>
+    <ul>
+      {% for feature in package.features %}
+      <li>{{ feature }}</li>
+      {% endfor %}
+    </ul>
+    <label class="tag-select">
+      برای کدام کالا؟
+      <select class="tag-listing-select" aria-label="انتخاب کالا برای {{ package.name }}">
+        <option value="">در حال بارگذاری کالاها…</option>
+      </select>
+    </label>
+    <button
+      class="button button-primary tag-buy-button"
+      type="button"
+      data-package="{{ package.id }}"
+    >
+      انتخاب کالا و پرداخت
+    </button>
+  </article>
+  {% endfor %}
 </section>
+
 <p id="tagBuyStatus" class="tag-buy-status" role="status" aria-live="polite"></p>
-<section class="page-panel"><h2>کالاهای من و وضعیت تگ</h2><p class="muted-copy">اگر کالایی تگ فعال داشته باشد، وضعیت و زمان پایان آن را اینجا می‌بینی.</p><div id="tagOwnedListings" class="tag-owned-list">در حال بارگذاری…</div></section>
+
+<!-- Owned listings + tag status -->
+<section class="tag-owned-panel page-panel">
+  <h2>کالاهای من و وضعیت تگ</h2>
+  <p class="muted-copy">
+    اگر کالایی تگ فعال داشته باشد، وضعیت و زمان پایان آن را اینجا می‌بینی.
+  </p>
+  <div id="tagOwnedListings" class="tag-owned-list">در حال بارگذاری…</div>
+</section>
+
+<div class="tag-trust" role="note">
+  <span><span aria-hidden="true">🔒</span> پرداخت امن از طریق درگاه زیبال</span>
+  <span><span aria-hidden="true">⏱</span> تگ زمان‌دار · انقضای خودکار</span>
+  <span><span aria-hidden="true">✓</span> انتشار کالا همیشه رایگان</span>
+  <span><span aria-hidden="true">ℹ</span> تگ تضمین فروش نیست</span>
+</div>
 {% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -59,54 +741,140 @@ document.addEventListener("DOMContentLoaded", () => {
   const listingBox = document.querySelector("#tagOwnedListings");
   const selectors = [...document.querySelectorAll(".tag-listing-select")];
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || "";
-  const labels = {listing_tag_sale:"حراج",listing_tag_special:"فروش ویژه",listing_tag_discount:"تخفیف‌دار"};
+  const labels = {
+    listing_tag_sale: "حراج",
+    listing_tag_special: "فروش ویژه",
+    listing_tag_discount: "تخفیف‌دار",
+  };
   let items = [];
-  const say = (message) => { status.textContent = message; };
+
+  const say = (message, kind) => {
+    status.textContent = message;
+    status.classList.remove("is-error", "is-success");
+    if (kind) status.classList.add(kind);
+  };
+
   const fmt = (value) => Number(value || 0).toLocaleString("fa-IR");
-  const safe = (value) => String(value ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const safe = (value) =>
+    String(value ?? "").replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+    );
+
   async function load() {
     try {
-      const response = await fetch("/api/my/listings", {credentials:"same-origin",headers:{Accept:"application/json"}});
+      const response = await fetch("/api/my/listings", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
       if (response.status === 401) {
-        listingBox.textContent = "برای خرید تگ و دیدن کالاهای خود، ابتدا وارد حساب فروشنده شوید.";
-        selectors.forEach(select => { select.innerHTML = '<option value="">ابتدا وارد حساب فروشنده شوید</option>'; });
+        listingBox.textContent =
+          "برای خرید تگ و دیدن کالاهای خود، ابتدا وارد حساب فروشنده شوید.";
+        selectors.forEach((select) => {
+          select.innerHTML =
+            '<option value="">ابتدا وارد حساب فروشنده شوید</option>';
+        });
         return;
       }
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "بارگذاری کالاها ممکن نشد.");
+      if (!response.ok)
+        throw new Error(data.message || "بارگذاری کالاها ممکن نشد.");
       items = data.items || [];
-      selectors.forEach(select => {
+      selectors.forEach((select) => {
         const selected = select.value;
         select.replaceChildren(new Option("انتخاب کالا", ""));
-        items.forEach(item => select.add(new Option(item.title + " · " + item.city, String(item.id))));
-        if (items.some(item => String(item.id) === selected)) select.value = selected;
-        if (!items.length) select.add(new Option("هنوز کالایی ثبت نکرده‌اید", ""));
+        items.forEach((item) =>
+          select.add(
+            new Option(item.title + " · " + item.city, String(item.id))
+          )
+        );
+        if (items.some((item) => String(item.id) === selected))
+          select.value = selected;
+        if (!items.length)
+          select.add(new Option("هنوز کالایی ثبت نکرده‌اید", ""));
       });
-      listingBox.innerHTML = items.length ? items.map(item => {
-        const active = item.active_tag ? '<span class="tag-active">تگ فعال: ' + safe(labels[item.active_tag] || "ویژه") + ' · تا ' + new Date(item.tag_ends_at).toLocaleDateString("fa-IR") + '</span>' : '<small>بدون تگ پولی · انتشار رایگان</small>';
-        return '<div class="tag-owned-item"><div><strong>' + safe(item.title) + '</strong><small>' + safe(item.city) + ' · ' + fmt(item.price) + ' تومان</small></div>' + active + '</div>';
-      }).join("") : '<div class="empty-page-state">هنوز کالایی ثبت نکرده‌ای. <a href="/?open=add-product">اولین کالا را رایگان ثبت کن ←</a></div>';
+      listingBox.innerHTML = items.length
+        ? items
+            .map((item) => {
+              const active = item.active_tag
+                ? '<span class="tag-active">تگ فعال: ' +
+                  safe(labels[item.active_tag] || "ویژه") +
+                  " · تا " +
+                  new Date(item.tag_ends_at).toLocaleDateString("fa-IR") +
+                  "</span>"
+                : "<small>بدون تگ پولی · انتشار رایگان</small>";
+              return (
+                '<div class="tag-owned-item"><div><strong>' +
+                safe(item.title) +
+                "</strong><small>" +
+                safe(item.city) +
+                " · " +
+                fmt(item.price) +
+                " تومان</small></div>" +
+                active +
+                "</div>"
+              );
+            })
+            .join("")
+        : '<div class="empty-page-state">هنوز کالایی ثبت نکرده‌ای. <a href="/seller#addProductPanel">اولین کالا را رایگان ثبت کن ←</a></div>';
     } catch (error) {
       listingBox.textContent = error.message || "بارگذاری کالاها ممکن نشد.";
-      selectors.forEach(select => { select.innerHTML = '<option value="">بارگذاری ناموفق</option>'; });
+      selectors.forEach((select) => {
+        select.innerHTML = '<option value="">بارگذاری ناموفق</option>';
+      });
     }
   }
-  document.querySelectorAll(".tag-buy-button").forEach(button => button.addEventListener("click", async () => {
-    const card = button.closest(".tag-product-card");
-    const listingId = card.querySelector("select").value;
-    if (!listingId) { say("ابتدا کالایی را برای این تگ انتخاب کن."); return; }
-    button.disabled = true; say("در حال آماده‌سازی پرداخت امن زیبال…");
-    try {
-      const response = await fetch("/api/monetization/orders", {method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf,Accept:"application/json"},body:JSON.stringify({package_id:button.dataset.package,listing_id:Number(listingId)})});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || (data.error === "authentication_required" ? "ابتدا وارد حساب فروشنده شوید." : "شروع پرداخت ممکن نشد."));
-      if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
-      window.location.assign(data.redirect_url);
-    } catch(error) { say(error.message || "ارتباط با درگاه برقرار نشد."); button.disabled = false; }
-  }));
+
+  document.querySelectorAll(".tag-buy-button").forEach((button) =>
+    button.addEventListener("click", async () => {
+      const card = button.closest(".tag-product-card");
+      const listingId = card.querySelector("select").value;
+      if (!listingId) {
+        say("ابتدا کالایی را برای این تگ انتخاب کن.", "is-error");
+        return;
+      }
+      button.disabled = true;
+      say("در حال آماده‌سازی پرداخت امن زیبال…");
+      try {
+        const response = await fetch("/api/monetization/orders", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrf,
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            package_id: button.dataset.package,
+            listing_id: Number(listingId),
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(
+            data.message ||
+              (data.error === "authentication_required"
+                ? "ابتدا وارد حساب فروشنده شوید."
+                : "شروع پرداخت ممکن نشد.")
+          );
+        if (!data.redirect_url) throw new Error("نشانی درگاه دریافت نشد.");
+        window.location.assign(data.redirect_url);
+      } catch (error) {
+        say(error.message || "ارتباط با درگاه برقرار نشد.", "is-error");
+        button.disabled = false;
+      }
+    })
+  );
+
   const params = new URLSearchParams(location.search);
-  if (params.get("payment") === "success") say("پرداخت تأیید شد؛ تگ کالا فعال شد.");
-  else if (params.get("payment")) say("پرداخت تأیید نشد یا قابل بررسی نبود. اگر مبلغی کسر شده، اطلاعات سفارش را برای پیگیری نگه دارید.");
+  if (params.get("payment") === "success") {
+    say("پرداخت تأیید شد؛ تگ کالا فعال شد.", "is-success");
+  } else if (params.get("payment")) {
+    say(
+      "پرداخت تأیید نشد یا قابل بررسی نبود. اگر مبلغی کسر شده، اطلاعات سفارش را برای پیگیری نگه دارید.",
+      "is-error"
+    );
+  }
   load();
 });
 </script>
