@@ -96,8 +96,17 @@ def test_no_two_blueprints_claim_the_same_page(app):
     assert cross_blueprint == {}
 
 
-def test_monetization_page_renders_every_purchasable_package(client):
+def test_monetization_page_renders_every_purchasable_package(client, app):
     from kidareh.routes.monetization import PACKAGES
+
+    with app.app_context():
+        with get_connection() as connection:
+            user_id = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("فروشنده آزمایشی", "09120000005", "test-hash", "seller"),
+            ).lastrowid
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
 
     response = client.get("/monetization")
     assert response.status_code == 200

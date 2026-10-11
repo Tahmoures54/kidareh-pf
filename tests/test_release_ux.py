@@ -362,12 +362,12 @@ def test_legal_links_are_hidden_until_auth_state_is_confirmed_and_store_label_is
 
 
 
-def test_seller_dashboard_redirects_guests_to_login_and_serves_signed_in_users(client, app):
+def test_seller_dashboard_redirects_guests_to_registration_and_serves_signed_in_users(client, app):
     guest_response = client.get("/seller")
     assert guest_response.status_code == 302
     from urllib.parse import parse_qs, urlsplit
     location = urlsplit(guest_response.headers["Location"])
-    assert location.path == "/login"
+    assert location.path == "/register"
     assert parse_qs(location.query).get("next") == ["/seller"]
 
     with app.app_context():
@@ -383,6 +383,41 @@ def test_seller_dashboard_redirects_guests_to_login_and_serves_signed_in_users(c
     signed_in_response = client.get("/seller")
     assert signed_in_response.status_code == 200
     assert "پنل فروشگاه من" in signed_in_response.get_data(as_text=True)
+
+
+def test_guest_can_browse_catalog_but_private_pages_require_registration(client):
+    public_paths = ("/", "/search", "/stores", "/product/1", "/store/1")
+    for path in public_paths:
+        response = client.get(path)
+        assert response.status_code == 200, path
+
+    private_paths = (
+        "/seller", "/seller/tags", "/monetization", "/account", "/saved",
+        "/following", "/messages", "/support",
+    )
+    from urllib.parse import parse_qs, urlsplit
+    for path in private_paths:
+        response = client.get(path)
+        assert response.status_code == 302, path
+        location = urlsplit(response.headers["Location"])
+        assert location.path == "/register", path
+        assert parse_qs(location.query).get("next") == [path], path
+
+
+def test_admin_pages_are_not_public(client, app):
+    assert client.get("/admin").status_code == 302
+    assert client.get("/admin/reports").status_code == 302
+
+    with app.app_context():
+        with get_connection() as connection:
+            user_id = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("خریدار آزمایشی", "09120000003", "test-hash", "buyer"),
+            ).lastrowid
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+    assert client.get("/admin").status_code == 403
+    assert client.get("/admin/reports").status_code == 403
 
 
 def test_auth_pages_preserve_requested_seller_destination():

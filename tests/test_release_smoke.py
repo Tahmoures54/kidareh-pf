@@ -28,13 +28,13 @@ def client(app):
 
 
 def test_core_pages_render(client):
-    for path in ("/", "/login", "/register", "/stores", "/messages", "/support"):
+    for path in ("/", "/login", "/register", "/stores"):
         response = client.get(path)
         assert response.status_code == 200, path
 
     seller_response = client.get("/seller")
     assert seller_response.status_code == 302
-    assert "/login" in seller_response.headers["Location"]
+    assert "/register" in seller_response.headers["Location"]
 
 
 def test_health_reports_database_and_upload_readiness(client):
@@ -127,7 +127,21 @@ def test_service_worker_is_available_at_root_scope(client):
     assert "kidareh-shell-" in response.get_data(as_text=True)
 
 
-def test_profile_page_has_editable_profile_controls(client):
+def test_profile_page_requires_account_and_has_editable_controls(client, app):
+    guest_response = client.get("/account")
+    assert guest_response.status_code == 302
+    assert "/register" in guest_response.headers["Location"]
+
+    with app.app_context():
+        from kidareh.core import get_connection
+        with get_connection() as connection:
+            user_id = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("کاربر آزمایشی", "09120000004", "test-hash", "buyer"),
+            ).lastrowid
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+
     response = client.get("/account")
     assert response.status_code == 200
     assert b"profileEditForm" in response.data
