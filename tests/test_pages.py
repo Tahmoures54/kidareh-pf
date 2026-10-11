@@ -1,11 +1,22 @@
 import main as app_module
 
 
+def _sign_in_test_seller(client):
+    with app_module.get_connection() as connection:
+        user_id = connection.execute(
+            "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+            ("فروشنده آزمایشی", "09129990001", "test-hash", "seller"),
+        ).lastrowid
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+
+
 def test_dedicated_marketplace_pages_render(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "pages.sqlite3")
     app_module.initialize_database()
     app_module.app.config.update(TESTING=True)
     client = app_module.app.test_client()
+    _sign_in_test_seller(client)
 
     cases = [
         ("/search", "جست‌وجوی کالا"),
@@ -53,7 +64,9 @@ def test_search_page_preserves_filters(monkeypatch, tmp_path):
 def test_seller_dashboard_has_storefront_first_layout_and_product_actions(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "seller-dashboard.sqlite3")
     app_module.initialize_database()
-    response = app_module.app.test_client().get("/seller")
+    client = app_module.app.test_client()
+    _sign_in_test_seller(client)
+    response = client.get("/seller")
     html = response.get_data(as_text=True)
 
     assert response.status_code == 200
@@ -174,6 +187,7 @@ def test_category_options_are_shared_across_search_seller_and_registration(monke
     monkeypatch.setattr(app_module, "DATABASE_PATH", tmp_path / "shared-categories.sqlite3")
     app_module.initialize_database()
     client = app_module.app.test_client()
+    _sign_in_test_seller(client)
 
     pages = {
         "/search": ('id="pageCategory"', "مواد غذایی، خواربار و خشکبار", "everyday_goods"),
