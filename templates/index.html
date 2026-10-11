@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-search-v2">
-  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v6">
+  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v7">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
   <style>
     /* ── Homepage polish ── */
@@ -549,7 +549,6 @@
     </div>
 
     <nav class="desktop-nav" aria-label="ناوبری اصلی">
-      <a class="active" href="/" aria-current="page">خانه</a>
       <a href="/search">جست‌وجوی کالا</a>
       <a href="/stores">فروشگاه‌ها</a>
       <a id="headerSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان">مدیریت فروشگاه</a>
@@ -697,8 +696,7 @@
 
   </main>
 
-  <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
-    <a class="mobile-nav-item" href="/" aria-current="page"><span aria-hidden="true">⌂</span><span>خانه</span></a>
+  <nav class="mobile-bottom-nav home-bottom-nav" aria-label="ناوبری پایین">
     <a class="mobile-nav-item" href="/search"><span aria-hidden="true">⌕</span><span>جست‌وجو</span></a>
     <a class="mobile-nav-item" href="/stores"><span aria-hidden="true">▦</span><span>فروشگاه‌ها</span></a>
     <a class="mobile-nav-item nav-cta" id="mobileSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان"><span aria-hidden="true">＋</span><span>مدیریت فروشگاه</span></a>
