@@ -1,10 +1,389 @@
 {% extends "base.html" %}
 {% block title %}گفت‌وگوها | کی‌داره{% endblock %}
-{% block content %}
-<section class="page-heading"><span class="section-kicker">ارتباط مستقیم</span><h1>گفت‌وگوهای من</h1><p>برای هر کالا، گفت‌وگو با خریدار یا فروشنده را در همین‌جا ادامه بده.</p></section>
-<section class="community-layout">
-  <aside class="page-panel community-sidebar"><h2>گفت‌وگوها</h2><div id="conversationList" class="community-list"><p class="muted">در حال بارگذاری…</p></div></aside>
-  <section class="page-panel community-main"><div id="conversationHeading"><h2>یک گفت‌وگو انتخاب کن</h2><p class="muted">پیام‌ها فقط برای خریدار و فروشنده همان گفت‌وگو قابل مشاهده‌اند.</p></div><div id="conversationMessages" class="chat-messages" aria-live="polite"></div><form id="messageForm" class="stack-form" hidden><label for="messageBody">پیام شما</label><textarea id="messageBody" rows="3" maxlength="2000" required placeholder="پیامت را بنویس…"></textarea><button class="button button-primary" type="submit">ارسال پیام</button></form></section>
-</section>
+
+{% block head %}
+<style>
+  /* ── Messages / chat ── */
+  .page-heading {
+    padding: 1.75rem 0 1.15rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.5rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 38rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .account-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.15rem;
+  }
+  .account-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line, #CBD5E1);
+    background: var(--color-surface, #fff);
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .account-subnav a:hover {
+    color: #0E7490;
+    border-color: #0891B2;
+    background: #ECFEFF;
+  }
+  .account-subnav a[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #0891B2, #0E7490);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .community-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.5fr);
+    gap: 1rem;
+    align-items: stretch;
+    min-height: 480px;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-panel {
+    padding: 0;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Sidebar */
+  .community-sidebar {
+    min-width: 0;
+  }
+  .community-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+  }
+  .community-sidebar-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .community-list {
+    display: grid;
+    gap: 0;
+    flex: 1;
+    overflow: auto;
+    max-height: min(62vh, 560px);
+    padding: 0.5rem;
+  }
+  .community-list > .muted,
+  .community-list > p.muted {
+    margin: 0;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--color-muted, #64748B);
+    font-size: 0.88rem;
+  }
+
+  /* Main chat pane */
+  .community-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #conversationHeading {
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+    background: linear-gradient(180deg, #F8FAFC, #fff);
+  }
+  #conversationHeading h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  #conversationHeading p,
+  #conversationHeading .muted {
+    margin: 0;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .chat-messages {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 220px;
+    max-height: min(48vh, 420px);
+    overflow: auto;
+    padding: 1rem 1.15rem;
+    background: #F8FAFC;
+  }
+  .chat-messages:empty::after {
+    content: "هنوز پیامی در این گفت‌وگو نیست. اولین پیام را بفرست.";
+    display: block;
+    margin: auto;
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    max-width: 16rem;
+  }
+
+  /* Composer */
+  #messageForm {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 1.15rem 1.1rem;
+    border-top: 1px solid var(--color-line-soft, #E2E8F0);
+    background: #fff;
+  }
+  #messageForm[hidden] {
+    display: none !important;
+  }
+  #messageForm label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-muted, #64748B);
+  }
+  #messageForm textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 12px;
+    background: #F8FAFC;
+    color: var(--color-ink, #0F172A);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  #messageForm textarea:focus {
+    border-color: #0E7490;
+    box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15);
+    background: #fff;
+  }
+  #messageForm textarea::placeholder {
+    color: #94A3B8;
+  }
+  #messageForm .composer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  #messageForm .composer-hint {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #94A3B8;
+  }
+  #messageForm .button-primary {
+    min-height: 42px;
+    padding-inline: 1.25rem;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+
+  /* Privacy note */
+  .messages-privacy-note {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    margin-top: 0.25rem;
+    margin-bottom: 1.5rem;
+    padding: 0.9rem 1.05rem;
+    border-radius: 12px;
+    border: 1px solid #A5F3FC;
+    background: linear-gradient(135deg, #ECFEFF, #F0F9FF);
+    color: var(--color-ink, #0F172A);
+    font-size: 0.85rem;
+    line-height: 1.75;
+  }
+  .messages-privacy-note span[aria-hidden] {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #CFFAFE;
+    color: #0E7490;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 760px) {
+    .community-layout {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    .community-list {
+      max-height: 220px;
+    }
+    .chat-messages {
+      max-height: 320px;
+      min-height: 180px;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .page-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .community-sidebar-header,
+    #conversationHeading {
+      border-bottom-color: var(--color-line-soft, #1E293B);
+      background: var(--color-surface, #111B2A);
+    }
+    #conversationHeading {
+      background: linear-gradient(180deg, #17243A, #111B2A);
+    }
+    .chat-messages {
+      background: #0B1322;
+    }
+    #messageForm {
+      background: var(--color-surface, #111B2A);
+      border-top-color: var(--color-line-soft, #1E293B);
+    }
+    #messageForm textarea {
+      background: #17243A;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+    #messageForm textarea:focus {
+      background: #111B2A;
+      border-color: #22D3EE;
+    }
+    .account-subnav a {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+      color: var(--color-muted, #B6C2D2);
+    }
+    .account-subnav a[aria-current="page"] {
+      background: linear-gradient(180deg, #0891B2, #0E7490);
+      color: #fff;
+      border-color: transparent;
+    }
+    .messages-privacy-note {
+      background: linear-gradient(135deg, #083344, #0C2233);
+      border-color: #155E75;
+      color: #E2E8F0;
+    }
+    .messages-privacy-note span[aria-hidden] {
+      background: #155E75;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <span class="section-kicker"><span aria-hidden="true">💬</span> ارتباط مستقیم</span>
+  <h1>گفت‌وگوهای من</h1>
+  <p>برای هر کالا، گفت‌وگو با خریدار یا فروشنده را در همین‌جا ادامه بده.</p>
+</section>
+
+<nav class="account-subnav" aria-label="بخش‌های حساب">
+  <a href="/account">حساب من</a>
+  <a href="/saved">ذخیره‌ها</a>
+  <a href="/following">دنبال‌شده‌ها</a>
+  <a href="/messages" aria-current="page">گفت‌وگوها</a>
+</nav>
+
+<section class="community-layout">
+  <aside class="page-panel community-sidebar">
+    <div class="community-sidebar-header">
+      <h2>گفت‌وگوها</h2>
+    </div>
+    <div id="conversationList" class="community-list" aria-label="فهرست گفت‌وگوها">
+      <p class="muted">در حال بارگذاری…</p>
+    </div>
+  </aside>
+
+  <section class="page-panel community-main">
+    <div id="conversationHeading">
+      <h2>یک گفت‌وگو انتخاب کن</h2>
+      <p class="muted">پیام‌ها فقط برای خریدار و فروشنده همان گفت‌وگو قابل مشاهده‌اند.</p>
+    </div>
+
+    <div id="conversationMessages" class="chat-messages" aria-live="polite"></div>
+
+    <form id="messageForm" class="stack-form" hidden>
+      <label for="messageBody">پیام شما</label>
+      <textarea
+        id="messageBody"
+        rows="3"
+        maxlength="2000"
+        required
+        placeholder="پیامت را بنویس…"
+        autocomplete="off"
+      ></textarea>
+      <div class="composer-actions">
+        <p class="composer-hint">حداکثر ۲۰۰۰ کاراکتر · رمز و اطلاعات بانکی نفرست</p>
+        <button class="button button-primary" type="submit">ارسال پیام</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<div class="messages-privacy-note" role="note">
+  <span aria-hidden="true">🔒</span>
+  <div>
+    پیام‌ها خصوصی هستند و فقط بین شما و طرف مقابل همان گفت‌وگو دیده می‌شوند.
+    هرگز رمز یک‌بارمصرف، رمز کارت یا لینک‌های مشکوک را در چت به اشتراک نگذارید.
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>
+{% endblock %}
