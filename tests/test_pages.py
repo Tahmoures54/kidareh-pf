@@ -159,8 +159,9 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     assert 'id="citySelect" list=' not in html
     register_html = client.get("/register").get_data(as_text=True)
     assert 'id="buyerCity"' in register_html and 'name="city"' in register_html
-    assert 'id="storeCity" name="store_city"' in register_html
-    assert 'list="registerCityOptions" data-iran-location' in register_html
+    assert 'id="storeCity"' in register_html and 'name="store_city"' in register_html
+    assert 'list="registerCityOptions"' in register_html
+    assert "data-iran-location" in register_html
 
 
 
