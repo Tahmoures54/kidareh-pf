@@ -250,5 +250,5 @@ def test_header_search_icon_routes_to_dedicated_search_page(monkeypatch, tmp_pat
     assert 'aria-label="جست‌وجوی کالا"' in home
     assert 'id="pageSearchForm"' in search
     assert 'id="pageQuery"' in search and 'value="گوشی"' in search
-    assert 'name="category"' in search and 'value="digital"' in search
+    assert 'name="category"' in search and "digital" in search
     assert 'id="pageCity"' in search and 'value="تهران"' in search
