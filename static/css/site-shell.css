@@ -1,4 +1,4 @@
-/* Kidareh site shell: single source of truth for the shared footer and mobile-only strip. */
+/* Kidareh site shell: shared footer, header and mobile navigation. */
 :root {
   --kidareh-turquoise-dark: #0E7490;
   --kidareh-turquoise: #0891B2;
@@ -60,7 +60,12 @@
   text-align: center;
 }
 
-.site-footer {
+@media (max-width: 899px) {
+  #main-content {
+    padding-bottom: 1.25rem !important;
+  }
+
+  .site-footer {
     margin-top: 20px !important;
     padding-inline: 16px !important;
   }
