@@ -99,8 +99,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_hides_mobile_action_
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-shell-v1" in home
-    assert "site-shell.css?v=20261011-shell-v1" in stores
+    assert "site-shell.css?v=20261011-search-v2" in home
+    assert "site-shell.css?v=20261011-search-v2" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
@@ -156,6 +156,7 @@ def test_service_worker_precaches_release_assets_and_versions_cache():
     sw = read("static/sw.js")
     assert 'CACHE_VERSION = "v4"' in sw
     for asset in ("/static/offline.html", "/static/css/style.css", "/static/css/theme-mh.css",
+                  "/static/css/site-shell.css",
                   "/static/js/app.js", "/static/manifest.webmanifest",
                   "/static/fonts/Vazirmatn-Variable.woff2"):
         assert asset in sw, asset
