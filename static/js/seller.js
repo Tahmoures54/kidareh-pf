@@ -83,6 +83,33 @@
       }
       if (me.csrf_token && tokenMeta) tokenMeta.content = me.csrf_token;
 
+      if (me.user.role !== "seller") {
+        if (status) {
+          status.innerHTML =
+            "حساب فعلی شما خریدار است. برای ساخت ویترین و ثبت کالا، حساب را به فروشنده تبدیل کنید." +
+            ' <button type="button" class="button button-primary" id="becomeSellerButton">تبدیل حساب به فروشنده</button>';
+        }
+        if (createForm) createForm.hidden = true;
+        if (editForm) editForm.hidden = true;
+        if (productForm) productForm.hidden = true;
+
+        const becomeSellerButton = document.querySelector("#becomeSellerButton");
+        becomeSellerButton?.addEventListener("click", async () => {
+          const oldLabel = becomeSellerButton.textContent;
+          becomeSellerButton.disabled = true;
+          becomeSellerButton.textContent = "در حال انجام…";
+          try {
+            await api("/api/auth/become-seller", { method: "POST" });
+            window.location.reload();
+          } catch (error) {
+            notify(error.message || "تبدیل حساب انجام نشد.");
+            becomeSellerButton.disabled = false;
+            becomeSellerButton.textContent = oldLabel;
+          }
+        });
+        return;
+      }
+
       const mine = await api("/api/my/store");
       const store = mine.item;
       const storeMetric = document.querySelector("#sellerStoreMetric");
