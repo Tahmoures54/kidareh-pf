@@ -395,7 +395,7 @@
 
   <div class="market-ticker" id="marketTicker" role="region" aria-label="پیام‌های راهنمای کی‌داره">
     <span class="market-ticker-mark" aria-hidden="true">✦</span>
-    <p class="market-ticker-message" id="marketTickerMessage" aria-live="off">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
+    <p class="market-ticker-message" id="marketTickerMessage" aria-live="polite">کالاهای شهر را ببین؛ قبل از مراجعه، انتخاب کن.</p>
     <a class="market-ticker-link" id="marketTickerLink" href="/#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
   </div>
 
@@ -447,10 +447,6 @@
     <a class="mobile-nav-item nav-cta" href="/seller" {% if request.path.startswith('/seller') %}aria-current="page"{% endif %} aria-label="ثبت آگهی">
       <span aria-hidden="true">＋</span>
       <small>ثبت</small>
-    </a>
-    <a class="mobile-nav-item" href="/messages" {% if request.path.startswith('/messages') %}aria-current="page"{% endif %} aria-label="گفت‌وگوها">
-      <span aria-hidden="true">💬</span>
-      <small>چت</small>
     </a>
     <a class="mobile-nav-item" href="/account" {% if request.path.startswith('/account') %}aria-current="page"{% endif %} aria-label="پروفایل">
       <span aria-hidden="true">☺</span>
