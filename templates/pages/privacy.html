@@ -1,36 +1,399 @@
 {% extends "base.html" %}
 {% block title %}حریم خصوصی | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Privacy page ── */
+  .page-heading {
+    padding: 1.75rem 0 1.25rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.6rem;
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+  .policy-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-muted, #64748B);
+  }
+
+  .policy-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 1.5rem;
+    align-items: start;
+    padding-bottom: 2rem;
+  }
+  .policy-content {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .policy-panel {
+    padding: 1.5rem 1.4rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+
+  .policy-section {
+    padding-block: 1.35rem;
+    border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+  }
+  .policy-section:first-child { padding-top: 0; }
+  .policy-section:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .policy-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.7rem;
+  }
+  .policy-section-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #ECFEFF;
+    color: #0E7490;
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+  .policy-section h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.4;
+    padding-top: 0.35rem;
+  }
+  .policy-section p {
+    margin: 0;
+    color: var(--color-muted, #475569);
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+  .policy-section a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .policy-section a:hover { text-decoration: underline; }
+
+  .privacy-list {
+    margin: 0.55rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .privacy-list li {
+    position: relative;
+    padding: 0.7rem 0.9rem;
+    padding-inline-start: 2.5rem;
+    border-radius: 12px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    color: var(--color-ink, #0F172A);
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .privacy-list li::before {
+    content: "•";
+    position: absolute;
+    inset-inline-start: 0.85rem;
+    top: 0.75rem;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    background: #E0F2FE;
+    color: #0284C7;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .policy-callout {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1.1rem 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #A5F3FC;
+    background: linear-gradient(135deg, #ECFEFF, #F0F9FF);
+    color: var(--color-ink, #0F172A);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .policy-callout-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #CFFAFE;
+    color: #0E7490;
+    font-size: 1.1rem;
+  }
+
+  .policy-toc {
+    position: sticky;
+    top: 80px;
+    display: grid;
+    gap: 0.35rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .policy-toc-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .policy-toc a {
+    display: block;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+  }
+  .policy-toc a:hover,
+  .policy-toc a:focus-visible {
+    color: #0E7490;
+    background: #ECFEFF;
+  }
+  .policy-toc-divider {
+    height: 1px;
+    margin: 0.45rem 0;
+    background: var(--color-line-soft, #E2E8F0);
+  }
+  .policy-toc-related {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-muted, #94A3B8);
+  }
+
+  @media (max-width: 860px) {
+    .policy-layout { grid-template-columns: 1fr; }
+    .policy-toc {
+      position: static;
+      order: -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.85rem;
+    }
+    .policy-toc-title,
+    .policy-toc-divider,
+    .policy-toc-related { width: 100%; }
+    .policy-toc a {
+      padding: 0.4rem 0.7rem;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      font-size: 0.78rem;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .policy-panel,
+    .policy-toc {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .policy-section {
+      border-bottom-color: var(--color-line-soft, #1E293B);
+    }
+    .policy-section-num {
+      background: #083344;
+      color: #67E8F9;
+    }
+    .privacy-list li {
+      background: #0C2233;
+      border-color: #155E75;
+      color: #E2E8F0;
+    }
+    .privacy-list li::before {
+      background: #155E75;
+      color: #67E8F9;
+    }
+    .policy-callout {
+      background: linear-gradient(135deg, #083344, #0C2233);
+      border-color: #155E75;
+      color: #E2E8F0;
+    }
+    .policy-callout-icon {
+      background: #155E75;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-heading">
-  <span class="section-kicker">اطلاعات شما مهم است</span>
+  <span class="section-kicker"><span aria-hidden="true">🔒</span> اطلاعات شما مهم است</span>
   <h1>حریم خصوصی در کی‌داره</h1>
-  <p>این راهنما توضیح می‌دهد هنگام استفاده از کی‌داره چه نکته‌هایی درباره اطلاعات حساب و محتوایی که منتشر می‌کنید باید بدانید.</p>
+  <p>
+    این راهنما توضیح می‌دهد هنگام استفاده از کی‌داره چه نکته‌هایی درباره اطلاعات حساب
+    و محتوایی که منتشر می‌کنید باید بدانید.
+  </p>
+  <div class="policy-meta">
+    <span>آخرین به‌روزرسانی: مهر ۱۴۰۴</span>
+    <span aria-hidden="true">·</span>
+    <span>نسخه عمومی سرویس</span>
+  </div>
 </section>
+
 <div class="policy-layout">
   <div class="policy-content">
-    <section class="page-panel">
-      <h2>چه اطلاعاتی ممکن است پردازش شود؟</h2>
-      <p>برای ارائه خدمات، ممکن است اطلاعاتی را که هنگام ساخت حساب وارد می‌کنید (مانند شماره همراه)، اطلاعات ویترین و کالاهایی که منتشر می‌کنید، و محتوای گفت‌وگوها یا درخواست‌های پشتیبانی مرتبط با استفاده از سایت پردازش کنیم. همچنین داده‌های فنی لازم برای کارکرد، عیب‌یابی و حفاظت از سرویس ممکن است ثبت شوند.</p>
-      <h2>چرا از اطلاعات استفاده می‌شود؟</h2>
-      <ul class="policy-list">
-        <li>ایجاد و ایمن‌سازی حساب و تأیید شماره همراه.</li>
-        <li>نمایش ویترین‌ها و کالاها و فراهم کردن امکانات ارتباطی سایت.</li>
-        <li>رسیدگی به گزارش‌ها، درخواست‌های پشتیبانی و سوءاستفاده‌های احتمالی.</li>
-        <li>حفظ پایداری، امنیت و بهبود عملکرد سرویس.</li>
-      </ul>
-    </section>
-    <section class="page-panel">
-      <h2>چه چیزهایی را عمومی منتشر می‌کنید؟</h2>
-      <p>اطلاعات فروشگاه، توضیحات و تصاویر کالا و هر مطلبی که در ویترین عمومی منتشر می‌کنید ممکن است برای بازدیدکنندگان قابل مشاهده باشد. پیش از انتشار، شماره‌های شخصی، نشانی منزل، مدارک هویتی یا اطلاعات خصوصی دیگران را حذف کنید؛ مگر آنکه انتشار آن ضروری و مجاز باشد.</p>
-      <h2>اشتراک‌گذاری و نگهداری</h2>
-      <p>اطلاعات فقط باید در حد لازم برای ارائه، نگهداری، امنیت و اداره خدمات و انجام تعهدات قانونی پردازش شود. دسترسی به داده‌ها باید محدود به نیاز عملیاتی باشد. مدت نگهداری و هرگونه پردازش توسط ارائه‌دهندگان زیرساخت تابع نیازهای فنی و الزامات قابل اعمال است.</p>
-      <h2>امنیت حساب شما</h2>
-      <p>از کد یک‌بارمصرف و اطلاعات ورود محافظت کنید. کی‌داره هرگز نباید از شما بخواهد رمز بانکی یا کد تأیید را در گفت‌وگو با فروشنده به اشتراک بگذارید.</p>
-      <h2>درخواست یا پرسش درباره اطلاعات</h2>
-      <p>برای مطرح کردن پرسش یا درخواست مرتبط با حساب و اطلاعات خود، از <a href="/support"><strong>بخش پشتیبانی</strong></a> استفاده کنید. ممکن است برای رسیدگی امن به درخواست، تأیید مالکیت حساب لازم باشد.</p>
-    </section>
-    <div class="policy-callout">این متن اطلاع‌رسانی عمومی است و جایگزین مشاوره حقوقی نیست. جزئیات نهایی باید با شیوه‌های واقعی پردازش داده و الزامات قانونی قابل اعمال هماهنگ نگه داشته شود.</div>
+    <article class="policy-panel">
+
+      <section class="policy-section" id="data-collected">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۱</span>
+          <h2>چه اطلاعاتی ممکن است پردازش شود؟</h2>
+        </div>
+        <p>
+          برای ارائه خدمات، ممکن است اطلاعاتی را که هنگام ساخت حساب وارد می‌کنید (مانند شماره همراه)،
+          اطلاعات ویترین و کالاهایی که منتشر می‌کنید، و محتوای گفت‌وگوها یا درخواست‌های پشتیبانی
+          مرتبط با استفاده از سایت پردازش کنیم.
+          همچنین داده‌های فنی لازم برای کارکرد، عیب‌یابی و حفاظت از سرویس ممکن است ثبت شوند.
+        </p>
+      </section>
+
+      <section class="policy-section" id="why-use">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۲</span>
+          <h2>چرا از اطلاعات استفاده می‌شود؟</h2>
+        </div>
+        <ul class="privacy-list">
+          <li>ایجاد و ایمن‌سازی حساب و تأیید شماره همراه.</li>
+          <li>نمایش ویترین‌ها و کالاها و فراهم کردن امکانات ارتباطی سایت.</li>
+          <li>رسیدگی به گزارش‌ها، درخواست‌های پشتیبانی و سوءاستفاده‌های احتمالی.</li>
+          <li>حفظ پایداری، امنیت و بهبود عملکرد سرویس.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section" id="public-content">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۳</span>
+          <h2>چه چیزهایی را عمومی منتشر می‌کنید؟</h2>
+        </div>
+        <p>
+          اطلاعات فروشگاه، توضیحات و تصاویر کالا و هر مطلبی که در ویترین عمومی منتشر می‌کنید
+          ممکن است برای بازدیدکنندگان قابل مشاهده باشد.
+          پیش از انتشار، شماره‌های شخصی، نشانی منزل، مدارک هویتی یا اطلاعات خصوصی دیگران را حذف کنید؛
+          مگر آنکه انتشار آن ضروری و مجاز باشد.
+        </p>
+      </section>
+
+      <section class="policy-section" id="sharing">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۴</span>
+          <h2>اشتراک‌گذاری و نگهداری</h2>
+        </div>
+        <p>
+          اطلاعات فقط باید در حد لازم برای ارائه، نگهداری، امنیت و اداره خدمات و انجام تعهدات قانونی پردازش شود.
+          دسترسی به داده‌ها باید محدود به نیاز عملیاتی باشد.
+          مدت نگهداری و هرگونه پردازش توسط ارائه‌دهندگان زیرساخت تابع نیازهای فنی و الزامات قابل اعمال است.
+        </p>
+      </section>
+
+      <section class="policy-section" id="account-security">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۵</span>
+          <h2>امنیت حساب شما</h2>
+        </div>
+        <p>
+          از کد یک‌بارمصرف و اطلاعات ورود محافظت کنید.
+          کی‌داره هرگز نباید از شما بخواهد رمز بانکی یا کد تأیید را در گفت‌وگو با فروشنده به اشتراک بگذارید.
+        </p>
+      </section>
+
+      <section class="policy-section" id="requests">
+        <div class="policy-section-header">
+          <span class="policy-section-num" aria-hidden="true">۶</span>
+          <h2>درخواست یا پرسش درباره اطلاعات</h2>
+        </div>
+        <p>
+          برای مطرح کردن پرسش یا درخواست مرتبط با حساب و اطلاعات خود،
+          از <a href="/support">بخش پشتیبانی</a> استفاده کنید.
+          ممکن است برای رسیدگی امن به درخواست، تأیید مالکیت حساب لازم باشد.
+        </p>
+      </section>
+
+    </article>
+
+    <div class="policy-callout" role="note">
+      <span class="policy-callout-icon" aria-hidden="true">ℹ</span>
+      <div>
+        این متن اطلاع‌رسانی عمومی است و جایگزین مشاوره حقوقی نیست.
+        جزئیات نهایی باید با شیوه‌های واقعی پردازش داده و الزامات قانونی قابل اعمال هماهنگ نگه داشته شود.
+      </div>
+    </div>
   </div>
-  <aside class="policy-toc" aria-label="پیوندهای مرتبط"><strong>مطالعه بیشتر</strong><a href="/terms">قوانین استفاده</a><a href="/safety">خرید امن</a><a href="/help">مرکز راهنما</a><a href="/support">پشتیبانی</a></aside>
+
+  <aside class="policy-toc" aria-label="فهرست مطالب و پیوندهای مرتبط">
+    <p class="policy-toc-title">فهرست مطالب</p>
+    <a href="#data-collected">۱. اطلاعات پردازش‌شده</a>
+    <a href="#why-use">۲. دلیل استفاده</a>
+    <a href="#public-content">۳. محتوای عمومی</a>
+    <a href="#sharing">۴. اشتراک‌گذاری</a>
+    <a href="#account-security">۵. امنیت حساب</a>
+    <a href="#requests">۶. درخواست‌ها</a>
+    <div class="policy-toc-divider" aria-hidden="true"></div>
+    <p class="policy-toc-related">مطالعه بیشتر</p>
+    <a href="/terms">قوانین استفاده</a>
+    <a href="/safety">خرید امن</a>
+    <a href="/help">مرکز راهنما</a>
+    <a href="/support">پشتیبانی</a>
+  </aside>
 </div>
 {% endblock %}
