@@ -1,7 +1,309 @@
 {% extends "base.html" %}
 {% block title %}مدیریت سامانه | کی‌داره{% endblock %}
-{% block content %}
-<section class="page-heading"><span class="section-kicker">مرکز مدیریت</span><h1>داشبورد مدیریت کی‌داره</h1><p>نمای کلی کاربران، کالاها، درآمد ثبت‌شده در سامانه، فعالیت‌های اخیر و درخواست‌های پشتیبانی.</p></section>
-<div id="adminDashboard" class="admin-dashboard"><p class="muted">در حال دریافت اطلاعات مدیریتی…</p></div>
+
+{% block head %}
+<style>
+  /* ── Admin dashboard shell ── */
+  .page-heading {
+    padding: 1.75rem 0 1.15rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #F5F3FF;
+    border: 1px solid #DDD6FE;
+    color: #7C3AED;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.5rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  /* Admin sub-nav */
+  .admin-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .admin-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line, #CBD5E1);
+    background: var(--color-surface, #fff);
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .admin-subnav a:hover {
+    color: #7C3AED;
+    border-color: #A78BFA;
+    background: #F5F3FF;
+  }
+  .admin-subnav a[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #8B5CF6, #7C3AED);
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .admin-dashboard {
+    display: grid;
+    gap: 1.15rem;
+    margin-bottom: 1.75rem;
+  }
+
+  /* Loading state */
+  .admin-loading {
+    display: grid;
+    gap: 1rem;
+  }
+  .admin-metrics-skeleton {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+  .admin-metric-skel {
+    padding: 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    display: grid;
+    gap: 0.75rem;
+  }
+  .admin-skel-label {
+    height: 12px;
+    width: 45%;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-skel-value {
+    height: 28px;
+    width: 35%;
+    border-radius: 8px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-panel-skel {
+    padding: 1.35rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: var(--color-surface, #fff);
+    min-height: 160px;
+  }
+  .admin-skel-title {
+    height: 16px;
+    width: 30%;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-skel-row {
+    height: 12px;
+    margin-bottom: 0.65rem;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-skel-row.w-90 { width: 90%; }
+  .admin-skel-row.w-70 { width: 70%; }
+  .admin-skel-row.w-55 { width: 55%; }
+
+  .admin-skel-label::after,
+  .admin-skel-value::after,
+  .admin-skel-title::after,
+  .admin-skel-row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  .admin-loading-text {
+    margin: 0;
+    text-align: center;
+    color: var(--color-muted, #64748B);
+    font-size: 0.88rem;
+  }
+
+  /* Enhance existing metric cards when JS injects them */
+  .admin-dashboard .admin-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+  .admin-dashboard .metric-card {
+    padding: 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #FFFFFF, #F8FAFC);
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .admin-dashboard .metric-card:hover {
+    border-color: #A78BFA;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.08);
+  }
+  .admin-dashboard .metric-card span {
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .admin-dashboard .metric-card strong {
+    color: #7C3AED;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .admin-dashboard .page-panel,
+  .admin-dashboard .table-wrap {
+    border-radius: 14px;
+  }
+
+  @media (max-width: 760px) {
+    .admin-metrics-skeleton,
+    .admin-dashboard .admin-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 420px) {
+    .admin-metrics-skeleton,
+    .admin-dashboard .admin-metrics {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .admin-metric-skel,
+    .admin-panel-skel,
+    .admin-dashboard .metric-card {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .admin-dashboard .metric-card {
+      background: linear-gradient(145deg, #111B2A, #17243A);
+    }
+    .admin-dashboard .metric-card strong {
+      color: #A78BFA;
+    }
+    .admin-skel-label,
+    .admin-skel-value,
+    .admin-skel-title,
+    .admin-skel-row {
+      background: #334155;
+    }
+    .admin-subnav a {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+      color: var(--color-muted, #B6C2D2);
+    }
+    .admin-subnav a[aria-current="page"] {
+      background: linear-gradient(180deg, #8B5CF6, #7C3AED);
+      color: #fff;
+      border-color: transparent;
+    }
+    .page-heading .section-kicker {
+      background: #1E1B4B;
+      border-color: #4C1D95;
+      color: #A78BFA;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .admin-skel-label::after,
+    .admin-skel-value::after,
+    .admin-skel-title::after,
+    .admin-skel-row::after {
+      animation: none;
+    }
+  }
+</style>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <span class="section-kicker"><span aria-hidden="true">⚙</span> مرکز مدیریت</span>
+  <h1>داشبورد مدیریت کی‌داره</h1>
+  <p>
+    نمای کلی کاربران، کالاها، درآمد ثبت‌شده در سامانه، فعالیت‌های اخیر و درخواست‌های پشتیبانی.
+  </p>
+</section>
+
+<nav class="admin-subnav" aria-label="بخش‌های مدیریت">
+  <a href="/admin" aria-current="page">داشبورد</a>
+  <a href="/admin/reports">گزارش‌ها</a>
+  <a href="/support">پشتیبانی</a>
+  <a href="/">بازگشت به سایت</a>
+</nav>
+
+<!--
+  communications.js fills #adminDashboard with metrics, tables, and activity.
+  Skeleton is replaced once data arrives.
+-->
+<div id="adminDashboard" class="admin-dashboard" aria-live="polite">
+  <div class="admin-loading">
+    <div class="admin-metrics-skeleton" aria-hidden="true">
+      <div class="admin-metric-skel">
+        <div class="admin-skel-label"></div>
+        <div class="admin-skel-value"></div>
+      </div>
+      <div class="admin-metric-skel">
+        <div class="admin-skel-label"></div>
+        <div class="admin-skel-value"></div>
+      </div>
+      <div class="admin-metric-skel">
+        <div class="admin-skel-label"></div>
+        <div class="admin-skel-value"></div>
+      </div>
+    </div>
+    <div class="admin-panel-skel" aria-hidden="true">
+      <div class="admin-skel-title"></div>
+      <div class="admin-skel-row w-90"></div>
+      <div class="admin-skel-row w-70"></div>
+      <div class="admin-skel-row w-55"></div>
+      <div class="admin-skel-row w-90"></div>
+    </div>
+    <p class="admin-loading-text">در حال دریافت اطلاعات مدیریتی…</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/communications.js') }}" defer></script>
+{% endblock %}
