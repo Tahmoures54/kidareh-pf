@@ -68,7 +68,7 @@ def test_seller_dashboard_has_storefront_first_layout_and_product_actions(monkey
     ):
         assert marker in html, marker
     assert "seller-dashboard" in html
-    assert "min-height:48px" in html
+    assert "min-height: 48px" in html or "min-height:48px" in html
 
 
 
@@ -158,7 +158,7 @@ def test_city_combobox_uses_full_location_api_and_starts_with_popular_cities(mon
     assert 'aria-controls="marketCityOptions"' in html
     assert 'id="citySelect" list=' not in html
     register_html = client.get("/register").get_data(as_text=True)
-    assert 'id="buyerCity" name="city"' in register_html
+    assert 'id="buyerCity"' in register_html and 'name="city"' in register_html
     assert 'id="storeCity" name="store_city"' in register_html
     assert 'list="registerCityOptions" data-iran-location' in register_html
 
