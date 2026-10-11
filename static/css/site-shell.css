@@ -582,3 +582,10 @@
     transform: none;
   }
 }
+
+
+/* Brand descriptor sits opposite the name; city remains on the line below. */
+.brand-title-row { display: flex; align-items: baseline; gap: .7rem; min-width: 0; white-space: nowrap; }
+.brand-copy .brand-tagline { display: inline; color: var(--color-muted, #475569); font-size: .68rem; font-weight: 600; white-space: nowrap; }
+@media (max-width: 520px) { .brand-title-row { gap: .45rem; } .brand-copy .brand-tagline { font-size: .62rem; } }
+@media (max-width: 370px) { .brand-copy .brand-tagline { display: none; } }
