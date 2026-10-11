@@ -55,34 +55,35 @@
 
     .site-header {
       position: sticky;
-      top: 0;
-      z-index: 40;
+      inset-block-start: 0;
+      z-index: 1000;
       width: 100%;
-      max-width: none;
-      height: auto;
       min-height: 64px;
+      height: 64px;
       margin: 0;
-      padding: 0.6rem max(1.25rem, env(safe-area-inset-right)) 0.6rem max(1.25rem, env(safe-area-inset-left));
+      padding: 0 max(22px, env(safe-area-inset-right)) 0 max(22px, env(safe-area-inset-left));
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      background: color-mix(in srgb, var(--color-surface, #fff) 92%, transparent);
-      backdrop-filter: blur(12px) saturate(1.2);
-      -webkit-backdrop-filter: blur(12px) saturate(1.2);
+      justify-content: center;
+      gap: 16px;
+      background: color-mix(in srgb, var(--color-surface, #fff) 96%, transparent);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
       border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
-      transition: box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
     .site-header.is-scrolled {
       box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
     }
     .site-header-inner {
-      width: min(1160px, 100%);
+      width: min(1500px, 100%);
+      min-width: 0;
       margin-inline: auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1.25rem;
+      gap: 16px;
     }
 
     .brand {
@@ -94,16 +95,17 @@
       color: inherit;
     }
     .brand-mark {
-      width: 42px;
-      height: 42px;
+      width: 36px;
+      height: 36px;
       display: grid;
       place-items: center;
-      border-radius: 12px;
-      background: linear-gradient(145deg, #0891B2, #0E7490);
+      flex-shrink: 0;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #0E7490, #0891B2);
       color: #fff;
-      font-size: 1.35rem;
-      font-weight: 800;
-      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.28);
+      font-size: 1.1rem;
+      font-weight: 900;
+      box-shadow: 0 2px 8px rgba(14, 116, 144, 0.25);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .brand:hover .brand-mark {
@@ -116,29 +118,32 @@
       line-height: 1.3;
     }
     .brand-copy strong {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      white-space: nowrap;
     }
     .brand-copy small {
       color: var(--color-muted, #475569);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     .desktop-nav {
       display: none;
       align-items: center;
-      gap: 0.15rem;
+      gap: 4px;
       margin-inline: auto;
     }
     .desktop-nav a {
       position: relative;
-      padding: 0.45rem 0.85rem;
-      border-radius: 999px;
+      padding: 0.45rem 0.7rem;
+      border-radius: 8px;
       color: var(--color-muted, #475569);
-      font-size: 0.875rem;
+      font-size: 0.84rem;
       font-weight: 600;
+      white-space: nowrap;
       transition: color 0.2s ease, background 0.2s ease;
     }
     .desktop-nav a:hover {
@@ -158,8 +163,9 @@
       flex-shrink: 0;
     }
     .header-actions .button {
-      min-height: 40px;
-      padding-inline: 0.9rem;
+      min-height: 38px;
+      padding-inline: 0.8rem;
+      border-radius: 8px;
       font-size: 0.8rem;
     }
 
@@ -365,6 +371,31 @@
       .toast { bottom: 1.5rem; }
     }
 
+    @media (max-width: 1100px) {
+      .site-header-inner { gap: 10px; }
+      .desktop-nav { gap: 2px; }
+      .desktop-nav a { padding: 0.42rem 0.55rem; font-size: 0.8rem; }
+      .header-actions { gap: 6px; }
+      .header-actions .button { padding-inline: 0.65rem; }
+    }
+    @media (max-width: 899px) {
+      .site-header { padding-inline: max(14px, env(safe-area-inset-left)); }
+      .site-header-inner { gap: 10px; }
+      .desktop-nav { display: none; }
+      .brand { gap: 9px; }
+      .brand-copy small { display: none; }
+      .header-actions #headerSavedLink { display: none; }
+      .header-actions .button { min-height: 36px; padding-inline: 0.7rem; font-size: 0.78rem; }
+    }
+    @media (max-width: 420px) {
+      .site-header { padding-inline: 10px; }
+      .site-header-inner { gap: 6px; }
+      .brand-mark { width: 32px; height: 32px; font-size: 1rem; }
+      .brand-copy strong { font-size: 0.98rem; }
+      .header-actions { gap: 4px; }
+      .header-actions .button { padding-inline: 0.55rem; }
+    }
+
     @media (prefers-color-scheme: dark) {
       .site-header {
         background: color-mix(in srgb, var(--color-surface, #111B2A) 90%, transparent);
@@ -413,7 +444,7 @@
       </nav>
 
       <div class="header-actions">
-        <a class="button button-outline" href="/saved">ذخیره‌ها</a>
+        <a class="button button-outline" id="headerSavedLink" href="/saved">ذخیره‌ها</a>
         <a class="button button-outline" id="headerLoginLink" href="/login">ورود</a>
         <a class="button button-primary" id="headerRegisterLink" href="/register">ثبت‌نام</a>
         <a class="button button-outline" id="headerAccountLink" href="/account" hidden>حساب من</a>

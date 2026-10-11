@@ -201,6 +201,75 @@
     .home-intro-float-bottom { bottom: 16px; inset-inline-start: 0; }
     .home-intro-float-bottom span { background: #ECFDF5; color: #059669; font-weight: 800; }
 
+    /* Homepage image with rotating promotional overlays */
+    .home-intro {
+      width: min(1500px, calc(100% - 2rem));
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.92fr);
+      gap: clamp(1.25rem, 3vw, 2.5rem);
+      padding: clamp(1.25rem, 3vw, 2.25rem);
+    }
+    .home-promo-visual {
+      position: relative; min-width: 0; min-height: 390px; align-self: stretch;
+      overflow: hidden; isolation: isolate; border-radius: 18px; background: #0B1622;
+      box-shadow: 0 16px 38px rgba(15, 23, 42, 0.18);
+    }
+    .home-promo-image {
+      position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+    }
+    .home-promo-visual::after {
+      content: ""; position: absolute; inset: 0; z-index: -2;
+      background: linear-gradient(180deg, rgba(11,22,34,.04) 0%, rgba(11,22,34,.18) 38%, rgba(11,22,34,.78) 100%);
+      pointer-events: none;
+    }
+    .home-promo-slides { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+    .home-promo-slide {
+      position: absolute; inset-inline: 8%; top: 43%; padding: 1.1rem 1.15rem;
+      border: 1px solid rgba(255,255,255,.24); border-radius: 16px;
+      background: rgba(11,22,34,.48); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); color: #F8FAFC; opacity: 0;
+      transform: translate(125%, -50%);
+      transition: transform .75s cubic-bezier(.22,.61,.36,1), opacity .55s ease;
+      pointer-events: none;
+    }
+    .home-promo-slide.is-active { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+    .home-promo-slide.is-exiting { opacity: 0; transform: translate(-125%, -50%); }
+    .home-promo-kicker {
+      display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem;
+      border: 1px solid rgba(103,232,249,.35); border-radius: 999px;
+      background: rgba(8,145,178,.72); color: #ECFEFF; font-size: .72rem; font-weight: 800;
+    }
+    .home-promo-slide h2 { margin: .75rem 0 .35rem; color: #fff; font-size: clamp(1.15rem, 2.1vw, 1.65rem); line-height: 1.45; font-weight: 850; }
+    .home-promo-slide p { margin: 0; color: #E2E8F0; font-size: .88rem; line-height: 1.8; }
+    .home-promo-link {
+      display: inline-flex; align-items: center; gap: .45rem; margin-top: .9rem;
+      padding: .55rem .85rem; border-radius: 9px; background: #0891B2; color: #fff;
+      font-size: .82rem; font-weight: 800; text-decoration: none; box-shadow: 0 4px 14px rgba(8,145,178,.25);
+    }
+    .home-promo-link:hover { background: #0E7490; }
+    .home-promo-dots {
+      position: absolute; inset-inline: 0; bottom: 1rem; z-index: 3;
+      display: flex; justify-content: center; align-items: center; gap: .45rem;
+    }
+    .home-promo-dot {
+      width: 9px; height: 9px; padding: 0; border: 0; border-radius: 99px;
+      background: rgba(255,255,255,.55); cursor: pointer; transition: width .2s ease, background .2s ease;
+    }
+    .home-promo-dot[aria-current="true"] { width: 25px; background: #67E8F9; }
+    .home-promo-caption {
+      position: absolute; z-index: 2; inset-inline: 1rem; bottom: 2.25rem;
+      color: #E2E8F0; text-align: center; font-size: .72rem; pointer-events: none;
+    }
+    @media (max-width: 760px) {
+      .home-intro { grid-template-columns: 1fr; padding: 1rem; }
+      .home-promo-visual { order: -1; min-height: 340px; }
+      .home-promo-slide { top: 43%; inset-inline: 5%; padding: .9rem; }
+      .home-promo-slide h2 { font-size: 1.15rem; }
+      .home-promo-slide p { font-size: .8rem; }
+    }
+    @media (max-width: 420px) { .home-promo-visual { min-height: 320px; } .home-promo-slide { inset-inline: 4%; } }
+    @media (prefers-reduced-motion: reduce) { .home-promo-slide, .home-promo-dot { transition: none !important; } }
+
     /* Trust strip */
     .trust-strip {
       width: min(1000px, calc(100% - 1.5rem));
@@ -497,6 +566,49 @@
         <li><span aria-hidden="true">✓</span> هماهنگی برای خرید حضوری</li>
       </ul>
     </div>
+    <div class="home-promo-visual" id="homePromoVisual" aria-label="بنرهای معرفی کی‌داره">
+      <img class="home-promo-image" src="{{ url_for('static', filename='Screen.png') }}" alt="تصویر اصلی کی‌داره؛ بازار و ویترین‌های محلی" fetchpriority="high">
+      <div class="home-promo-slides" id="homePromoSlides" aria-live="off">
+        <article class="home-promo-slide is-active" data-promo-slide>
+          <span class="home-promo-kicker">🚗 برای ماشینت</span>
+          <h2>تایر ماشین می‌خوای؟</h2>
+          <p>سایز تایرت رو جست‌وجو کن، ویترین فروشگاه‌های شهرت رو ببین، قیمت‌ها رو مقایسه کن و حضوری بخر.</p>
+          <a class="home-promo-link" href="/search?q=لاستیک%20خودرو">ببین کی داره؟ <span aria-hidden="true">←</span></a>
+        </article>
+        <article class="home-promo-slide" data-promo-slide>
+          <span class="home-promo-kicker">🏠 برای خونه‌ات</span>
+          <h2>فریزر پارس می‌خوای؟</h2>
+          <p>مدل و قیمت‌های موجود در ویترین فروشگاه‌ها رو بررسی کن؛ بعد با خیال راحت برای خرید حضوری تصمیم بگیر.</p>
+          <a class="home-promo-link" href="/search?q=فریزر%20پارس">ببین کی داره؟ <span aria-hidden="true">←</span></a>
+        </article>
+        <article class="home-promo-slide" data-promo-slide>
+          <span class="home-promo-kicker">📺 دقیقاً همون مدل</span>
+          <h2>تلویزیون ال‌جی ۵۵ اینچ مدل UT8000 می‌خوای؟</h2>
+          <p>اسم برند و مدل رو جست‌وجو کن تا کالاهای ثبت‌شده رو پیدا کنی و گزینه‌ها رو کنار هم بسنجی.</p>
+          <a class="home-promo-link" href="/search?q=تلویزیون%20ال%20جی%2055%20اینچ%20UT8000">ببین کی داره؟ <span aria-hidden="true">←</span></a>
+        </article>
+        <article class="home-promo-slide" data-promo-slide>
+          <span class="home-promo-kicker">🔎 انتخاب آگاهانه</span>
+          <h2>قیمت‌ها رو مقایسه کن، حضوری بخر</h2>
+          <p>به‌جای گشتن از این مغازه به اون مغازه، کالاها و قیمت‌های درج‌شده رو در ویترین‌های محلی بررسی کن.</p>
+          <a class="home-promo-link" href="/stores">دیدن ویترین فروشگاه‌ها <span aria-hidden="true">←</span></a>
+        </article>
+        <article class="home-promo-slide" data-promo-slide>
+          <span class="home-promo-kicker">🏪 برای فروشگاه‌دارها</span>
+          <h2>می‌خوای مشتری‌ها ویترینت رو ببینن؟</h2>
+          <p>کالاها و خدماتت رو معرفی کن تا خریدارهای شهر راحت‌تر پیدات کنن.</p>
+          <a class="home-promo-link" href="/seller">ساخت ویترین فروشگاه <span aria-hidden="true">←</span></a>
+        </article>
+      </div>
+      <div class="home-promo-caption">کی‌داره؛ ببین کی داره؟ حضوری بگیر!</div>
+      <div class="home-promo-dots" id="homePromoDots" aria-label="انتخاب بنر">
+        <button class="home-promo-dot" type="button" aria-label="بنر تایر خودرو" aria-current="true" data-promo-dot="0"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر فریزر پارس" aria-current="false" data-promo-dot="1"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر تلویزیون ال‌جی" aria-current="false" data-promo-dot="2"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر مقایسه قیمت" aria-current="false" data-promo-dot="3"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر فروشگاه‌داران" aria-current="false" data-promo-dot="4"></button>
+      </div>
+    </div>
   </section>
 
   <div class="trust-strip" aria-label="مزایای کی‌داره">
@@ -679,6 +791,41 @@
       action.addEventListener("blur", start);
       document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
       renderCurrent();
+      start();
+    })();
+
+    (() => {
+      const visual = document.getElementById("homePromoVisual");
+      if (!visual) return;
+      const slides = Array.from(visual.querySelectorAll("[data-promo-slide]"));
+      const dots = Array.from(visual.querySelectorAll("[data-promo-dot]"));
+      if (slides.length < 2 || dots.length !== slides.length) return;
+      let active = 0;
+      let timer = null;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function show(next) {
+        if (next === active) return;
+        const previous = active;
+        slides[previous].classList.remove("is-active");
+        slides[previous].classList.add("is-exiting");
+        dots[previous].setAttribute("aria-current", "false");
+        active = (next + slides.length) % slides.length;
+        slides[active].classList.remove("is-exiting");
+        slides[active].classList.add("is-active");
+        dots[active].setAttribute("aria-current", "true");
+        window.setTimeout(() => slides[previous].classList.remove("is-exiting"), reduceMotion ? 0 : 800);
+      }
+      function stop() { if (timer !== null) { window.clearInterval(timer); timer = null; } }
+      function start() {
+        stop();
+        if (!reduceMotion && !document.hidden) timer = window.setInterval(() => show((active + 1) % slides.length), 5000);
+      }
+      dots.forEach((dot, index) => dot.addEventListener("click", () => { show(index); start(); }));
+      visual.addEventListener("mouseenter", stop);
+      visual.addEventListener("mouseleave", start);
+      visual.addEventListener("focusin", stop);
+      visual.addEventListener("focusout", start);
+      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
       start();
     })();
   </script>
