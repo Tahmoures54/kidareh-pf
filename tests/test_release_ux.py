@@ -99,8 +99,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-shell-v3" in home
-    assert "site-shell.css?v=20261011-shell-v3" in stores
+    assert "site-shell.css?v=20261011-shell-v4" in home
+    assert "site-shell.css?v=20261011-shell-v4" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
@@ -320,3 +320,19 @@ def test_user_facing_messages_avoid_generic_error_copy():
         assert "خطایی رخ داد" not in text, name
         assert '"خطا در دریافت کالاها"' not in text, name
     assert "آگهی‌ات منتشر شد" in read("static/js/seller.js")
+
+
+def test_header_navigation_is_deduplicated_and_auth_actions_have_feedback(client):
+    html = client.get("/").get_data(as_text=True)
+    css = read("static/css/site-shell.css")
+    desktop_start = html.index('<nav class="desktop-nav"')
+    desktop_end = html.index('</nav>', desktop_start)
+    desktop_nav = html[desktop_start:desktop_end]
+    assert ">جست‌وجو</a>" not in desktop_nav
+    assert 'href="/stores"' in desktop_nav
+    assert 'id="headerLoginLink"' in html
+    assert 'id="headerRegisterLink"' in html
+    assert "header-auth-button:hover" in css
+    assert "header-auth-button:active" in css
+    assert "header-auth-button:focus-visible" in css
+    assert "prefers-reduced-motion: reduce" in css
