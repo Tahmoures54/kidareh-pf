@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-search-v2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-search-v2">
-  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v5">
+  <link rel="stylesheet" href="/static/css/site-shell.css?v=20261011-shell-v6">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" type="image/png" sizes="192x192">
   <style>
     /* ── Homepage polish ── */
@@ -556,12 +556,10 @@
     </nav>
 
     <div class="header-actions">
-      <a class="header-search-link" href="/search" aria-label="جست‌وجوی کالا" title="جست‌وجوی کالا"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></a>
       <a class="button button-quiet" id="headerLoginLink" href="/login">ورود</a>
       <a class="button button-quiet" id="headerRegisterLink" href="/register">ثبت‌نام</a>
       <a class="button button-quiet" id="headerAccountLink" href="/account" hidden>حساب من</a>
       <button class="button button-quiet" id="headerLogoutButton" type="button" hidden>خروج</button>
-      <a class="button button-primary" href="/stores"><span aria-hidden="true">⌂</span> ویترین‌ها</a>
       <button class="button button-quiet" id="installAppButton" type="button" hidden>نصب اپ</button>
     </div>
   </header>
