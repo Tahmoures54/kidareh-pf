@@ -1,3 +1,4 @@
+import os
 import time
 
 from flask import Blueprint, Response, abort, redirect, render_template, request, session, url_for
@@ -40,7 +41,8 @@ def _admin_required():
     user = current_user()
     if not user:
         return redirect(url_for("pages.register_page", next=request.full_path.rstrip("?")))
-    if user.get("role") != "admin":
+    admin_phone = os.environ.get("ADMIN_PHONE", "").strip()
+    if not admin_phone or user.get("phone") != admin_phone or not user.get("phone_verified_at"):
         abort(403)
     return None
 
