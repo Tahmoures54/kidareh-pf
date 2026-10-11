@@ -267,3 +267,10 @@ def test_search_page_prefills_city_from_saved_home_city_and_supports_scope_expan
     assert 'در این شهر نتیجه‌ای پیدا نشد' in script
     assert 'در استان ' in script
     assert "search-expansion" in template
+    assert 'id="searchCityCombobox"' in template
+    assert 'id="searchCityOptions" role="listbox"' in template
+    assert 'id="toggleSearchCityPicker"' in template
+    assert 'id="pageNearbySearchButton"' in template
+    assert 'if (!paramsAtLoad.has("city"))' in script
+    assert 'navigator.geolocation.getCurrentPosition' in script
+    assert 'params.radius_km = "25"' in script
