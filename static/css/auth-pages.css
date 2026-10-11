@@ -657,3 +657,36 @@
     animation: none;
   }
 }
+
+
+/* Registration form stays single-column at every viewport width. */
+.auth-page[data-auth-mode="register"] .auth-role-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.auth-page[data-auth-mode="register"] .auth-field-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.auth-page[data-auth-mode="register"] .auth-field-row > div + div {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 520px) {
+  .auth-page[data-auth-mode="register"] {
+    padding-inline: max(8px, env(safe-area-inset-left, 0px));
+  }
+
+  .auth-page[data-auth-mode="register"] .auth-panel {
+    padding-inline: 16px;
+  }
+
+  .auth-page[data-auth-mode="register"] .auth-submit,
+  .auth-page[data-auth-mode="register"] .auth-actions-row .button {
+    min-height: 50px;
+  }
+
+  .auth-page[data-auth-mode="register"] .auth-security-strip {
+    align-items: flex-start;
+  }
+}
