@@ -387,6 +387,11 @@ def seller_stats():
     user, error = require_user()
     if error:
         return error
+    if user.get("role") != "seller":
+        return jsonify({
+            "error": "seller_account_required",
+            "message": "آمار فروش فقط برای حساب فروشنده در دسترس است.",
+        }), 403
     ensure_tables()
     with get_connection() as db:
         listings = db.execute(
