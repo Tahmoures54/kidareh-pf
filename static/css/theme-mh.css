@@ -674,7 +674,7 @@ input:focus, textarea:focus, select:focus,
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(280px, .88fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: clamp(24px, 5vw, 68px);
   width: min(1100px, calc(100% - 48px));
