@@ -384,7 +384,7 @@
 
     .site-footer {
       width: min(1100px, calc(100% - 1.5rem));
-      margin: 2.5rem auto 5.5rem; padding: 1.5rem 0 1.25rem;
+      margin: 2.5rem auto 1.5rem; padding: 1.5rem 0 1.25rem;
       border-top: 1px solid #E2E8F0; display: grid; gap: 1rem;
     }
     .footer-top {
@@ -401,7 +401,7 @@
     }
 
     .toast {
-      position: fixed; inset-inline-start: 50%; bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+      position: fixed; inset-inline-start: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       z-index: 60; transform: translateX(-50%) translateY(12px);
       max-width: min(400px, calc(100% - 1.5rem)); padding: 0.7rem 1rem;
       border-radius: 12px; background: #0F172A; color: #F8FAFC;
@@ -580,21 +580,6 @@
     </section>
 
   </main>
-
-  <nav class="mobile-bottom-nav" aria-label="ناوبری پایین">
-    <a class="mobile-nav-item" href="/" aria-current="page" aria-label="خانه">
-      <span aria-hidden="true">⌂</span><small>خانه</small>
-    </a>
-    <a class="mobile-nav-item" href="/search" aria-label="جست‌وجو">
-      <span aria-hidden="true">⌕</span><small>جست‌وجو</small>
-    </a>
-    <a class="mobile-nav-item nav-cta" href="/seller" aria-label="ثبت آگهی">
-      <span aria-hidden="true">＋</span><small>ثبت</small>
-    </a>
-    <a class="mobile-nav-item" href="/account" aria-label="پروفایل">
-      <span aria-hidden="true">☺</span><small>پروفایل</small>
-    </a>
-  </nav>
 
   <footer class="site-footer">
     <div class="footer-top">

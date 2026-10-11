@@ -95,12 +95,14 @@ def test_components_stylesheet_is_loaded_after_theme_overlay(client):
 
 
 # ---------- Mobile navigation & AIDA home ----------
-def test_mobile_bottom_nav_has_four_primary_tabs(client):
+def test_mobile_bottom_nav_is_removed_and_shared_header_remains(client):
     for path in ("/", "/stores"):
         html = client.get(path).get_data(as_text=True)
-        nav = re.search(r'<nav class="mobile-bottom-nav".*?</nav>', html, re.S).group(0)
-        labels = re.findall(r"<small>(.*?)</small>", nav)
-        assert labels == ["خانه", "جست‌وجو", "ثبت", "پروفایل"], path
+        assert 'class="mobile-bottom-nav"' not in html, path
+        assert 'class="site-header"' in html, path
+    # The shared footer is guaranteed on the homepage; the stores directory
+    # currently uses a separate shell.
+    assert 'class="site-footer"' in client.get("/").get_data(as_text=True)
 
 
 def test_home_has_single_primary_cta_above_the_fold():
