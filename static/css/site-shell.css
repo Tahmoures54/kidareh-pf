@@ -90,6 +90,9 @@
 
 
 /* Accessible, full-width mobile navigation; desktop keeps the primary header nav. */
+.mobile-bottom-nav.home-bottom-nav {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .mobile-bottom-nav {
   position: fixed;
   inset-inline: 0;

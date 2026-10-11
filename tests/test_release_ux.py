@@ -99,8 +99,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-shell-v6" in home
-    assert "site-shell.css?v=20261011-shell-v6" in stores
+    assert "site-shell.css?v=20261011-shell-v7" in home
+    assert "site-shell.css?v=20261011-shell-v7" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
@@ -357,3 +357,23 @@ def test_legal_links_are_hidden_until_auth_state_is_confirmed_and_store_label_is
     assert 'id="headerSellerLink"' in home and "مدیریت فروشگاه" in home
     assert 'id="mobileSellerLink"' in home and "مدیریت فروشگاه" in home
     assert "مدیریت فروشگاه و ویترین آنلاین" in home
+
+
+
+def test_home_navigation_omits_redundant_home_links_but_inner_pages_keep_home(client):
+    home = client.get("/").get_data(as_text=True)
+    stores = client.get("/stores").get_data(as_text=True)
+
+    desktop_start = home.index('<nav class="desktop-nav"')
+    desktop_end = home.index('</nav>', desktop_start)
+    desktop_nav = home[desktop_start:desktop_end]
+    mobile_start = home.index('<nav class="mobile-bottom-nav home-bottom-nav"')
+    mobile_end = home.index('</nav>', mobile_start)
+    mobile_nav = home[mobile_start:mobile_end]
+
+    assert 'href="/" aria-current="page">خانه</a>' not in desktop_nav
+    assert 'href="/" aria-current="page"' not in mobile_nav
+    assert 'href="/search"' in desktop_nav and 'href="/stores"' in desktop_nav
+    assert 'href="/search"' in mobile_nav and 'href="/stores"' in mobile_nav
+    assert 'repeat(3, minmax(0, 1fr))' in read("static/css/site-shell.css")
+    assert 'href="/"' in stores

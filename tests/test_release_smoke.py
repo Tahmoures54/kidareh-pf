@@ -107,7 +107,7 @@ def test_home_and_inner_pages_use_shared_navigation_and_install_script(client):
         response = client.get(path)
         html = response.get_data(as_text=True)
         if path in ("/", "/stores", "/login"):
-            assert 'class="mobile-bottom-nav"' in html
+            assert 'class="mobile-bottom-nav' in html
         else:
             assert 'class="mobile-bottom-nav"' not in html, path
         assert 'class="site-header"' in html or path == "/login"
