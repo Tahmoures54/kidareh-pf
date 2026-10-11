@@ -570,36 +570,43 @@
       <img class="home-promo-image" src="{{ url_for('static', filename='Screen.png') }}" alt="تصویر اصلی کی‌داره؛ بازار و ویترین‌های محلی" fetchpriority="high">
       <div class="home-promo-slides" id="homePromoSlides" aria-live="off">
         <article class="home-promo-slide is-active" data-promo-slide>
-          <span class="home-promo-kicker">✦ بازار محلی شما</span>
-          <h2>قبل از رفتن، ببین کدام فروشگاه دارد</h2>
-          <p>کالاها و ویترین‌های شهر را یک‌جا ببین و انتخاب آگاهانه‌تری داشته باش.</p>
-          <a class="home-promo-link" href="#listings">دیدن کالاها <span aria-hidden="true">←</span></a>
+          <span class="home-promo-kicker">🚗 برای ماشینت</span>
+          <h2>تایر ماشین می‌خوای؟</h2>
+          <p>سایز تایرت رو جست‌وجو کن، ویترین فروشگاه‌های شهرت رو ببین، قیمت‌ها رو مقایسه کن و حضوری بخر.</p>
+          <a class="home-promo-link" href="/search?q=لاستیک%20خودرو">ببین کی داره؟ <span aria-hidden="true">←</span></a>
         </article>
         <article class="home-promo-slide" data-promo-slide>
-          <span class="home-promo-kicker">⌂ ویژهٔ فروشگاه‌داران</span>
-          <h2>ویترین فروشگاهت را به شهر نشان بده</h2>
-          <p>کالاها و خدماتت را معرفی کن تا مشتری‌های اطراف راحت‌تر پیدایت کنند.</p>
-          <a class="home-promo-link" href="/seller">ساخت ویترین <span aria-hidden="true">←</span></a>
+          <span class="home-promo-kicker">🏠 برای خونه‌ات</span>
+          <h2>فریزر پارس می‌خوای؟</h2>
+          <p>مدل و قیمت‌های موجود در ویترین فروشگاه‌ها رو بررسی کن؛ بعد با خیال راحت برای خرید حضوری تصمیم بگیر.</p>
+          <a class="home-promo-link" href="/search?q=فریزر%20پارس">ببین کی داره؟ <span aria-hidden="true">←</span></a>
         </article>
         <article class="home-promo-slide" data-promo-slide>
-          <span class="home-promo-kicker">⌕ جست‌وجوی بازار</span>
-          <h2>دنبال کالای خاصی هستی؟</h2>
-          <p>با جست‌وجو و دسته‌بندی‌ها سریع‌تر به کالاها و فروشگاه‌های مرتبط برس.</p>
-          <a class="home-promo-link" href="/search">جست‌وجوی کالا <span aria-hidden="true">←</span></a>
+          <span class="home-promo-kicker">📺 دقیقاً همون مدل</span>
+          <h2>تلویزیون ال‌جی ۵۵ اینچ مدل UT8000 می‌خوای؟</h2>
+          <p>اسم برند و مدل رو جست‌وجو کن تا کالاهای ثبت‌شده رو پیدا کنی و گزینه‌ها رو کنار هم بسنجی.</p>
+          <a class="home-promo-link" href="/search?q=تلویزیون%20ال%20جی%2055%20اینچ%20UT8000">ببین کی داره؟ <span aria-hidden="true">←</span></a>
         </article>
         <article class="home-promo-slide" data-promo-slide>
-          <span class="home-promo-kicker">✓ خرید حضوری، انتخاب راحت‌تر</span>
-          <h2>پیدا کن، مقایسه کن، حضوری بگیر</h2>
-          <p>پیش از مراجعه، گزینه‌ها را ببین و برای خرید حضوری آماده شو.</p>
-          <a class="home-promo-link" href="/stores">گشت‌وگذار در ویترین‌ها <span aria-hidden="true">←</span></a>
+          <span class="home-promo-kicker">🔎 انتخاب آگاهانه</span>
+          <h2>قیمت‌ها رو مقایسه کن، حضوری بخر</h2>
+          <p>به‌جای گشتن از این مغازه به اون مغازه، کالاها و قیمت‌های درج‌شده رو در ویترین‌های محلی بررسی کن.</p>
+          <a class="home-promo-link" href="/stores">دیدن ویترین فروشگاه‌ها <span aria-hidden="true">←</span></a>
+        </article>
+        <article class="home-promo-slide" data-promo-slide>
+          <span class="home-promo-kicker">🏪 برای فروشگاه‌دارها</span>
+          <h2>می‌خوای مشتری‌ها ویترینت رو ببینن؟</h2>
+          <p>کالاها و خدماتت رو معرفی کن تا خریدارهای شهر راحت‌تر پیدات کنن.</p>
+          <a class="home-promo-link" href="/seller">ساخت ویترین فروشگاه <span aria-hidden="true">←</span></a>
         </article>
       </div>
       <div class="home-promo-caption">کی‌داره؛ ببین کی داره؟ حضوری بگیر!</div>
       <div class="home-promo-dots" id="homePromoDots" aria-label="انتخاب بنر">
-        <button class="home-promo-dot" type="button" aria-label="بنر ۱" aria-current="true" data-promo-dot="0"></button>
-        <button class="home-promo-dot" type="button" aria-label="بنر ۲" aria-current="false" data-promo-dot="1"></button>
-        <button class="home-promo-dot" type="button" aria-label="بنر ۳" aria-current="false" data-promo-dot="2"></button>
-        <button class="home-promo-dot" type="button" aria-label="بنر ۴" aria-current="false" data-promo-dot="3"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر تایر خودرو" aria-current="true" data-promo-dot="0"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر فریزر پارس" aria-current="false" data-promo-dot="1"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر تلویزیون ال‌جی" aria-current="false" data-promo-dot="2"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر مقایسه قیمت" aria-current="false" data-promo-dot="3"></button>
+        <button class="home-promo-dot" type="button" aria-label="بنر فروشگاه‌داران" aria-current="false" data-promo-dot="4"></button>
       </div>
     </div>
   </section>
