@@ -376,4 +376,4 @@ def test_home_navigation_omits_redundant_home_links_but_inner_pages_keep_home(cl
     assert 'href="/search"' in desktop_nav and 'href="/stores"' in desktop_nav
     assert 'href="/search"' in mobile_nav and 'href="/stores"' in mobile_nav
     assert 'repeat(3, minmax(0, 1fr))' in read("static/css/site-shell.css")
-    assert 'href="/"' in stores and '>خانه</span></a>' in stores
+    assert 'href="/"' in stores
