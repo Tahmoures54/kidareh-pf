@@ -1,28 +1,473 @@
 {% extends "base.html" %}
 {% block title %}راهنمای استفاده از کی‌داره | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── User guide ── */
+  .page-heading {
+    padding: 1.75rem 0 1.25rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.6rem;
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 40rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  .policy-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 1.5rem;
+    align-items: start;
+    padding-bottom: 2rem;
+  }
+  .policy-content {
+    display: grid;
+    gap: 1.15rem;
+  }
+
+  /* Role panels */
+  .guide-panel {
+    padding: 1.5rem 1.35rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 18px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .guide-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-line-soft, #E2E8F0);
+  }
+  .guide-panel-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 1.4rem;
+  }
+  .guide-panel.buyer .guide-panel-icon {
+    background: #ECFEFF;
+    color: #0E7490;
+  }
+  .guide-panel.seller .guide-panel-icon {
+    background: #F5F3FF;
+    color: #7C3AED;
+  }
+  .guide-panel-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    letter-spacing: -0.02em;
+  }
+  .guide-panel-header p {
+    margin: 0.2rem 0 0;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+  }
+
+  /* Steps */
+  .guide-steps {
+    display: grid;
+    gap: 0;
+    position: relative;
+  }
+  .guide-step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 0.9rem;
+    position: relative;
+    padding-bottom: 1.35rem;
+  }
+  .guide-step:last-child {
+    padding-bottom: 0;
+  }
+  /* Vertical connector line */
+  .guide-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 21px;
+    top: 44px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #A5F3FC, #E2E8F0);
+  }
+  .guide-panel.seller .guide-step:not(:last-child)::before {
+    background: linear-gradient(to bottom, #DDD6FE, #E2E8F0);
+  }
+
+  .guide-step-num {
+    position: relative;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .guide-panel.buyer .guide-step-num {
+    background: linear-gradient(145deg, #0891B2, #0E7490);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(14, 116, 144, 0.25);
+  }
+  .guide-panel.seller .guide-step-num {
+    background: linear-gradient(145deg, #8B5CF6, #7C3AED);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  }
+
+  .guide-step-body h3 {
+    margin: 0.35rem 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .guide-step-body p {
+    margin: 0;
+    color: var(--color-muted, #475569);
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+
+  /* Callout */
+  .policy-callout {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1.1rem 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #A5F3FC;
+    background: linear-gradient(135deg, #ECFEFF, #F0F9FF);
+    color: var(--color-ink, #0F172A);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .policy-callout-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #CFFAFE;
+    color: #0E7490;
+    font-size: 1.1rem;
+  }
+
+  /* Quick actions under callout */
+  .guide-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.15rem;
+  }
+  .guide-quick-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .guide-quick-actions .btn-primary {
+    background: linear-gradient(180deg, #0891B2, #0E7490);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(14, 116, 144, 0.2);
+  }
+  .guide-quick-actions .btn-primary:hover {
+    background: #0C637A;
+    transform: translateY(-1px);
+  }
+  .guide-quick-actions .btn-outline {
+    background: #fff;
+    color: #0E7490;
+    border: 1px solid #CBD5E1;
+  }
+  .guide-quick-actions .btn-outline:hover {
+    background: #ECFEFF;
+    border-color: #0E7490;
+  }
+
+  /* Sidebar */
+  .policy-toc {
+    position: sticky;
+    top: 80px;
+    display: grid;
+    gap: 0.35rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .policy-toc-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  .policy-toc a {
+    display: block;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    color: var(--color-muted, #64748B);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+  }
+  .policy-toc a:hover,
+  .policy-toc a:focus-visible {
+    color: #0E7490;
+    background: #ECFEFF;
+  }
+  .policy-toc-divider {
+    height: 1px;
+    margin: 0.45rem 0;
+    background: var(--color-line-soft, #E2E8F0);
+  }
+  .policy-toc-related {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-muted, #94A3B8);
+  }
+
+  @media (max-width: 860px) {
+    .policy-layout { grid-template-columns: 1fr; }
+    .policy-toc {
+      position: static;
+      order: -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.85rem;
+    }
+    .policy-toc-title,
+    .policy-toc-divider,
+    .policy-toc-related { width: 100%; }
+    .policy-toc a {
+      padding: 0.4rem 0.7rem;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      font-size: 0.78rem;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .guide-panel,
+    .policy-toc {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .guide-panel-header {
+      border-bottom-color: var(--color-line-soft, #1E293B);
+    }
+    .guide-panel.buyer .guide-panel-icon {
+      background: #083344;
+      color: #67E8F9;
+    }
+    .guide-panel.seller .guide-panel-icon {
+      background: #1E1B4B;
+      color: #A78BFA;
+    }
+    .guide-step:not(:last-child)::before {
+      background: linear-gradient(to bottom, #155E75, #334155) !important;
+    }
+    .policy-callout {
+      background: linear-gradient(135deg, #083344, #0C2233);
+      border-color: #155E75;
+      color: #E2E8F0;
+    }
+    .policy-callout-icon {
+      background: #155E75;
+      color: #67E8F9;
+    }
+    .guide-quick-actions .btn-outline {
+      background: transparent;
+      border-color: #334155;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-heading">
-  <span class="section-kicker">شروع آسان</span>
+  <span class="section-kicker"><span aria-hidden="true">✦</span> شروع آسان</span>
   <h1>راهنمای استفاده از کی‌داره</h1>
-  <p>کی‌داره کمک می‌کند کالاها و فروشگاه‌های شهر را پیدا کنید و برای خرید حضوری مستقیم با فروشنده هماهنگ شوید.</p>
+  <p>
+    کی‌داره کمک می‌کند کالاها و فروشگاه‌های شهر را پیدا کنید
+    و برای خرید حضوری مستقیم با فروشنده هماهنگ شوید.
+  </p>
 </section>
+
 <div class="policy-layout">
   <div class="policy-content">
-    <section class="page-panel">
-      <h2>اگر خریدار هستید</h2>
-      <div class="policy-step"><span class="policy-step-number">۱</span><div><h2>جست‌وجو کنید</h2><p>نام کالا را جست‌وجو کنید یا از دسته‌بندی‌ها و فهرست فروشگاه‌ها کمک بگیرید. انتخاب شهر به دقیق‌تر شدن نتایج کمک می‌کند.</p></div></div>
-      <div class="policy-step"><span class="policy-step-number">۲</span><div><h2>جزئیات را بررسی کنید</h2><p>توضیحات، قیمت اعلام‌شده، تصاویر، شهر و اطلاعات فروشگاه را بخوانید. قیمت و موجودی را قطعی فرض نکنید.</p></div></div>
-      <div class="policy-step"><span class="policy-step-number">۳</span><div><h2>با فروشنده هماهنگ شوید</h2><p>از گفت‌وگوی موجود در سایت برای پرسیدن درباره موجودی، قیمت نهایی، نشانی و ساعات کاری استفاده کنید.</p></div></div>
-      <div class="policy-step"><span class="policy-step-number">۴</span><div><h2>با آگاهی مراجعه کنید</h2><p>قبل از حرکت، قرار و شرایط معامله را نهایی کنید. کالا را بررسی کنید و سپس درباره پرداخت و تحویل با فروشنده توافق کنید.</p></div></div>
+
+    <!-- Buyer guide -->
+    <section class="guide-panel buyer" id="buyer" aria-labelledby="buyerTitle">
+      <div class="guide-panel-header">
+        <span class="guide-panel-icon" aria-hidden="true">🛒</span>
+        <div>
+          <h2 id="buyerTitle">اگر خریدار هستید</h2>
+          <p>چهار قدم تا خرید حضوری آگاهانه</p>
+        </div>
+      </div>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۱</span>
+          <div class="guide-step-body">
+            <h3>جست‌وجو کنید</h3>
+            <p>
+              نام کالا را جست‌وجو کنید یا از دسته‌بندی‌ها و فهرست فروشگاه‌ها کمک بگیرید.
+              انتخاب شهر به دقیق‌تر شدن نتایج کمک می‌کند.
+            </p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۲</span>
+          <div class="guide-step-body">
+            <h3>جزئیات را بررسی کنید</h3>
+            <p>
+              توضیحات، قیمت اعلام‌شده، تصاویر، شهر و اطلاعات فروشگاه را بخوانید.
+              قیمت و موجودی را قطعی فرض نکنید.
+            </p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۳</span>
+          <div class="guide-step-body">
+            <h3>با فروشنده هماهنگ شوید</h3>
+            <p>
+              از گفت‌وگوی موجود در سایت برای پرسیدن درباره موجودی، قیمت نهایی،
+              نشانی و ساعات کاری استفاده کنید.
+            </p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۴</span>
+          <div class="guide-step-body">
+            <h3>با آگاهی مراجعه کنید</h3>
+            <p>
+              قبل از حرکت، قرار و شرایط معامله را نهایی کنید.
+              کالا را بررسی کنید و سپس درباره پرداخت و تحویل با فروشنده توافق کنید.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
-    <section class="page-panel">
-      <h2>اگر فروشنده هستید</h2>
-      <div class="policy-step"><span class="policy-step-number">۱</span><div><h2>حساب و ویترین بسازید</h2><p>با شماره همراه خود وارد شوید و اطلاعات فروشگاه، شهر، نشانی و راه‌های ارتباطی را تا حد لازم کامل کنید.</p></div></div>
-      <div class="policy-step"><span class="policy-step-number">۲</span><div><h2>کالا را درست معرفی کنید</h2><p>عنوان روشن، عکس واقعی، توضیحات مفید و قیمت به‌روز درج کنید. موجودی ناموجود یا اطلاعات گمراه‌کننده منتشر نکنید.</p></div></div>
-      <div class="policy-step"><span class="policy-step-number">۳</span><div><h2>پاسخ‌گو و شفاف باشید</h2><p>پیام‌ها را بررسی کنید و پیش از مراجعه خریدار، تغییر قیمت، موجودی یا ساعات کار را اطلاع دهید.</p></div></div>
+
+    <!-- Seller guide -->
+    <section class="guide-panel seller" id="seller" aria-labelledby="sellerTitle">
+      <div class="guide-panel-header">
+        <span class="guide-panel-icon" aria-hidden="true">🏪</span>
+        <div>
+          <h2 id="sellerTitle">اگر فروشنده هستید</h2>
+          <p>سه قدم تا ویترین آنلاین و جذب مشتری</p>
+        </div>
+      </div>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۱</span>
+          <div class="guide-step-body">
+            <h3>حساب و ویترین بسازید</h3>
+            <p>
+              با شماره همراه خود وارد شوید و اطلاعات فروشگاه، شهر، نشانی
+              و راه‌های ارتباطی را تا حد لازم کامل کنید.
+            </p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۲</span>
+          <div class="guide-step-body">
+            <h3>کالا را درست معرفی کنید</h3>
+            <p>
+              عنوان روشن، عکس واقعی، توضیحات مفید و قیمت به‌روز درج کنید.
+              موجودی ناموجود یا اطلاعات گمراه‌کننده منتشر نکنید.
+            </p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num" aria-hidden="true">۳</span>
+          <div class="guide-step-body">
+            <h3>پاسخ‌گو و شفاف باشید</h3>
+            <p>
+              پیام‌ها را بررسی کنید و پیش از مراجعه خریدار،
+              تغییر قیمت، موجودی یا ساعات کار را اطلاع دهید.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
-    <div class="policy-callout">کی‌داره در این نسخه برای معرفی و هماهنگی خرید حضوری طراحی شده است؛ پرداخت آنلاین کالا و ارسال سفارش ارائه نمی‌شود.</div>
+
+    <div class="policy-callout" role="note">
+      <span class="policy-callout-icon" aria-hidden="true">ℹ</span>
+      <div>
+        کی‌داره در این نسخه برای معرفی و هماهنگی خرید حضوری طراحی شده است؛
+        پرداخت آنلاین کالا و ارسال سفارش ارائه نمی‌شود.
+      </div>
+    </div>
+
+    <div class="guide-quick-actions">
+      <a class="btn-primary" href="/search">جست‌وجوی کالا <span aria-hidden="true">←</span></a>
+      <a class="btn-outline" href="/seller">ساخت ویترین</a>
+      <a class="btn-outline" href="/safety">خرید امن</a>
+    </div>
+
   </div>
-  <aside class="policy-toc" aria-label="پیوندهای مرتبط"><strong>مطالعه بیشتر</strong><a href="/search">جست‌وجوی کالا</a><a href="/stores">دیدن فروشگاه‌ها</a><a href="/safety">راهنمای خرید امن</a><a href="/terms">قوانین استفاده</a><a href="/help">پرسش‌های پرتکرار</a></aside>
+
+  <aside class="policy-toc" aria-label="فهرست و پیوندهای مرتبط">
+    <p class="policy-toc-title">فهرست مطالب</p>
+    <a href="#buyer">راهنمای خریدار</a>
+    <a href="#seller">راهنمای فروشنده</a>
+    <div class="policy-toc-divider" aria-hidden="true"></div>
+    <p class="policy-toc-related">مطالعه بیشتر</p>
+    <a href="/search">جست‌وجوی کالا</a>
+    <a href="/stores">دیدن فروشگاه‌ها</a>
+    <a href="/safety">راهنمای خرید امن</a>
+    <a href="/terms">قوانین استفاده</a>
+    <a href="/help">پرسش‌های پرتکرار</a>
+  </aside>
 </div>
 {% endblock %}
