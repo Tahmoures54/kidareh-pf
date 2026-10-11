@@ -336,6 +336,12 @@ def create_listing():
     user = current_user()
     if not user:
         return jsonify({"error": "authentication_required", "message": "برای ثبت آگهی ابتدا وارد حساب شوید."}), 401
+    # Publishing inventory is a seller capability; public browsing remains open.
+    if user.get("role") != "seller":
+        return jsonify({
+            "error": "seller_account_required",
+            "message": "برای ثبت کالا ابتدا حساب خود را به فروشنده تبدیل کنید.",
+        }), 403
     if not csrf_valid():
         return jsonify({"error": "csrf_failed", "message": "صفحه را تازه‌سازی کنید و دوباره تلاش کنید."}), 400
     try:
