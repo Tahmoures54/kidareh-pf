@@ -338,6 +338,24 @@ def test_buyer_cannot_create_store(monkeypatch, tmp_path):
     assert response.get_json()["error"] == "seller_account_required"
 
 
+def test_buyer_cannot_create_listing_or_access_seller_analytics(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    with app_module.get_connection() as connection:
+        connection.execute("UPDATE users SET role = 'buyer' WHERE id = 1")
+
+    created = client.post(
+        "/api/listings",
+        headers={"X-CSRF-Token": "test-token"},
+        json={"title": "آگهی خریدار", "category": "home", "city": "تبریز", "price": 1000},
+    )
+    assert created.status_code == 403
+    assert created.get_json()["error"] == "seller_account_required"
+
+    stats = client.get("/api/seller/stats")
+    assert stats.status_code == 403
+    assert stats.get_json()["error"] == "seller_account_required"
+
+
 def test_buyer_can_switch_to_seller_when_ready_to_open_storefront(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
     with app_module.get_connection() as connection:
