@@ -277,7 +277,7 @@
 </section>
 
 <section class="page-panel">
-  <form id="pageSearchForm" class="page-search" role="search">
+  <form id="pageSearchForm" class="page-search" role="search" action="/search" method="get">
     <label class="sr-only" for="pageQuery">جست‌وجو</label>
     <input
       id="pageQuery"
@@ -287,7 +287,7 @@
       placeholder="مثلاً گوشی، میز، خدمات فنی…"
       autocomplete="off"
     >
-    <select id="pageCategory" aria-label="دسته‌بندی">
+    <select id="pageCategory" name="category" aria-label="دسته‌بندی">
       <option value="">همهٔ دسته‌بندی‌ها</option>
       {{ category_options(category_tree, selected=selected_category) }}
     </select>
