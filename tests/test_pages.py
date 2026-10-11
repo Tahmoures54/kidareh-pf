@@ -93,6 +93,11 @@ def test_homepage_city_privacy_and_compact_category_controls(monkeypatch, tmp_pa
 
     assert response.status_code == 200
     assert 'id="activeMarketCity"' in html
+    assert 'class="home-location-bar"' in html
+    assert 'id="marketCityCombobox"' in html
+    assert 'id="findMyLocationButton"' in html
+    assert html.index('class="home-location-bar"') < html.index('class="home-intro"')
+    assert "بازار شهر خودت را پیدا کن" in html
     assert "ویترینت رو به دلِ خونه‌ها بفرست." in html
     assert 'href="/seller">ویترینم رو بساز' in html
     assert 'id="citySelect"' in html
