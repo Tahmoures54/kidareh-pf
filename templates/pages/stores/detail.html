@@ -1,4 +1,398 @@
 {% extends "base.html" %}
 {% block title %}ویترین فروشگاه | کی‌داره{% endblock %}
-{% block content %}<section class="page-heading"><a class="back-link" href="/stores">← بازگشت به فروشگاه‌ها</a><span class="section-kicker">ویترین فروشنده</span><h1 id="storeTitle">در حال دریافت ویترین…</h1><p id="storeDescription">محصولات و اطلاعات این فروشگاه</p><div class="store-detail-meta" id="storeMeta"></div><div class="store-contact-details" id="storeContactDetails"></div><div id="storeNavigate" class="store-navigate-host"></div><div class="store-growth-prompt"><strong>این ویترین را به مشتری‌هایت معرفی کن</strong><p>پیوند ویترینت را در پروفایل واتساپ، وضعیت واتساپ و استوری شبکه‌های اجتماعی بگذار تا مشتری‌ها مستقیم کالاهایت را ببینند.</p><button id="shareStore" class="button button-primary" type="button" data-share-url="" data-share-title="">↗ معرفی ویترین در شبکه‌های اجتماعی</button></div><button id="followStore" class="button button-primary" type="button">♡ دنبال‌کردن فروشگاه</button></section><section class="page-panel"><div class="page-results-head"><h2>کالاهای این ویترین</h2><span id="pageResultsCount"></span></div><div id="pageListings" class="page-card-grid"></div></section>{% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"store-detail",storeId:{{ store_id|tojson }}};</script>{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Store detail ── */
+  .store-detail-page {
+    padding-bottom: 1.75rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+    color: #0E7490;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .back-link:hover { opacity: 0.8; }
+
+  .store-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.15rem;
+    padding: clamp(1.35rem, 3.5vw, 2rem);
+    border: 1px solid #A5F3FC;
+    border-radius: 20px;
+    background: linear-gradient(125deg, #ECFEFF 0%, #F0F9FF 50%, #fff 100%);
+    box-shadow: 0 8px 28px rgba(14, 116, 144, 0.08);
+  }
+  .store-hero::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: -40px;
+    top: -60px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .store-hero .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .store-hero h1 {
+    margin: 0.75rem 0 0.45rem;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .store-hero > p {
+    margin: 0 0 1rem;
+    max-width: 40rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.85;
+  }
+
+  .store-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.85rem;
+    min-height: 1.5em;
+  }
+  .store-detail-meta:empty { display: none; }
+
+  .store-contact-details {
+    margin-bottom: 0.85rem;
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.8;
+  }
+  .store-contact-details:empty { display: none; }
+
+  .store-navigate-host {
+    margin-bottom: 1rem;
+  }
+  .store-navigate-host:empty { display: none; }
+
+  .store-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.25rem;
+  }
+  .store-actions .button {
+    min-height: 44px;
+    padding-inline: 1.1rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 11px;
+  }
+
+  /* Growth / share prompt */
+  .store-growth-prompt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.15rem 0;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid #BAE6FD;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #F0F9FF, #ECFEFF);
+  }
+  .store-growth-prompt strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #0F172A;
+    font-size: 0.95rem;
+  }
+  .store-growth-prompt p {
+    margin: 0;
+    max-width: 28rem;
+    color: #475569;
+    font-size: 0.85rem;
+    line-height: 1.75;
+  }
+  #shareStore {
+    min-height: 44px;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  /* Safety note */
+  .store-safety-note {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    margin-bottom: 1.15rem;
+    padding: 0.9rem 1.05rem;
+    border-radius: 12px;
+    border: 1px solid #FDE68A;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    color: #78716C;
+    font-size: 0.85rem;
+    line-height: 1.75;
+  }
+  .store-safety-note span[aria-hidden] {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #FDE68A;
+    color: #B45309;
+    font-size: 0.95rem;
+  }
+  .store-safety-note a {
+    color: #0E7490;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .store-safety-note a:hover { text-decoration: underline; }
+
+  /* Products panel */
+  .store-products-panel {
+    padding: 1.35rem 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  }
+  .page-results-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .page-results-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  #pageResultsCount {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    color: #0E7490;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  #pageResultsCount:empty { display: none; }
+
+  .page-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    min-height: 100px;
+  }
+
+  /* Skeleton while loading */
+  .store-skel {
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    background: #F8FAFC;
+    overflow: hidden;
+  }
+  .store-skel-art {
+    height: 130px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .store-skel-body {
+    padding: 0.85rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .store-skel-line {
+    height: 11px;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .store-skel-line.w-70 { width: 70%; }
+  .store-skel-line.w-45 { width: 45%; }
+  .store-skel-art::after,
+  .store-skel-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  @media (max-width: 850px) {
+    .page-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .page-card-grid { grid-template-columns: 1fr; }
+    .store-growth-prompt {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    #shareStore { width: 100%; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .store-hero {
+      background: linear-gradient(125deg, #083344 0%, #0C2233 50%, #111B2A 100%);
+      border-color: #155E75;
+    }
+    .store-hero h1 { color: #E2E8F0; }
+    .store-hero > p { color: #B6C2D2; }
+    .store-hero .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+    .store-growth-prompt {
+      background: linear-gradient(135deg, #0C2233, #083344);
+      border-color: #155E75;
+    }
+    .store-growth-prompt strong { color: #E2E8F0; }
+    .store-growth-prompt p { color: #B6C2D2; }
+    .store-products-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .store-skel {
+      background: #17243A;
+      border-color: #334155;
+    }
+    .store-skel-art,
+    .store-skel-line { background: #334155; }
+    .store-safety-note {
+      background: linear-gradient(135deg, #2E2208, #1C1917);
+      border-color: #92400E;
+      color: #A8A29E;
+    }
+    #pageResultsCount {
+      background: #083344;
+      color: #67E8F9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .store-skel-art::after,
+    .store-skel-line::after { animation: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="store-detail-page">
+
+  <section class="store-hero page-heading">
+    <a class="back-link" href="/stores">← بازگشت به فروشگاه‌ها</a>
+    <span class="section-kicker"><span aria-hidden="true">🏪</span> ویترین فروشنده</span>
+    <h1 id="storeTitle">در حال دریافت ویترین…</h1>
+    <p id="storeDescription">محصولات و اطلاعات این فروشگاه</p>
+
+    <div class="store-detail-meta" id="storeMeta"></div>
+    <div class="store-contact-details" id="storeContactDetails"></div>
+    <div id="storeNavigate" class="store-navigate-host"></div>
+
+    <div class="store-actions">
+      <button id="followStore" class="button button-primary" type="button">
+        ♡ دنبال‌کردن فروشگاه
+      </button>
+    </div>
+  </section>
+
+  <div class="store-growth-prompt">
+    <div>
+      <strong>این ویترین را به مشتری‌هایت معرفی کن</strong>
+      <p>
+        پیوند ویترینت را در پروفایل واتساپ، وضعیت واتساپ و استوری شبکه‌های اجتماعی بگذار
+        تا مشتری‌ها مستقیم کالاهایت را ببینند.
+      </p>
+    </div>
+    <button
+      id="shareStore"
+      class="button button-primary"
+      type="button"
+      data-share-url=""
+      data-share-title=""
+    >
+      ↗ معرفی ویترین در شبکه‌های اجتماعی
+    </button>
+  </div>
+
+  <div class="store-safety-note" role="note">
+    <span aria-hidden="true">⚠</span>
+    <div>
+      خرید حضوری است؛ قبل از مراجعه موجودی و قیمت را با فروشنده هماهنگ کنید.
+      <a href="/safety">راهنمای خرید امن</a>
+    </div>
+  </div>
+
+  <section class="page-panel store-products-panel">
+    <div class="page-results-head">
+      <h2>کالاهای این ویترین</h2>
+      <span id="pageResultsCount"></span>
+    </div>
+    <div id="pageListings" class="page-card-grid" aria-live="polite">
+      <div class="store-skel" aria-hidden="true">
+        <div class="store-skel-art"></div>
+        <div class="store-skel-body">
+          <div class="store-skel-line w-70"></div>
+          <div class="store-skel-line w-45"></div>
+        </div>
+      </div>
+      <div class="store-skel" aria-hidden="true">
+        <div class="store-skel-art"></div>
+        <div class="store-skel-body">
+          <div class="store-skel-line w-70"></div>
+          <div class="store-skel-line w-45"></div>
+        </div>
+      </div>
+      <div class="store-skel" aria-hidden="true">
+        <div class="store-skel-art"></div>
+        <div class="store-skel-body">
+          <div class="store-skel-line w-70"></div>
+          <div class="store-skel-line w-45"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.KIDAREH_PAGE = {
+    type: "store-detail",
+    storeId: {{ store_id|tojson }}
+  };
+</script>
+{% endblock %}
