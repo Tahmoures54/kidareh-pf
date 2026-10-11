@@ -112,6 +112,8 @@ def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(cl
     assert 'class="brand-tagline">سوپر اپلیکیشن خرید حضوری</small>' in home
     assert 'class="brand-city" id="activeMarketCity"' in home
     assert 'class="brand-title-row"' in home
+    assert '<span class="brand-mark">ک</span>' not in home
+    assert '<span class="brand-mark">ک</span>' not in stores
     for path in ("static/css/style.css", "static/css/pages.css", "static/css/components.css", "static/css/theme-mh.css"):
         source = read(path)
         assert ".site-footer" not in source, path
