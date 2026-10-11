@@ -73,11 +73,13 @@
     .brand-copy small { color: var(--color-muted, #475569); font-size: 0.68rem; font-weight: 500; }
 
     .header-city-status {
-      display: none; padding: 0.2rem 0.65rem; border-radius: 999px;
-      background: #ECFEFF; color: #0E7490; font-size: 0.72rem; font-weight: 700;
-      border: 1px solid #A5F3FC;
+      display: inline-flex; align-items: center; justify-content: center; flex-shrink: 1;
+      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      padding: 0; margin-inline: .25rem; border: 0; border-radius: 0;
+      background: transparent; box-shadow: none; color: inherit;
+      font-size: .78rem; font-weight: 600; line-height: 1.3;
     }
-    @media (min-width: 640px) { .header-city-status { display: inline-flex; } }
+    @media (max-width: 639px) { .header-city-status { display: none; } }
 
     .desktop-nav { display: none; align-items: center; gap: 0.15rem; }
     .desktop-nav a {
@@ -89,55 +91,44 @@
     }
     .header-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
     .header-actions .button { min-height: 38px; padding-inline: 0.85rem; font-size: 0.78rem; }
-    .header-city-status {
-      display: inline-flex; align-items: center; justify-content: center; flex-shrink: 1;
-      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      padding: 0.25rem 0.55rem; border-radius: 999px; border: 1px solid #A5F3FC;
-      background: #ECFEFF; color: #0E7490; font-size: 0.72rem; font-weight: 800;
-    }
+
 
     /* Prominent local-market selector, below the sticky navigation */
     .home-location-bar {
       position: relative; z-index: 30; box-sizing: border-box;
-      width: min(1500px, calc(100% - 2rem)); margin: 12px auto 0;
-      padding: 12px clamp(12px, 2vw, 24px);
-      background: linear-gradient(105deg, #ECFEFF 0%, #CFFAFE 55%, #E6FFFB 100%);
-      border: 1px solid #A5F3FC; border-radius: 16px;
-      box-shadow: 0 5px 18px rgba(14, 116, 144, .055);
+      width: min(1100px, calc(100% - 1.5rem)); margin: .7rem auto 0;
+      padding: 7px 12px;
+      background: transparent; border: 0; border-radius: 0; box-shadow: none;
     }
     .home-location-inner {
       width: 100%; margin-inline: auto; display: flex; align-items: center;
       justify-content: space-between; gap: 1rem;
     }
-    .home-location-copy { display: flex; align-items: center; gap: .7rem; min-width: 0; }
-    .home-location-icon {
-      display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px;
-      border-radius: 13px; background: rgba(255,255,255,.8); color: #0E7490; font-size: 1.35rem;
-      box-shadow: 0 3px 10px rgba(14,116,144,.08);
-    }
-    .home-location-copy strong { display: block; color: #164E63; font-size: .9rem; font-weight: 850; }
-    .home-location-copy small { display: block; margin-top: 2px; color: #0E7490; font-size: .74rem; }
+    .home-location-copy { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+    .home-location-icon { display: none; }
+    .home-location-copy strong { display: block; color: inherit; font-size: .8rem; font-weight: 700; }
+    .home-location-copy small { display: none; }
     .home-location-controls { display: flex; align-items: center; justify-content: flex-end; gap: .65rem; min-width: 0; }
-    .home-city-picker { position: relative; flex: 0 1 300px; min-width: 220px; box-shadow: 0 2px 8px rgba(15,23,42,.035); }
+    .home-city-picker { position: relative; flex: 0 1 240px; min-width: 190px; box-shadow: none; }
     .home-city-picker input { font-size: .9rem; }
     .home-city-picker .market-city-picker-toggle { cursor: pointer; }
     .home-location-nearby {
-      display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 46px;
-      padding: .6rem 1rem; border: 1px solid #0E7490; border-radius: 11px;
-      background: #0E7490; color: #fff; font: inherit; font-size: .82rem; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 38px;
+      padding: .4rem .75rem; border: 1px solid #0E7490; border-radius: 9px;
+      background: #0E7490; color: #fff; font: inherit; font-size: .78rem; font-weight: 700;
       white-space: nowrap; cursor: pointer; transition: background .18s, transform .18s;
     }
     .home-location-nearby:hover { background: #155E75; transform: translateY(-1px); }
     .home-location-nearby:disabled { opacity: .7; cursor: wait; transform: none; }
     @media (max-width: 760px) {
-      .home-location-bar { width: calc(100% - 1.25rem); margin-top: .65rem; padding: 12px; border-radius: 14px; }
+      .home-location-bar { width: calc(100% - 1.5rem); margin-top: .4rem; padding: 6px 0; }
       .home-location-inner { align-items: stretch; flex-direction: column; gap: .75rem; }
       .home-location-controls { display: grid; grid-template-columns: minmax(0, 1fr); }
       .home-city-picker { width: 100%; min-width: 0; flex-basis: auto; }
       .home-location-nearby { width: 100%; }
     }
     @media (max-width: 420px) {
-      .home-location-bar { padding-inline: 12px; }
+      .home-location-bar { padding-inline: 0; }
       .home-location-copy small { font-size: .7rem; }
       .home-location-icon { flex-basis: 38px; width: 38px; height: 38px; }
       .header-city-status { max-width: 78px; padding-inline: .4rem; font-size: .66rem; }
