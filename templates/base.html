@@ -28,10 +28,10 @@
   <meta name="twitter:title" content="{{ meta_title or 'ببین کی داره؟ حضوری بگیر!' }}">
   <meta name="twitter:description" content="{{ meta_description or 'کالاها و ویترین‌های کی‌داره را ببین و برای خرید حضوری هماهنگ شو.' }}">
   <link rel="preload" href="{{ url_for('static', filename='fonts/Vazirmatn-Variable.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261011-shell-v1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-shell-v1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-shell-v1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261011-search-v2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}?v=20261011-search-v2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-mh.css') }}?v=20261011-search-v2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20261011-search-v2">
   <style>
     /* ── Base layout enhancements ── */
     .skip-link {
@@ -323,7 +323,7 @@
   </style>
   {% if structured_data %}<script type="application/ld+json">{{ structured_data|tojson }}</script>{% endif %}
   {% block head %}{% endblock %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/site-shell.css') }}?v=20261011-shell-v1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site-shell.css') }}?v=20261011-search-v2">
 </head>
 <body class="inner-page">
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
@@ -348,6 +348,7 @@
       </nav>
 
       <div class="header-actions">
+        <a class="header-search-link" href="/search" aria-label="جست‌وجوی کالا" title="جست‌وجوی کالا"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></a>
         <a class="button button-outline" id="headerSavedLink" href="/saved">ذخیره‌ها</a>
         <a class="button button-outline" id="headerLoginLink" href="/login">ورود</a>
         <a class="button button-primary" id="headerRegisterLink" href="/register">ثبت‌نام</a>
