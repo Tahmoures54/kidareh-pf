@@ -83,10 +83,33 @@
     flex: 0 1 160px;
     min-width: 140px;
   }
-  .page-search #pageCity {
-    flex: 0 1 140px;
-    min-width: 120px;
+  .page-search #searchCityCombobox {
+    position: relative;
+    flex: 0 1 190px;
+    min-width: 160px;
   }
+  .search-city-input-row { display:flex; align-items:center; gap:.25rem; }
+  .page-search #pageCity { width:100%; min-width:0; }
+  .search-city-input-row .market-city-picker-toggle {
+    flex:0 0 38px; width:38px; height:38px; border:1px solid #CBD5E1;
+    border-radius:9px; background:#fff; color:#0E7490; cursor:pointer;
+  }
+  .search-city-options {
+    position:absolute; z-index:100; inset-inline:0; top:calc(100% + 5px);
+    max-height:260px; overflow:auto; padding:5px; border:1px solid #CBD5E1;
+    border-radius:12px; background:#fff; box-shadow:0 12px 30px rgba(15,23,42,.14);
+  }
+  .search-city-options[hidden] { display:none; }
+  .search-city-options .market-city-option {
+    display:flex; width:100%; flex-direction:column; align-items:flex-start; gap:3px;
+    padding:9px 11px; border:0; border-radius:8px; background:transparent; text-align:right; cursor:pointer;
+  }
+  .search-city-options .market-city-option:hover,
+  .search-city-options .market-city-option.active { background:#ECFEFF; }
+  .search-city-options .market-city-option-meta { color:#64748B; font-size:.75rem; }
+  .search-city-options .market-city-empty { padding:12px; color:#64748B; font-size:.82rem; }
+  .nearby-search-button { display:flex; align-items:center; justify-content:center; gap:.45rem; width:100%; min-height:44px; margin:-.25rem 0 1.1rem; border:1px solid #A5F3FC; border-radius:11px; background:#ECFEFF; color:#0E7490; font:inherit; font-weight:750; cursor:pointer; }
+  .nearby-search-button:disabled { opacity:.65; cursor:wait; }
   .page-search .button-primary {
     min-height: 46px;
     padding-inline: 1.2rem;
@@ -220,6 +243,7 @@
     }
     .page-search input,
     .page-search select,
+    .page-search #searchCityCombobox,
     .page-search .button-primary {
       width: 100%;
       min-width: 0;
@@ -298,20 +322,30 @@
       <option value="">همهٔ دسته‌بندی‌ها</option>
       {{ category_options(category_tree, selected=selected_category) }}
     </select>
-    <input
-      id="pageCity"
-      name="city"
-      value="{{ city }}"
-      list="iranCityOptions"
-      data-iran-location
-      autocomplete="off"
-      placeholder="شهر یا روستا"
-      aria-label="شهر یا روستا"
-    >
+    <div class="search-city-picker" id="searchCityCombobox">
+      <div class="search-city-input-row">
+        <input
+          id="pageCity"
+          name="city"
+          value="{{ city }}"
+          autocomplete="off"
+          placeholder="انتخاب شهر"
+          aria-label="انتخاب شهر"
+          aria-autocomplete="list"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls="searchCityOptions"
+        >
+        <button class="market-city-picker-toggle" id="toggleSearchCityPicker" type="button" aria-label="نمایش فهرست شهرها">⌄</button>
+      </div>
+      <div class="search-city-options" id="searchCityOptions" role="listbox" aria-label="شهرها و روستاهای ایران" hidden></div>
+    </div>
     <button class="button button-primary" type="submit">
       جست‌وجو <span aria-hidden="true">←</span>
     </button>
   </form>
+
+  <button class="nearby-search-button" id="pageNearbySearchButton" type="button">⌖ یافتن کالاهای اطراف من</button>
 
   <div class="search-popular" aria-label="جست‌وجوهای محبوب">
     <span>محبوب:</span>
@@ -365,6 +399,7 @@
     city: {{ city|tojson }}
   };
 
+  <script src="{{ url_for('static', filename='js/location-picker.js') }}?v=20261011-search-city-v1" defer></script>
   /* Popular chips → fill query and submit */
   document.querySelectorAll("[data-fill-query]").forEach((btn) => {
     btn.addEventListener("click", () => {
