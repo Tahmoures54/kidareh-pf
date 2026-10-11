@@ -1,12 +1,372 @@
 {% extends "base.html" %}
 {% from "macros/category_options.html" import category_options %}
 {% block title %}جست‌وجوی کالاها | کی‌داره{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Catalog search ── */
+  .page-heading {
+    padding: 1.75rem 0 1.15rem;
+  }
+  .page-heading .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    border: 1px solid #A5F3FC;
+    color: #0E7490;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .page-heading h1 {
+    margin: 0.85rem 0 0.5rem;
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink, #0F172A);
+    line-height: 1.35;
+  }
+  .page-heading p {
+    margin: 0;
+    max-width: 36rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .page-panel {
+    padding: 1.35rem 1.25rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 16px;
+    background: var(--color-surface, #fff);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Search form */
+  .page-search {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 14px;
+    background: #F8FAFC;
+    margin-bottom: 1.25rem;
+  }
+  .page-search input,
+  .page-search select {
+    min-height: 46px;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--color-ink, #0F172A);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .page-search input:focus,
+  .page-search select:focus {
+    border-color: #0E7490;
+    box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12);
+  }
+  .page-search input:first-of-type {
+    flex: 1 1 180px;
+    min-width: 160px;
+  }
+  .page-search select {
+    flex: 0 1 160px;
+    min-width: 140px;
+  }
+  .page-search #pageCity {
+    flex: 0 1 140px;
+    min-width: 120px;
+  }
+  .page-search .button-primary {
+    min-height: 46px;
+    padding-inline: 1.2rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  /* Popular chips */
+  .search-popular {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: -0.5rem 0 1.15rem;
+    color: var(--color-muted, #64748B);
+    font-size: 0.78rem;
+  }
+  .search-popular button {
+    padding: 0.28rem 0.7rem;
+    border: 1px solid var(--color-line, #CBD5E1);
+    border-radius: 999px;
+    background: #fff;
+    color: #64748B;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .search-popular button:hover {
+    color: #0E7490;
+    border-color: #0891B2;
+    background: #ECFEFF;
+  }
+
+  .page-results-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .page-results-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-ink, #0F172A);
+  }
+  #pageResultsCount {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: #ECFEFF;
+    color: #0E7490;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .page-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    min-height: 140px;
+  }
+
+  /* Skeleton */
+  .search-skeleton {
+    border: 1px solid var(--color-line-soft, #E2E8F0);
+    border-radius: 14px;
+    background: #F8FAFC;
+    overflow: hidden;
+  }
+  .search-skeleton-art {
+    height: 140px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .search-skeleton-body {
+    padding: 0.9rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .search-skeleton-line {
+    height: 11px;
+    border-radius: 6px;
+    background: #E2E8F0;
+    position: relative;
+    overflow: hidden;
+  }
+  .search-skeleton-line.w-70 { width: 70%; }
+  .search-skeleton-line.w-45 { width: 45%; }
+  .search-skeleton-line.w-55 { width: 55%; }
+  .search-skeleton-art::after,
+  .search-skeleton-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
+  }
+
+  .loading-card {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-muted, #64748B);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 850px) {
+    .page-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    .page-search {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .page-search input,
+    .page-search select,
+    .page-search .button-primary {
+      width: 100%;
+      min-width: 0;
+      flex: none;
+    }
+    .page-card-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .page-panel {
+      background: var(--color-surface, #111B2A);
+      border-color: var(--color-line, #334155);
+    }
+    .page-search {
+      background: #17243A;
+      border-color: #334155;
+    }
+    .page-search input,
+    .page-search select {
+      background: #111B2A;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+    .search-popular button {
+      background: #17243A;
+      border-color: #334155;
+      color: #B6C2D2;
+    }
+    .search-skeleton {
+      background: #17243A;
+      border-color: #334155;
+    }
+    .search-skeleton-art,
+    .search-skeleton-line {
+      background: #334155;
+    }
+    #pageResultsCount {
+      background: #083344;
+      color: #67E8F9;
+    }
+    .page-heading .section-kicker {
+      background: #083344;
+      border-color: #155E75;
+      color: #67E8F9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .search-skeleton-art::after,
+    .search-skeleton-line::after {
+      animation: none;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="page-heading"><span class="section-kicker">کشف انتخاب‌های تازه</span><h1>چی دنبالش می‌گردی؟</h1><p>بدون ساخت حساب، میان کالاها و خدمات جست‌وجو کن.</p></section>
+<section class="page-heading">
+  <span class="section-kicker"><span aria-hidden="true">⌕</span> کشف انتخاب‌های تازه</span>
+  <h1>چی دنبالش می‌گردی؟</h1>
+  <p>بدون ساخت حساب، میان کالاها و خدمات جست‌وجو کن و برای خرید حضوری هماهنگ شو.</p>
+</section>
+
 <section class="page-panel">
-  <form id="pageSearchForm" class="page-search"><label class="sr-only" for="pageQuery">جست‌وجو</label><input id="pageQuery" name="q" value="{{ query }}" placeholder="مثلاً گوشی، میز، خدمات فنی…"><select id="pageCategory" aria-label="دسته‌بندی"><option value="">همهٔ دسته‌بندی‌ها</option>{{ category_options(category_tree, selected=selected_category) }}</select><input id="pageCity" name="city" value="{{ city }}" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا روستا"><button class="button button-primary" type="submit">جست‌وجو</button></form>
-  <div class="page-results-head"><h2>نتایج جست‌وجو</h2><span id="pageResultsCount">در حال بارگذاری…</span></div>
-  <div id="pageListings" class="page-card-grid" aria-live="polite"><div class="loading-card">در حال دریافت کالاها…</div></div>
+  <form id="pageSearchForm" class="page-search" role="search">
+    <label class="sr-only" for="pageQuery">جست‌وجو</label>
+    <input
+      id="pageQuery"
+      name="q"
+      type="search"
+      value="{{ query }}"
+      placeholder="مثلاً گوشی، میز، خدمات فنی…"
+      autocomplete="off"
+    >
+    <select id="pageCategory" aria-label="دسته‌بندی">
+      <option value="">همهٔ دسته‌بندی‌ها</option>
+      {{ category_options(category_tree, selected=selected_category) }}
+    </select>
+    <input
+      id="pageCity"
+      name="city"
+      value="{{ city }}"
+      list="iranCityOptions"
+      data-iran-location
+      autocomplete="off"
+      placeholder="شهر یا روستا"
+      aria-label="شهر یا روستا"
+    >
+    <button class="button button-primary" type="submit">
+      جست‌وجو <span aria-hidden="true">←</span>
+    </button>
+  </form>
+
+  <div class="search-popular" aria-label="جست‌وجوهای محبوب">
+    <span>محبوب:</span>
+    <button type="button" data-fill-query="گوشی">گوشی</button>
+    <button type="button" data-fill-query="میز">میز</button>
+    <button type="button" data-fill-query="خدمات">خدمات</button>
+    <button type="button" data-fill-query="لباس">لباس</button>
+    <button type="button" data-fill-query="لپ‌تاپ">لپ‌تاپ</button>
+  </div>
+
+  <div class="page-results-head">
+    <h2>نتایج جست‌وجو</h2>
+    <span id="pageResultsCount">در حال بارگذاری…</span>
+  </div>
+
+  <div id="pageListings" class="page-card-grid" aria-live="polite">
+    <div class="search-skeleton" aria-hidden="true">
+      <div class="search-skeleton-art"></div>
+      <div class="search-skeleton-body">
+        <div class="search-skeleton-line w-70"></div>
+        <div class="search-skeleton-line w-45"></div>
+        <div class="search-skeleton-line w-55"></div>
+      </div>
+    </div>
+    <div class="search-skeleton" aria-hidden="true">
+      <div class="search-skeleton-art"></div>
+      <div class="search-skeleton-body">
+        <div class="search-skeleton-line w-70"></div>
+        <div class="search-skeleton-line w-45"></div>
+        <div class="search-skeleton-line w-55"></div>
+      </div>
+    </div>
+    <div class="search-skeleton" aria-hidden="true">
+      <div class="search-skeleton-art"></div>
+      <div class="search-skeleton-body">
+        <div class="search-skeleton-line w-70"></div>
+        <div class="search-skeleton-line w-45"></div>
+        <div class="search-skeleton-line w-55"></div>
+      </div>
+    </div>
+  </div>
 </section>
 {% endblock %}
-{% block scripts %}<script>window.KIDAREH_PAGE={type:"search",query:{{ query|tojson }},category:{{ selected_category|tojson }},city:{{ city|tojson }}};</script>{% endblock %}
+
+{% block scripts %}
+<script>
+  window.KIDAREH_PAGE = {
+    type: "search",
+    query: {{ query|tojson }},
+    category: {{ selected_category|tojson }},
+    city: {{ city|tojson }}
+  };
+
+  /* Popular chips → fill query and submit */
+  document.querySelectorAll("[data-fill-query]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("pageQuery");
+      const form = document.getElementById("pageSearchForm");
+      if (!input || !form) return;
+      input.value = btn.getAttribute("data-fill-query") || "";
+      form.requestSubmit ? form.requestSubmit() : form.submit();
+    });
+  });
+</script>
+{% endblock %}
