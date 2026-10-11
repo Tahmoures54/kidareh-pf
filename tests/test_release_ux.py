@@ -95,16 +95,18 @@ def test_components_stylesheet_is_loaded_after_theme_overlay(client):
 
 
 # ---------- Mobile navigation & AIDA home ----------
-def test_shared_shell_stylesheet_owns_full_width_footer_and_hides_mobile_action_strip(client):
+def test_shared_shell_stylesheet_owns_full_width_footer_and_mobile_navigation(client):
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)
     css = read("static/css/site-shell.css")
-    assert "site-shell.css?v=20261011-search-v2" in home
-    assert "site-shell.css?v=20261011-search-v2" in stores
+    assert "site-shell.css?v=20261011-shell-v3" in home
+    assert "site-shell.css?v=20261011-shell-v3" in stores
     assert ".site-footer" in css
     assert "width: 100% !important;" in css
     assert "linear-gradient(100deg, var(--kidareh-turquoise-dark), var(--kidareh-turquoise))" in css
-    assert ".mobile-bottom-nav {\n  display: none !important;" in css
+    assert ".mobile-bottom-nav {\n  position: fixed;" in css
+    assert "grid-template-columns: repeat(5, minmax(0, 1fr));" in css
+    assert "@media (min-width: 900px) {\n  .mobile-bottom-nav { display: none !important; }" in css
     assert 'class="site-header"' in home
     assert 'class="site-footer"' in home
     for path in ("static/css/style.css", "static/css/pages.css", "static/css/components.css", "static/css/theme-mh.css"):
