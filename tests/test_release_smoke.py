@@ -97,7 +97,7 @@ def test_pwa_shell_assets_and_offline_fallback_are_available(client):
         assert response.status_code == 200, path
 
     worker = client.get("/static/sw.js").get_data(as_text=True)
-    assert "kidareh-shell-" in worker and "CACHE_VERSION = \"v4\"" in worker
+    assert "kidareh-shell-" in worker and "CACHE_VERSION = \"v5\"" in worker
     assert "/static/offline.html" in worker
     assert "PRIVATE_PATH" in worker
 
