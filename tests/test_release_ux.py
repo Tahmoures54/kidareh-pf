@@ -444,3 +444,36 @@ def test_home_navigation_omits_redundant_home_links_but_inner_pages_keep_home(cl
     assert 'href="/search"' in mobile_nav and 'href="/stores"' in mobile_nav
     assert 'repeat(3, minmax(0, 1fr))' in read("static/css/site-shell.css")
     assert 'href="/"' in stores
+
+
+# ---------- Support center: user-facing ticket workflow ----------
+def test_support_page_is_a_real_ticket_center_for_signed_in_users(client, app):
+    from werkzeug.security import generate_password_hash
+    with app.app_context():
+        with get_connection() as connection:
+            user_id = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("کاربر پشتیبانی", "09120000004", generate_password_hash("x"), "buyer"),
+            ).lastrowid
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+
+    response = client.get("/support")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "پشتیبانی و پیگیری درخواست‌ها" in html
+    assert 'id="supportForm"' in html
+    assert 'id="supportTicketList"' in html
+    assert 'id="supportReplyForm"' in html
+    assert "/api/support/tickets" in html
+    assert "محصولات ذخیره‌شده" not in html
+
+
+def test_help_center_distinguishes_faq_from_actual_support(client):
+    html = client.get("/help").get_data(as_text=True)
+    assert "پاسخ پرسش‌های پرتکرار" in html
+    assert "ثبت درخواست پشتیبانی" in html
+    assert 'href="/support"' in html
+    base = read("templates/base.html")
+    assert '<a href="/help">سؤالات رایج</a>' in base
+    assert '<a href="/support">پشتیبانی</a>' in base
