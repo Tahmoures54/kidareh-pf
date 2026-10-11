@@ -552,7 +552,7 @@
       <a class="active" href="/" aria-current="page">خانه</a>
       <a href="/search">جست‌وجوی کالا</a>
       <a href="/stores">فروشگاه‌ها</a>
-      <a href="/seller">ویترین من</a>
+      <a id="headerSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان">مدیریت فروشگاه</a>
     </nav>
 
     <div class="header-actions">
@@ -701,14 +701,16 @@
     <a class="mobile-nav-item" href="/" aria-current="page"><span aria-hidden="true">⌂</span><span>خانه</span></a>
     <a class="mobile-nav-item" href="/search"><span aria-hidden="true">⌕</span><span>جست‌وجو</span></a>
     <a class="mobile-nav-item" href="/stores"><span aria-hidden="true">▦</span><span>فروشگاه‌ها</span></a>
-    <a class="mobile-nav-item nav-cta" href="/seller"><span aria-hidden="true">＋</span><span>ساخت ویترین</span></a>
+    <a class="mobile-nav-item nav-cta" id="mobileSellerLink" href="/seller" title="مدیریت فروشگاه و ویترین آنلاین؛ معرفی فروشگاه و کالاها به مشتریان"><span aria-hidden="true">＋</span><span>مدیریت فروشگاه</span></a>
   </nav>
 
   <footer class="site-footer" aria-label="پیوندهای تکمیلی">
-    <nav class="footer-links" aria-label="راهنما و قوانین">
+    <nav class="footer-links" aria-label="راهنما">
       <a href="/help">راهنما</a>
       <a href="/guide">راهنمای کاربر</a>
       <a href="/safety">خرید امن</a>
+    </nav>
+    <nav class="footer-links" id="legalLinks" aria-label="پیوندهای حقوقی" hidden>
       <a href="/terms">قوانین استفاده</a>
       <a href="/privacy">حریم خصوصی</a>
     </nav>
