@@ -362,6 +362,36 @@ def test_legal_links_are_hidden_until_auth_state_is_confirmed_and_store_label_is
 
 
 
+def test_seller_dashboard_redirects_guests_to_login_and_serves_signed_in_users(client, app):
+    guest_response = client.get("/seller")
+    assert guest_response.status_code == 302
+    from urllib.parse import parse_qs, urlsplit
+    location = urlsplit(guest_response.headers["Location"])
+    assert location.path == "/login"
+    assert parse_qs(location.query).get("next") == ["/seller"]
+
+    with app.app_context():
+        with get_connection() as connection:
+            user_id = connection.execute(
+                "INSERT INTO users (name, phone, password_hash, role) VALUES (?, ?, ?, ?)",
+                ("فروشنده آزمایشی", "09120000002", "test-hash", "seller"),
+            ).lastrowid
+
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+
+    signed_in_response = client.get("/seller")
+    assert signed_in_response.status_code == 200
+    assert "پنل فروشگاه من" in signed_in_response.get_data(as_text=True)
+
+
+def test_auth_pages_preserve_requested_seller_destination():
+    script = read("static/js/auth-pages.js")
+    assert 'query.get("next")' in script
+    assert 'window.location.assign(authUrl("/register"))' in script
+    assert 'requestedNext || (data.user.role === "seller" ? "/seller" : "/")' in script
+
+
 def test_home_navigation_omits_redundant_home_links_but_inner_pages_keep_home(client):
     home = client.get("/").get_data(as_text=True)
     stores = client.get("/stores").get_data(as_text=True)

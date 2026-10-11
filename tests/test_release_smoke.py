@@ -28,9 +28,13 @@ def client(app):
 
 
 def test_core_pages_render(client):
-    for path in ("/", "/login", "/register", "/seller", "/stores", "/messages", "/support"):
+    for path in ("/", "/login", "/register", "/stores", "/messages", "/support"):
         response = client.get(path)
         assert response.status_code == 200, path
+
+    seller_response = client.get("/seller")
+    assert seller_response.status_code == 302
+    assert "/login" in seller_response.headers["Location"]
 
 
 def test_health_reports_database_and_upload_readiness(client):

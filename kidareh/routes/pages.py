@@ -1,10 +1,10 @@
 import time
 
-from flask import Blueprint, Response, render_template, request, session
+from flask import Blueprint, Response, redirect, render_template, request, session, url_for
 from xml.sax.saxutils import escape as xml_escape
 from urllib.parse import urljoin
 import uuid
-from ..core import CATEGORIES, get_connection
+from ..core import CATEGORIES, current_user, get_connection
 from ..data_catalog import CATEGORY_TREE, TRADE_GROUPS
 
 bp = Blueprint("pages", __name__)
@@ -180,6 +180,10 @@ def sitemap_xml():
 
 @bp.get("/seller")
 def seller_dashboard_page():
+    # Keep the requested destination through SMS login; never render a private
+    # seller console for a guest session.
+    if not current_user():
+        return redirect(url_for("pages.login_page", next="/seller"))
     return render_marketplace_page("pages/seller/dashboard.html", categories=CATEGORIES)
 
 

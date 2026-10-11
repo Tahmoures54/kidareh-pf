@@ -3,6 +3,22 @@
   if (!root) return;
 
   const mode = root.dataset.authMode || "login"; // login | register
+  const query = new URLSearchParams(window.location.search);
+  const rawNext = query.get("next") || "";
+  const requestedNext =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.includes("\\")
+      ? rawNext
+      : "";
+  const authUrl = (path) => {
+    const params = new URLSearchParams();
+    if (requestedNext) params.set("next", requestedNext);
+    return path + (params.size ? "?" + params.toString() : "");
+  };
+
+  // Keep the intended destination when switching between login and registration.
+  document.querySelectorAll('a[href="/login"], a[href="/register"]').forEach((link) => {
+    link.href = authUrl(link.getAttribute("href"));
+  });
   const form = document.querySelector("#authPageForm");
   if (!form) return;
 
@@ -182,9 +198,9 @@
         if (data.existing_user && data.user) {
           if (tokenMeta && data.csrf_token) tokenMeta.content = data.csrf_token;
           message("ورود موفق بود؛ در حال انتقال…");
-          const redirect =
-            data.user.role === "seller" ? "/seller" : "/";
-          window.location.assign(redirect);
+          const destination =
+            requestedNext || (data.user.role === "seller" ? "/seller" : "/");
+          window.location.assign(destination);
           return;
         }
 
@@ -192,7 +208,7 @@
           if (mode === "login") {
             message("حسابی با این شماره یافت نشد. در حال انتقال به ثبت‌نام…");
             setTimeout(() => {
-              window.location.assign("/register");
+              window.location.assign(authUrl("/register"));
             }, 1200);
             return;
           }
@@ -218,7 +234,13 @@
         const data = await api("complete-profile", payload);
         if (tokenMeta && data.csrf_token) tokenMeta.content = data.csrf_token;
         message("حساب شما ساخته شد؛ خوش آمدید!");
-        window.location.assign(role === "seller" ? "/seller" : "/account");
+        const destination =
+          requestedNext && (role === "seller" || requestedNext !== "/seller")
+            ? requestedNext
+            : role === "seller"
+              ? "/seller"
+              : "/account";
+        window.location.assign(destination);
         return;
       }
     } catch (error) {
