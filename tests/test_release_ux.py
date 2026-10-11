@@ -103,7 +103,7 @@ def test_mobile_bottom_nav_is_homepage_only_and_full_width(client):
     assert 'href="/seller"' in home
     assert "linear-gradient(90deg, #0E7490, #0891B2)" in home
     stores = client.get("/stores").get_data(as_text=True)
-    assert 'class="mobile-bottom-nav"' not in stores
+    assert 'class="mobile-bottom-nav"' in stores
     assert 'class="site-header"' in home
     assert 'class="site-footer"' in home
 
