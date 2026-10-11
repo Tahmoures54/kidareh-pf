@@ -110,8 +110,11 @@ def test_home_has_single_primary_cta_above_the_fold():
     hero_start = html.index('<section class="home-intro"')
     hero_end = html.index('<div class="trust-strip"', hero_start)
     hero = html[hero_start:hero_end]
-    assert 'id="homeRotatingMessage"' in hero
-    assert 'id="homeMessageAction"' in hero
+    assert "منتظر نمون تا مشتری بیاد!" in hero
+    assert "ویترینت رو به دلِ خونه‌ها بفرست." in hero
+    assert 'href="/seller">ویترینم رو بساز' in hero
+    assert 'id="homeRotatingMessage"' not in hero
+    assert 'id="homeMessageAction"' not in hero
     assert hero.count("button-primary") == 1
     assert 'class="home-intro-art"' not in hero
 
