@@ -323,6 +323,12 @@
       <option value="">همهٔ دسته‌بندی‌ها</option>
       {{ category_options(category_tree, selected=selected_category) }}
     </select>
+    <select id="pageAvailability" name="availability" aria-label="وضعیت موجودی">
+      <option value="">همهٔ وضعیت‌ها</option>
+      <option value="in_stock">فقط موجود</option>
+      <option value="ask">نیازمند تأیید فروشنده</option>
+      <option value="out_of_stock">ناموجود</option>
+    </select>
     <div class="search-city-picker" id="searchCityCombobox">
       <div class="search-city-input-row">
         <input
