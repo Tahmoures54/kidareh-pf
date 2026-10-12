@@ -106,8 +106,8 @@ def request_otp():
         return jsonify({"error": "captcha_failed", "message": "پاسخ محاسبه درست نیست؛ دوباره تلاش کنید."}), 400
     session.pop("math_challenge_answer", None)
     session.pop("math_challenge_at", None)
-    if payload.get("terms_accepted") is not True:
-        return jsonify({"error": "terms_required", "message": "برای ادامه باید پذیرش قوانین را تأیید کنید."}), 400
+    # Continuing after the clearly displayed terms notice records acceptance;
+    # no separate checkbox is required for the SMS-only authentication flow.
     allowed, limit_error, retry_after = _check_otp_rate_limit(phone)
     if not allowed:
         message = "برای ارسال دوباره کد کمی صبر کنید." if limit_error == "otp_cooldown" else "سقف درخواست پیامک موقتاً پر شده است؛ بعداً دوباره تلاش کنید."

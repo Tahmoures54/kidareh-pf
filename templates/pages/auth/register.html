@@ -2,7 +2,7 @@
 {% block title %}ثبت‌نام | کی‌داره{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css', v='20261011-register-v3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth-pages.css', v='20261011-register-turquoise-header-v2') }}">
 <style>
   /* ===== Register page — simple, guide-focused ===== */
   .auth-page[data-auth-mode="register"] {
@@ -447,14 +447,11 @@
             >
           </div>
 
-          <label class="auth-check">
-            <input type="checkbox" name="terms_accepted" required>
-            <span>
-              قوانین و شرایط استفاده از
-              <a href="/terms" target="_blank" rel="noopener">کی‌داره</a>
-              را می‌پذیرم.
-            </span>
-          </label>
+          <p class="auth-legal-note">
+            با وارد کردن شماره موبایل و ادامه،
+            <a href="/terms" target="_blank" rel="noopener">قوانین و شرایط استفاده</a>
+            و <a href="/privacy" target="_blank" rel="noopener">حریم خصوصی</a> کی‌داره را می‌پذیرید.
+          </p>
 
           <div class="auth-actions-row">
             <button class="button button-outline" type="button" id="backToRoleButton">

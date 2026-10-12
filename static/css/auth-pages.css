@@ -844,3 +844,26 @@
     max-width: none;
   }
 }
+
+
+/* Legal notice replaces the mandatory checkbox while keeping consent visible. */
+.auth-legal-note {
+  margin: 0.85rem 0 1rem;
+  color: #64748B;
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+.auth-legal-note a {
+  color: #0E7490;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-legal-note a:focus-visible {
+  outline: 2px solid #0891B2;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-step { animation: none !important; }
+}
