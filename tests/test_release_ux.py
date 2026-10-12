@@ -324,7 +324,7 @@ def test_user_facing_messages_avoid_generic_error_copy():
         text = read(name)
         assert "خطایی رخ داد" not in text, name
         assert '"خطا در دریافت کالاها"' not in text, name
-    assert "آگهی‌ات منتشر شد" in read("static/js/seller.js")
+    assert "کالا ثبت شد؛ ویترینت آمادهٔ معرفی است" in read("static/js/seller.js")
 
 
 def test_header_navigation_is_deduplicated_and_auth_actions_have_feedback(client):
