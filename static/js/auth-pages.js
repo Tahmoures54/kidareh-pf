@@ -46,6 +46,7 @@
   function message(text, isError = false) {
     if (!feedback) return;
     feedback.textContent = text || "";
+    feedback.classList.toggle("success", Boolean(text) && !isError);
     feedback.style.color = isError ? "#B91C1C" : "#0E7490";
   }
 
@@ -173,9 +174,7 @@
 
     try {
       if (currentStep === "phone") {
-        const accepted = Boolean(form.elements.terms_accepted?.checked);
-        if (!accepted) throw new Error("برای ادامه، پذیرش قوانین را علامت بزنید.");
-
+        const accepted = true; // Acceptance is communicated by continuing after the visible terms notice.
         const phone = digits(form.elements.phone?.value).trim();
         const captcha = digits(form.elements.captcha?.value).trim();
 
