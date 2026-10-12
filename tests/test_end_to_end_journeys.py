@@ -361,3 +361,70 @@ def test_concurrent_schema_initialization_does_not_crash_workers(tmp_path):
         worker.join(timeout=30)
 
     assert results == ["ok"] * 4, results
+
+
+
+def test_otp_challenge_secrets_are_server_side_and_success_is_one_time(app, client, monkeypatch):
+    code = _request_otp(client, "09121110009", monkeypatch, registering=True, role="buyer")
+
+    with client.session_transaction() as session:
+        assert session.get("otp_challenge_id")
+        assert "otp_hash" not in session
+        assert "otp_phone" not in session
+        assert "otp_expires_at" not in session
+        challenge_id = session["otp_challenge_id"]
+
+    with app.app_context():
+        with get_connection() as connection:
+            challenge = connection.execute(
+                "SELECT phone, otp_hash, attempts, consumed_at FROM otp_challenges WHERE id = ?",
+                (challenge_id,),
+            ).fetchone()
+    assert challenge["phone"] == "09121110009"
+    assert challenge["otp_hash"]
+    assert challenge["attempts"] == 0
+    assert challenge["consumed_at"] is None
+
+    verified = client.post(
+        "/api/auth/verify-otp",
+        json={"code": code},
+        headers={"X-CSRF-Token": "journey-csrf"},
+    )
+    assert verified.status_code == 200
+    assert verified.get_json()["existing_user"] is False
+
+    with app.app_context():
+        with get_connection() as connection:
+            consumed = connection.execute(
+                "SELECT consumed_at FROM otp_challenges WHERE id = ?", (challenge_id,)
+            ).fetchone()
+    assert consumed["consumed_at"] is not None
+
+    replay = client.post(
+        "/api/auth/verify-otp",
+        json={"code": code},
+        headers={"X-CSRF-Token": "journey-csrf"},
+    )
+    assert replay.status_code == 400
+    assert replay.get_json()["error"] == "otp_expired"
+
+
+def test_otp_failed_attempt_counter_is_persisted_server_side(app, client, monkeypatch):
+    _request_otp(client, "09121110010", monkeypatch, registering=True, role="buyer")
+    with client.session_transaction() as session:
+        challenge_id = session["otp_challenge_id"]
+
+    response = client.post(
+        "/api/auth/verify-otp",
+        json={"code": "000000"},
+        headers={"X-CSRF-Token": "journey-csrf"},
+    )
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "otp_invalid"
+
+    with app.app_context():
+        with get_connection() as connection:
+            challenge = connection.execute(
+                "SELECT attempts FROM otp_challenges WHERE id = ?", (challenge_id,)
+            ).fetchone()
+    assert challenge["attempts"] == 1
