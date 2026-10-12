@@ -499,3 +499,6 @@ def test_registration_form_uses_vertical_layout_and_mobile_sizing(client):
     assert 'id="continueRoleButton"' in html
     assert 'id="authPhoneStep"' in html
     assert 'id="authProfileStep"' in html
+    assert 'با وارد کردن شماره موبایل و ادامه' in html
+    assert 'name="terms_accepted"' not in html
+    assert "auth-legal-note" in html
