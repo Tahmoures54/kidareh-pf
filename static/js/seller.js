@@ -52,7 +52,7 @@
               (item.price_updated_at ? " · آخرین به‌روزرسانی قیمت: " + escapeHTML(new Date(item.price_updated_at).toLocaleDateString("fa-IR")) : "") +
               '</div><div class="page-listing-footer"><strong>' +
               price +
-              '</strong><select aria-label="وضعیت موجودی" data-listing-availability="' + item.id + '"><option value="in_stock"' + (item.availability_status === "in_stock" ? " selected" : "") + '>موجود</option><option value="out_of_stock"' + (item.availability_status === "out_of_stock" ? " selected" : "") + '>ناموجود</option><option value="ask"' + (!item.availability_status || item.availability_status === "ask" ? " selected" : "") + '>تماس بگیرید</option></select><button type="button" data-delete-listing="' +
+              '</strong><label class="seller-price-inline">قیمت <input type="number" min="0" max="1000000000000" step="1" value="' + Number(item.price || 0) + '" data-listing-price="' + item.id + '"></label><button type="button" class="button button-outline" data-save-listing="' + item.id + '">ذخیره</button><select aria-label="وضعیت موجودی" data-listing-availability="' + item.id + '"><option value="in_stock"' + (item.availability_status === "in_stock" ? " selected" : "") + '>موجود</option><option value="out_of_stock"' + (item.availability_status === "out_of_stock" ? " selected" : "") + '>ناموجود</option><option value="ask"' + (!item.availability_status || item.availability_status === "ask" ? " selected" : "") + '>تماس بگیرید</option></select><button type="button" data-delete-listing="' +
               item.id +
               '" class="button button-outline">حذف</button></div></div></article>'
             );
@@ -237,6 +237,32 @@
       });
 
       document.addEventListener("click", async (e) => {
+        const save = e.target.closest("[data-save-listing]");
+        if (save) {
+          const id = save.dataset.saveListing;
+          const input = document.querySelector('[data-listing-price="' + id + '"]');
+          const stock = document.querySelector('[data-listing-availability="' + id + '"]');
+          const price = Number(input?.value);
+          if (!Number.isSafeInteger(price) || price < 0 || price > 1000000000000) {
+            notify("قیمت معتبر وارد کن.");
+            return;
+          }
+          save.disabled = true;
+          try {
+            await api("/api/listings/" + id, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ price, availability_status: stock?.value || "ask" }),
+            });
+            notify("قیمت و موجودی به‌روز شد.");
+            await loadSellerListings(storeId);
+          } catch (err) {
+            notify(err.message);
+          } finally {
+            save.disabled = false;
+          }
+          return;
+        }
         const del = e.target.closest("[data-delete-listing]");
         if (!del) return;
         if (!confirm("این کالا حذف شود؟")) return;
