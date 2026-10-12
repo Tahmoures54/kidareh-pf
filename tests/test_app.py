@@ -529,21 +529,26 @@ def test_phone_first_seller_signup_creates_store_and_full_journey(monkeypatch, t
     assert persisted_follow is not None
 
 
-def test_otp_requires_correct_math_answer_and_terms(monkeypatch, tmp_path):
+def test_otp_requires_correct_math_answer_but_not_a_terms_checkbox(monkeypatch, tmp_path):
+    import kidareh.routes.auth as auth_routes
+
     client = setup_test_database(monkeypatch, tmp_path)
+    monkeypatch.setattr(auth_routes, "_send_kavenegar_otp", lambda _phone, _code: True)
+    app_module.app.config["TESTING_OTP_CODE"] = True
     client.get("/api/auth/challenge")
     response = client.post(
         "/api/auth/request-otp", headers={"X-CSRF-Token": "test-token"},
-        json={"phone": "09123334445", "captcha_answer": "999", "terms_accepted": True},
+        json={"phone": "09123334445", "captcha_answer": "999"},
     )
     assert response.status_code == 400 and response.get_json()["error"] == "captcha_failed"
     challenge = client.get("/api/auth/challenge").get_json()["question"]
     left, right = [int(value.strip()) for value in challenge.replace("= ؟", "").strip().split("+")]
-    no_terms = client.post(
+    accepted_by_continuing = client.post(
         "/api/auth/request-otp", headers={"X-CSRF-Token": "test-token"},
-        json={"phone": "09123334445", "captcha_answer": str(left + right), "terms_accepted": False},
+        json={"phone": "09123334445", "captcha_answer": str(left + right)},
     )
-    assert no_terms.status_code == 400 and no_terms.get_json()["error"] == "terms_required"
+    assert accepted_by_continuing.status_code == 200, accepted_by_continuing.get_json()
+    assert accepted_by_continuing.get_json()["ok"] is True
 
 
 def test_otp_verification_rejects_wrong_code(monkeypatch, tmp_path):
