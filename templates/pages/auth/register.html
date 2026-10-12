@@ -576,50 +576,21 @@
               </div>
             </div>
 
-            <label class="auth-label" for="contactName">نام مسئول تماس</label>
-            <input
-              class="auth-input"
-              type="text"
-              id="contactName"
-              name="contact_name"
-              maxlength="80"
-              placeholder="اختیاری — پیش‌فرض نام شما"
-            >
-
-            <label class="auth-label" for="storeAddress">آدرس</label>
-            <input
-              class="auth-input"
-              type="text"
-              id="storeAddress"
-              name="store_address"
-              maxlength="300"
-              placeholder="خیابان، پلاک، طبقه…"
-            >
-
-            <label class="auth-label" for="storeHours">ساعات کاری</label>
-            <input
-              class="auth-input"
-              type="text"
-              id="storeHours"
-              name="store_hours"
-              maxlength="120"
-              placeholder="مثلاً ۱۰ تا ۲۱"
-            >
-
-            <label class="auth-label" for="storeDescription">توضیح کوتاه ویترین</label>
-            <textarea
-              class="auth-input auth-textarea"
-              id="storeDescription"
-              name="store_description"
-              maxlength="500"
-              rows="3"
-              placeholder="چه کالاهایی دارید؟ چرا مشتری باید بیاید؟"
-            ></textarea>
-
-            <label class="auth-check">
-              <input type="checkbox" name="in_person" checked>
-              <span>خرید حضوری از این فروشگاه امکان‌پذیر است.</span>
-            </label>
+            <div class="seller-location-tools" style="margin-top: 1rem;">
+              <p class="auth-hint">موقعیت فروشگاه برای مسیریابی مشتری‌ها استفاده می‌شود؛ نیازی به نوشتن آدرس نیست.</p>
+              <button class="button button-outline" type="button" id="registerStoreLocationButton">
+                📍 دریافت موقعیت فروشگاه
+              </button>
+              <p class="auth-hint" id="registerStoreLocationStatus" role="status" aria-live="polite">اختیاری؛ می‌توانید بعداً هم موقعیت را ثبت کنید.</p>
+              <div class="seller-coordinate-fields">
+                <label class="auth-label" for="registerStoreLatitude">عرض جغرافیایی (Latitude)
+                  <input class="auth-input" id="registerStoreLatitude" name="store_latitude" inputmode="decimal" readonly>
+                </label>
+                <label class="auth-label" for="registerStoreLongitude">طول جغرافیایی (Longitude)
+                  <input class="auth-input" id="registerStoreLongitude" name="store_longitude" inputmode="decimal" readonly>
+                </label>
+              </div>
+            </div>
           </div>
 
           <datalist id="registerCityOptions"></datalist>

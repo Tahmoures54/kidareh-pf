@@ -99,6 +99,40 @@
     });
   }
 
+  const storeLocationButton = document.querySelector("#registerStoreLocationButton");
+  storeLocationButton?.addEventListener("click", () => {
+    const status = document.querySelector("#registerStoreLocationStatus");
+    const latitude = form.elements.store_latitude;
+    const longitude = form.elements.store_longitude;
+    if (!navigator.geolocation) {
+      if (status) status.textContent = "این مرورگر موقعیت مکانی را پشتیبانی نمی‌کند؛ می‌توانید بعداً از پنل فروشنده ثبت کنید.";
+      return;
+    }
+    storeLocationButton.disabled = true;
+    storeLocationButton.textContent = "در حال دریافت موقعیت…";
+    if (status) status.textContent = "اجازهٔ دسترسی به موقعیت مکانی را تأیید کنید.";
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        latitude.value = position.coords.latitude.toFixed(6);
+        longitude.value = position.coords.longitude.toFixed(6);
+        if (status) status.textContent = "موقعیت فروشگاه ثبت شد.";
+        storeLocationButton.textContent = "📍 دریافت دوبارهٔ موقعیت";
+        storeLocationButton.disabled = false;
+      },
+      (error) => {
+        const messages = {
+          1: "اجازهٔ مکان‌یابی داده نشد؛ می‌توانید بعداً از پنل فروشنده اقدام کنید.",
+          2: "موقعیت فعلاً در دسترس نیست؛ GPS دستگاه را بررسی کنید.",
+          3: "دریافت موقعیت طول کشید؛ دوباره تلاش کنید."
+        };
+        if (status) status.textContent = messages[error.code] || "دریافت موقعیت ناموفق بود؛ بعداً دوباره تلاش کنید.";
+        storeLocationButton.textContent = "📍 تلاش دوباره برای دریافت موقعیت";
+        storeLocationButton.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  });
+
   let otpAbortController = null;
 
   function startWebOtp() {
@@ -250,11 +284,10 @@
           store_name: (form.elements.store_name?.value || "").trim(),
           store_category: (form.elements.store_category?.value || "").trim(),
           store_city: (form.elements.store_city?.value || "").trim(),
-          contact_name: (form.elements.contact_name?.value || "").trim(),
-          store_address: (form.elements.store_address?.value || "").trim(),
-          store_hours: (form.elements.store_hours?.value || "").trim(),
-          store_description: (form.elements.store_description?.value || "").trim(),
-          in_person: Boolean(form.elements.in_person?.checked),
+          latitude: (form.elements.store_latitude?.value || "").trim() || null,
+          longitude: (form.elements.store_longitude?.value || "").trim() || null,
+          // Local marketplace stores default to in-person pickup; this is not an extra signup question.
+          in_person: true,
         };
 
         const data = await api("complete-profile", payload);

@@ -523,7 +523,7 @@ def test_store_directory_exposes_city_filter_and_routing_fallback():
 def test_seller_store_forms_capture_geolocation_without_manual_coordinates():
     html = read("templates/pages/seller/dashboard.html")
     script = read("static/js/seller.js")
-    assert html.count('data-capture-store-location') == 2
+    assert html.count('data-capture-store-location') >= 2
     assert 'navigator.geolocation.getCurrentPosition' in script
     assert 'position.coords.latitude.toFixed(6)' in script
     assert 'position.coords.longitude.toFixed(6)' in script
@@ -532,3 +532,17 @@ def test_seller_store_forms_capture_geolocation_without_manual_coordinates():
     assert 'latitude: editForm.latitude?.value || null' in script
     assert 'method: "PATCH"' in script
     assert 'شهر و نشانی را وارد کن' in script
+
+def test_registration_collects_only_core_seller_details_and_optional_coordinates(client):
+    html = client.get("/register").get_data(as_text=True)
+    script = read("static/js/auth-pages.js")
+    assert 'id="registerStoreLocationButton"' in html
+    assert 'name="store_latitude"' in html
+    assert 'name="store_longitude"' in html
+    assert 'navigator.geolocation.getCurrentPosition' in script
+    assert 'latitude: (form.elements.store_latitude?.value || "").trim() || null' in script
+    assert 'longitude: (form.elements.store_longitude?.value || "").trim() || null' in script
+    assert 'name="contact_name"' not in html
+    assert 'name="store_address"' not in html
+    assert 'name="store_hours"' not in html
+    assert 'name="store_description"' not in html

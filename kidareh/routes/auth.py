@@ -280,9 +280,18 @@ def complete_profile():
             return jsonify({"error": "invalid_store_name", "message": "نام فروشگاه را وارد کنید."}), 400
         if not values["city"] or len(values["city"]) > 60 or not is_city_name(values["city"]):
             return jsonify({"error": "invalid_store_city", "message": "شهر فروشگاه را از فهرست شهرهای معتبر انتخاب کنید."}), 400
-        for key, limit in (("category", 80), ("contact_name", 80), ("address", 300), ("hours", 120), ("description", 500)):
-            if not isinstance(values[key], str) or len(values[key].strip()) > limit:
-                return jsonify({"error": "invalid_store_details", "message": "اطلاعات فروشگاه معتبر نیست."}), 400
+        if not isinstance(values["category"], str) or len(values["category"].strip()) > 80:
+            return jsonify({"error": "invalid_store_details", "message": "صنف فروشگاه معتبر نیست."}), 400
+        raw_lat, raw_lng = payload.get("latitude"), payload.get("longitude")
+        try:
+            if raw_lat in (None, "") and raw_lng in (None, ""):
+                values["latitude"], values["longitude"] = None, None
+            else:
+                values["latitude"], values["longitude"] = float(raw_lat), float(raw_lng)
+                if not (-90 <= values["latitude"] <= 90 and -180 <= values["longitude"] <= 180):
+                    raise ValueError("coordinates out of range")
+        except (TypeError, ValueError):
+            return jsonify({"error": "invalid_coordinates", "message": "مختصات فروشگاه معتبر نیست؛ دوباره موقعیت را دریافت کنید."}), 400
     try:
         with get_connection() as connection:
             cursor = connection.execute(
@@ -292,10 +301,11 @@ def complete_profile():
             user_id = cursor.lastrowid
             if role == "seller":
                 store_cursor = connection.execute(
-                    """INSERT INTO stores (owner_id, name, city, description, category, contact_name, address, hours, in_person)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (user_id, values["name"].strip(), values["city"].strip(), values["description"].strip(), values["category"].strip(),
-                     values["contact_name"].strip(), values["address"].strip(), values["hours"].strip(), values["in_person"]),
+                    """INSERT INTO stores
+                       (owner_id, name, city, description, category, contact_name, address, hours, in_person, latitude, longitude)
+                       VALUES (?, ?, ?, '', ?, ?, '', '', 1, ?, ?)""",
+                    (user_id, values["name"].strip(), values["city"].strip(), values["category"].strip(),
+                     values["contact_name"].strip(), values["latitude"], values["longitude"]),
                 )
                 store = dict(connection.execute("SELECT * FROM stores WHERE id = ?", (store_cursor.lastrowid,)).fetchone())
     except sqlite3.IntegrityError:
