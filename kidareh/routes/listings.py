@@ -159,6 +159,9 @@ def listings():
     query = request.args.get("q", "").strip()[:100]
     category = request.args.get("category", "").strip()[:40]
     city = request.args.get("city", "").strip()[:100]
+    availability = request.args.get("availability", "").strip()
+    if availability and availability not in {"in_stock", "out_of_stock", "ask"}:
+        return jsonify({"error": "invalid_availability", "message": "فیلتر موجودی معتبر نیست."}), 400
     province = request.args.get("province", "").strip().replace("ي", "ی").replace("ك", "ک")[:80]
     near_lat, near_lon = request.args.get("lat", type=float), request.args.get("lon", type=float)
     radius_km = min(100.0, max(1.0, request.args.get("radius_km", default=25.0, type=float) or 25.0))
@@ -203,6 +206,9 @@ def listings():
     if city and city != "همه شهرها":
         sql += " AND city = ?"
         parameters.append(city)
+    if availability:
+        sql += " AND availability_status = ?"
+        parameters.append(availability)
     if province and province not in {"all", "همه استان‌ها"}:
         province_row = next((
             item for item in IRAN_LOCATIONS.get("provinces", [])
@@ -263,6 +269,9 @@ def listings():
             if city and city != "همه شهرها":
                 fallback_sql += " AND city = ?"
                 fallback_params.append(city)
+            if availability:
+                fallback_sql += " AND availability_status = ?"
+                fallback_params.append(availability)
             if province and province not in {"all", "همه استان‌ها"}:
                 province_row = next((
                     item for item in IRAN_LOCATIONS.get("provinces", [])
