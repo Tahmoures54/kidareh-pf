@@ -358,6 +358,10 @@ def create_listing():
     city = payload.get("city")
     description = payload.get("description", "")
     seller_phone = payload.get("seller_phone", "")
+    availability_status = payload.get("availability_status", "ask")
+    if availability_status not in {"in_stock", "out_of_stock", "ask"}:
+        return jsonify({"error": "invalid_availability_status", "message": "وضعیت موجودی معتبر نیست."}), 400
+    price_updated_at = datetime.now(timezone.utc).isoformat()
     try:
         latitude = float(payload.get("latitude")) if payload.get("latitude") not in (None, "") else None
         longitude = float(payload.get("longitude")) if payload.get("longitude") not in (None, "") else None
@@ -417,10 +421,10 @@ def create_listing():
             return jsonify({"error": "store_required", "message": "برای افزودن کالا، ابتدا ویترین فروشگاه خود را بسازید."}), 409
         cursor = connection.execute(
             """
-            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id, store_id, latitude, longitude)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
+            INSERT INTO listings (title, category, city, price, description, emoji, featured, image_path, seller_phone, owner_id, store_id, latitude, longitude, availability_status, price_updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"], store["id"], latitude, longitude),
+            (title.strip(), category, city.strip(), price, description.strip(), "🛍️", image_path, seller_phone, user["id"], store["id"], latitude, longitude, availability_status, price_updated_at),
         )
         listing_id = cursor.lastrowid
         row = connection.execute(
@@ -453,7 +457,7 @@ def manage_listing(listing_id: int):
         else:
             image_path = None
             payload = request.get_json(silent=True) or {}
-            allowed = {"title", "category", "city", "price", "description", "seller_phone", "latitude", "longitude"}
+            allowed = {"title", "category", "city", "price", "description", "seller_phone", "latitude", "longitude", "availability_status"}
             if not payload or set(payload) - allowed:
                 return jsonify({"error": "invalid_payload"}), 400
             title = payload.get("title", row["title"])
@@ -462,6 +466,11 @@ def manage_listing(listing_id: int):
             description = payload.get("description", row["description"])
             price = payload.get("price", row["price"])
             phone = payload.get("seller_phone", row["seller_phone"])
+            availability_status = payload.get("availability_status", row["availability_status"] if "availability_status" in row.keys() else "ask")
+            if availability_status not in {"in_stock", "out_of_stock", "ask"}:
+                return jsonify({"error": "invalid_availability_status", "message": "وضعیت موجودی معتبر نیست."}), 400
+            price_changed = "price" in payload and str(payload.get("price")) != str(row["price"])
+            price_updated_at = datetime.now(timezone.utc).isoformat() if price_changed else (row["price_updated_at"] if "price_updated_at" in row.keys() else "")
             try:
                 latitude = float(payload.get("latitude", row["latitude"])) if payload.get("latitude", row["latitude"]) not in (None, "") else None
                 longitude = float(payload.get("longitude", row["longitude"])) if payload.get("longitude", row["longitude"]) not in (None, "") else None
@@ -490,8 +499,8 @@ def manage_listing(listing_id: int):
             if phone and not re.fullmatch(r"09\d{9}", phone):
                 return jsonify({"error": "invalid_seller_phone"}), 400
             connection.execute(
-                "UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=?, latitude=?, longitude=? WHERE id=?",
-                (title.strip(), category, city.strip(), price, description.strip(), phone, latitude, longitude, listing_id),
+                "UPDATE listings SET title=?, category=?, city=?, price=?, description=?, seller_phone=?, latitude=?, longitude=?, availability_status=?, price_updated_at=? WHERE id=?",
+                (title.strip(), category, city.strip(), price, description.strip(), phone, latitude, longitude, availability_status, price_updated_at, listing_id),
             )
             updated = connection.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
             return jsonify({"item": _attach_active_tags([serialize_listing(updated, include_contact=True)])[0]})
