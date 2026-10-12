@@ -323,6 +323,12 @@
       <option value="">همهٔ دسته‌بندی‌ها</option>
       {{ category_options(category_tree, selected=selected_category) }}
     </select>
+    <select id="pageAvailability" name="availability" aria-label="وضعیت موجودی">
+      <option value="">همهٔ وضعیت‌ها</option>
+      <option value="in_stock">فقط موجود</option>
+      <option value="ask">نیازمند تأیید فروشنده</option>
+      <option value="out_of_stock">ناموجود</option>
+    </select>
     <div class="search-city-picker" id="searchCityCombobox">
       <div class="search-city-input-row">
         <input
@@ -346,7 +352,18 @@
     </button>
   </form>
 
-  <button class="nearby-search-button" id="pageNearbySearchButton" type="button">⌖ یافتن کالاهای اطراف من</button>
+  <div class="nearby-search-controls">
+    <button class="nearby-search-button" id="pageNearbySearchButton" type="button">⌖ یافتن کالاهای اطراف من</button>
+    <label class="nearby-radius-control" for="pageNearbyRadius">محدوده جست‌وجو
+      <select id="pageNearbyRadius" aria-label="محدوده جست‌وجوی اطراف">
+        <option value="3">۳ کیلومتر</option>
+        <option value="5">۵ کیلومتر</option>
+        <option value="10" selected>۱۰ کیلومتر</option>
+        <option value="25">۲۵ کیلومتر</option>
+        <option value="50">۵۰ کیلومتر</option>
+      </select>
+    </label>
+  </div>
 
   <div class="search-popular" aria-label="جست‌وجوهای محبوب">
     <span>محبوب:</span>

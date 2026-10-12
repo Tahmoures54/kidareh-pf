@@ -114,7 +114,24 @@
   .nav-btn { width: 100%; }
 }
 
+.product-contact-before-visit { margin:1rem 0; padding:.85rem; border:1px solid #A5F3FC; border-radius:12px; background:#F0FDFA; }
+.product-contact-before-visit p { margin:0 0 .7rem; color:#155E75; font-size:.85rem; line-height:1.8; }
+.product-contact-before-visit .account-actions { display:flex; flex-wrap:wrap; gap:.5rem; }
+@media (max-width:560px) { .product-contact-before-visit .account-actions { flex-direction:column; } .product-contact-before-visit .button { width:100%; } }
+
 /* Local in-person shopping: availability and price freshness */
+.nearby-search-controls { display:flex; align-items:stretch; gap:.65rem; margin:-.25rem 0 1.1rem; }
+.nearby-search-controls .nearby-search-button { flex:1; margin:0; }
+.nearby-radius-control { display:flex; align-items:center; gap:.5rem; padding:.4rem .7rem; border:1px solid #A5F3FC; border-radius:11px; color:#0E7490; font-size:.82rem; font-weight:700; white-space:nowrap; }
+.nearby-radius-control select { min-height:34px; border:1px solid #CFFAFE; border-radius:8px; background:#fff; color:#164E63; font:inherit; padding:.2rem .4rem; }
+.seller-price-inline { display:inline-flex; align-items:center; gap:.3rem; font-size:.78rem; color:var(--color-muted, #64748B); }
+.seller-price-inline input { width:105px; min-height:34px; padding:.3rem .45rem; border:1px solid var(--color-line, #CBD5E1); border-radius:8px; font:inherit; }
+@media (max-width:560px) {
+  .nearby-search-controls { flex-direction:column; }
+  .nearby-radius-control { justify-content:space-between; }
+  .seller-price-inline { width:100%; }
+  .seller-price-inline input { flex:1; min-width:0; }
+}
 .listing-trust-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .65rem; margin:.35rem 0 .55rem; font-size:.76rem; line-height:1.7; }
 .listing-trust-meta > span { display:inline-flex; align-items:center; border-radius:999px; padding:.18rem .55rem; font-weight:800; }
 .listing-trust-meta small { color:var(--color-muted, #64748B); }

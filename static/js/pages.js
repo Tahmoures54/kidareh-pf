@@ -145,12 +145,14 @@
     const form = document.querySelector("#pageSearchForm");
     const queryInput = document.querySelector("#pageQuery");
     const categoryInput = document.querySelector("#pageCategory");
+    const availabilityInput = document.querySelector("#pageAvailability");
     const cityInput = document.querySelector("#pageCity");
     const target = document.querySelector("#pageListings");
     if (!form || !queryInput || !categoryInput || !cityInput || !target) return;
 
     const normalize = value => String(value || "").trim().replace(/[ي]/g, "ی").replace(/[ك]/g, "ک");
     const paramsAtLoad = new URLSearchParams(window.location.search);
+    if (availabilityInput) availabilityInput.value = paramsAtLoad.get("availability") || "";
     try {
       if (!paramsAtLoad.has("city")) {
         const savedCity = localStorage.getItem("kidareh.marketCity") || "";
@@ -163,6 +165,11 @@
     let requestSerial = 0;
     let nearbyCoords = null;
     const nearbyButton = document.querySelector("#pageNearbySearchButton");
+    const nearbyRadius = document.querySelector("#pageNearbyRadius");
+    const selectedRadius = () => {
+      const value = Number(nearbyRadius?.value || 10);
+      return [3, 5, 10, 25, 50].includes(value) ? value : 10;
+    };
 
     async function resolveProvince() {
       if (!cityInput.value.trim()) return "";
@@ -182,10 +189,11 @@
 
     function currentParams() {
       const params = { q: queryInput.value.trim(), category: categoryInput.value };
+      if (availabilityInput?.value) params.availability = availabilityInput.value;
       if (nearbyCoords) {
         params.lat = String(nearbyCoords.lat);
         params.lon = String(nearbyCoords.lon);
-        params.radius_km = "25";
+        params.radius_km = String(selectedRadius());
       } else if (scope === "city" && cityInput.value.trim()) {
         params.city = cityInput.value.trim();
       } else if (scope === "province" && cityProvince) {
@@ -198,6 +206,7 @@
       const params = new URLSearchParams();
       if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
       if (categoryInput.value) params.set("category", categoryInput.value);
+      if (availabilityInput?.value) params.set("availability", availabilityInput.value);
       if (cityInput.value.trim()) params.set("city", cityInput.value.trim());
       if (scope === "province" && cityProvince) params.set("province", cityProvince);
       if (scope === "country") params.set("scope", "country");
@@ -277,12 +286,15 @@
       const params = new URLSearchParams(window.location.search);
       queryInput.value = params.get("q") || "";
       categoryInput.value = params.get("category") || "";
+      if (availabilityInput) availabilityInput.value = params.get("availability") || "";
       cityInput.value = params.get("city") || cityInput.value;
       cityProvince = params.get("province") || "";
       const nextScope = params.get("scope") === "country" ? "country" : (cityProvince ? "province" : "city");
       if (nextScope === "city") cityProvince = await resolveProvince();
       run(nextScope);
     });
+    availabilityInput?.addEventListener("change", () => run(scope, true));
+
     cityInput.addEventListener("change", () => {
       cityProvince = "";
       scope = "city";
@@ -292,6 +304,10 @@
         else localStorage.removeItem("kidareh.marketCity");
       } catch (_) { /* Manual city selection still works without storage. */ }
       run("city", true);
+    });
+
+    nearbyRadius?.addEventListener("change", () => {
+      if (nearbyCoords) run(scope, false);
     });
 
     nearbyButton?.addEventListener("click", () => {
@@ -358,7 +374,7 @@
       const art=p.image_path?'<img src="'+escapeHTML(p.image_path)+'" alt="'+escapeHTML(p.title)+'">':escapeHTML(p.emoji||"🛍️");
       const paidTag = p.paid_tag ? '<span class="paid-listing-tag tag-' + escapeHTML(p.paid_tag.type) + '">' + escapeHTML(p.paid_tag.label) + '</span> ' : '';
       const navBlock = navigateButtonsHTML(p.latitude, p.longitude, {label: "مسیریابی به محل کالا / فروشگاه"});
-      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(p.category_name||p.category_name||categoryNames[p.category]||"کالا") + '</div>'+availabilityHTML(p)+'<div>' + paidTag + '</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button><button class="share-button" type="button" data-share-url="/product/'+p.id+'" data-share-title="کالای '+escapeHTML(p.title)+'">↗ اشتراک‌گذاری کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<p><a class="button button-outline" href="tel:'+escapeHTML(p.seller_phone)+'">تماس با فروشنده</a></p>':'')+navBlock+'</div>';
+      document.querySelector("#productDetail").innerHTML='<div class="product-detail-art">'+art+'</div><div class="product-detail-copy"><div class="page-listing-meta">'+escapeHTML(p.city)+' · '+escapeHTML(p.category_name||p.category_name||categoryNames[p.category]||"کالا") + '</div>'+availabilityHTML(p)+'<div>' + paidTag + '</div><h2>'+escapeHTML(p.title)+'</h2><strong class="product-detail-price">'+price+'</strong><p>'+escapeHTML(p.description||"توضیحی برای این کالا ثبت نشده است.")+'</p><div class="account-actions"><button id="productSave" class="button button-primary" type="button">♡ ذخیره کالا</button><button class="share-button" type="button" data-share-url="/product/'+p.id+'" data-share-title="کالای '+escapeHTML(p.title)+'">↗ اشتراک‌گذاری کالا</button>'+(p.store_id?'<a class="button button-outline" href="/store/'+p.store_id+'">مشاهده فروشگاه</a>':'')+'</div>'+(p.seller_phone?'<div class="product-contact-before-visit"><p>برای اینکه بی‌دلیل به فروشگاه نروی، پیش از حرکت موجودی و قیمت نهایی را تأیید کن.</p><div class="account-actions"><a class="button button-primary" href="tel:'+escapeHTML(p.seller_phone)+'">تماس و تأیید موجودی</a><a class="button button-outline" target="_blank" rel="noopener noreferrer" href="https://wa.me/98'+encodeURIComponent(p.seller_phone.replace(/^0/, ""))+'">پیام واتساپ</a></div></div>':'<p class="muted-copy">برای اطمینان از موجودی و قیمت، از راه اطلاعات تماس فروشگاه هماهنگ کن.</p>')+navBlock+'</div>';
       document.querySelector("#productSave").addEventListener("click",()=>saveProduct(p.id));
     }catch(e){document.querySelector("#productDetail").innerHTML='<div class="empty-page-state">این کالا پیدا نشد یا حذف شده است.</div>';}
   }
