@@ -181,6 +181,13 @@
 
   form.querySelectorAll('input[name="role"]').forEach((radio) => {
     radio.addEventListener("change", () => {
+      if (currentStep === "role") {
+        // Selecting a role is the action: move forward immediately, without
+        // making the user tap a second "Continue" button.
+        message("");
+        showStep("phone");
+        return;
+      }
       if (currentStep === "profile") syncSellerDetails();
     });
   });
