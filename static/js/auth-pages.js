@@ -99,8 +99,32 @@
     });
   }
 
+  let otpAbortController = null;
+
+  function startWebOtp() {
+    if (!window.isSecureContext || !("OTPCredential" in window) || !navigator.credentials?.get) return;
+    otpAbortController?.abort();
+    otpAbortController = new AbortController();
+    navigator.credentials.get({
+      otp: { transport: ["sms"] },
+      signal: otpAbortController.signal,
+    }).then((credential) => {
+      if (!credential?.code || currentStep !== "code") return;
+      const otpInput = form.elements.otp;
+      if (!otpInput) return;
+      otpInput.value = digits(credential.code).slice(0, 6);
+      if (otpInput.value.length === 6) form.requestSubmit();
+    }).catch(() => {
+      // Unsupported browsers, denied prompts, and manual entry all remain valid.
+    });
+  }
+
   function showStep(step) {
     currentStep = step;
+    if (step !== "code") {
+      otpAbortController?.abort();
+      otpAbortController = null;
+    }
     if (roleStep) roleStep.hidden = step !== "role";
     if (phoneStep) phoneStep.hidden = step !== "phone";
     if (codeStep) codeStep.hidden = step !== "code";
@@ -113,6 +137,7 @@
       loadChallenge();
     } else if (step === "code") {
       form.elements.otp?.focus();
+      startWebOtp();
     } else if (step === "profile") {
       form.elements.name?.focus();
       syncSellerDetails();
