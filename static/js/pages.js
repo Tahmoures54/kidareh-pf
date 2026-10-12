@@ -7,8 +7,9 @@
   const escapeHTML = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const categoryNames = {home:"خانه و زندگی",digital:"دیجیتال",fashion:"پوشاک",vehicle:"خودرو",services:"خدمات",other:"سایر"};
   function navLinks(lat, lng) {
+    if (lat == null || lng == null || lat === "" || lng === "") return null;
     const la = Number(lat), lo = Number(lng);
-    if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
+    if (!Number.isFinite(la) || !Number.isFinite(lo) || la < -90 || la > 90 || lo < -180 || lo > 180) return null;
     const sLat = encodeURIComponent(String(la));
     const sLng = encodeURIComponent(String(lo));
     return {
@@ -107,7 +108,8 @@
       target.innerHTML=state.items.length?state.items.map(storeCard).join(""):'<div class="empty-page-state">فروشگاهی پیدا نشد. نام دیگری جست‌وجو کن.</div>';
       const count=document.querySelector("#pageResultsCount");if(count)count.textContent=fmt.format(state.items.length)+" فروشگاه";
       let more=document.querySelector("#pageLoadMoreStores");
-      if(!more){ more=document.createElement("button"); more.id="pageLoadMoreStores"; more.type="button"; more.className="button button-outline"; more.style.margin="1rem auto"; more.textContent="نمایش فروشگاه‌های بیشتر"; target.insertAdjacentElement("afterend", more); more.addEventListener("click",()=>loadStores(container, query, {append:true, city})); }
+      if(!more){ more=document.createElement("button"); more.id="pageLoadMoreStores"; more.type="button"; more.className="button button-outline"; more.style.margin="1rem auto"; more.textContent="نمایش فروشگاه‌های بیشتر"; target.insertAdjacentElement("afterend", more); }
+      more.onclick=()=>loadStores(container, query, {append:true, city});
       more.style.display=state.hasMore?"block":"none";
     }catch(e){if(!append) target.innerHTML='<div class="empty-page-state">'+escapeHTML(e.message)+'</div>';}
   }
