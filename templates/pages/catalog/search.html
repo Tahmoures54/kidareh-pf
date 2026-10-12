@@ -346,7 +346,18 @@
     </button>
   </form>
 
-  <button class="nearby-search-button" id="pageNearbySearchButton" type="button">⌖ یافتن کالاهای اطراف من</button>
+  <div class="nearby-search-controls">
+    <button class="nearby-search-button" id="pageNearbySearchButton" type="button">⌖ یافتن کالاهای اطراف من</button>
+    <label class="nearby-radius-control" for="pageNearbyRadius">محدوده جست‌وجو
+      <select id="pageNearbyRadius" aria-label="محدوده جست‌وجوی اطراف">
+        <option value="3">۳ کیلومتر</option>
+        <option value="5">۵ کیلومتر</option>
+        <option value="10" selected>۱۰ کیلومتر</option>
+        <option value="25">۲۵ کیلومتر</option>
+        <option value="50">۵۰ کیلومتر</option>
+      </select>
+    </label>
+  </div>
 
   <div class="search-popular" aria-label="جست‌وجوهای محبوب">
     <span>محبوب:</span>
