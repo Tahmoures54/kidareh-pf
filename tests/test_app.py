@@ -627,6 +627,28 @@ def test_listing_api_includes_paid_tag_field(monkeypatch, tmp_path):
     assert all("paid_tag" in item for item in response.get_json()["items"])
 
 
+def test_listing_search_filters_by_availability(monkeypatch, tmp_path):
+    client = setup_test_database(monkeypatch, tmp_path)
+    created = client.post("/api/listings", json={
+        "title": "چراغ مطالعه موجود",
+        "category": "home",
+        "city": "تبریز",
+        "price": 350000,
+        "description": "کالای تست",
+        "availability_status": "in_stock",
+    })
+    assert created.status_code == 201
+
+    available = client.get("/api/listings?availability=in_stock").get_json()["items"]
+    unavailable = client.get("/api/listings?availability=out_of_stock").get_json()["items"]
+    assert any(item["title"] == "چراغ مطالعه موجود" for item in available)
+    assert all(item["title"] != "چراغ مطالعه موجود" for item in unavailable)
+
+    invalid = client.get("/api/listings?availability=maybe")
+    assert invalid.status_code == 400
+    assert invalid.get_json()["error"] == "invalid_availability"
+
+
 def test_nearby_search_filters_unlocated_listings(monkeypatch, tmp_path):
     client = setup_test_database(monkeypatch, tmp_path)
     with app_module.get_connection() as db:
