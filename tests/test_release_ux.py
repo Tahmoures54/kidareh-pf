@@ -504,4 +504,6 @@ def test_registration_form_uses_vertical_layout_and_mobile_sizing(client):
     assert 'id="authProfileStep"' in html
     assert 'با وارد کردن شماره موبایل و ادامه' in html
     assert 'name="terms_accepted"' not in html
+    assert 'name="role" value="seller" checked' not in html
+    assert "با وارد کردن شماره موبایل،" in html
     assert "auth-legal-note" in html
