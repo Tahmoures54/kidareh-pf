@@ -47,9 +47,12 @@
               escapeHTML(item.title) +
               "</h3><p>" +
               escapeHTML(item.description || "") +
-              '</p><div class="page-listing-footer"><strong>' +
+              '</p><div class="seller-stock-status">' +
+              (item.availability_status === "in_stock" ? "موجود است" : item.availability_status === "out_of_stock" ? "فعلاً ناموجود" : "موجودی را از فروشنده بپرسید") +
+              (item.price_updated_at ? " · آخرین به‌روزرسانی قیمت: " + escapeHTML(new Date(item.price_updated_at).toLocaleDateString("fa-IR")) : "") +
+              '</div><div class="page-listing-footer"><strong>' +
               price +
-              '</strong><button type="button" data-delete-listing="' +
+              '</strong><select aria-label="وضعیت موجودی" data-listing-availability="' + item.id + '"><option value="in_stock"' + (item.availability_status === "in_stock" ? " selected" : "") + '>موجود</option><option value="out_of_stock"' + (item.availability_status === "out_of_stock" ? " selected" : "") + '>ناموجود</option><option value="ask"' + (!item.availability_status || item.availability_status === "ask" ? " selected" : "") + '>تماس بگیرید</option></select><button type="button" data-delete-listing="' +
               item.id +
               '" class="button button-outline">حذف</button></div></div></article>'
             );
@@ -211,6 +214,25 @@
           await loadSellerListings(storeId);
         } catch (err) {
           notify(err.message);
+        }
+      });
+
+      document.addEventListener("change", async (e) => {
+        const select = e.target.closest("[data-listing-availability]");
+        if (!select) return;
+        select.disabled = true;
+        try {
+          await api("/api/listings/" + select.dataset.listingAvailability, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ availability_status: select.value }),
+          });
+          notify("وضعیت موجودی به‌روز شد.");
+          await loadSellerListings(storeId);
+        } catch (err) {
+          notify(err.message);
+        } finally {
+          select.disabled = false;
         }
       });
 

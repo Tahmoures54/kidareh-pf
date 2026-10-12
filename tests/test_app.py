@@ -90,6 +90,7 @@ def test_create_listing_returns_created_item(monkeypatch, tmp_path):
         "city": "تبریز",
         "price": 1250000,
         "description": "میز سالم و تمیز",
+        "availability_status": "in_stock",
     }
 
     response = client.post("/api/listings", json=payload)
@@ -99,6 +100,8 @@ def test_create_listing_returns_created_item(monkeypatch, tmp_path):
     assert item["title"] == payload["title"]
     assert item["category"] == payload["category"]
     assert item["price"] == payload["price"]
+    assert item["availability_status"] == "in_stock"
+    assert item["price_updated_at"]
     assert item["featured"] is False
 
 
@@ -500,7 +503,9 @@ def test_phone_first_seller_signup_creates_store_and_full_journey(monkeypatch, t
     )
     assert created.status_code == 200, created.get_json()
     store = created.get_json()["store"]
-    assert store["name"] == "فروشگاه آزمون" and store["address"] == "تبریز، خیابان نمونه"
+    assert store["name"] == "فروشگاه آزمون"
+    # Signup intentionally stays short; address and opening hours are edited in the seller dashboard.
+    assert store["address"] == "" and store["hours"] == ""
     new_csrf = created.get_json()["csrf_token"]
     client.environ_base["HTTP_X_CSRF_TOKEN"] = new_csrf
     product = client.post(
@@ -525,7 +530,7 @@ def test_phone_first_seller_signup_creates_store_and_full_journey(monkeypatch, t
     with app_module.get_connection() as connection:
         persisted_store = connection.execute("SELECT name, address, hours FROM stores WHERE id = ?", (store["id"],)).fetchone()
         persisted_follow = connection.execute("SELECT 1 FROM store_follows WHERE user_id = ? AND store_id = ?", (created.get_json()["user"]["id"], other_store["id"])).fetchone()
-    assert persisted_store["name"] == "فروشگاه آزمون" and persisted_store["address"] == "تبریز، خیابان نمونه"
+    assert persisted_store["name"] == "فروشگاه آزمون" and persisted_store["address"] == ""
     assert persisted_follow is not None
 
 

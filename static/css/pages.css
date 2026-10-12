@@ -113,3 +113,12 @@
   .nav-to-store-actions { flex-direction: column; }
   .nav-btn { width: 100%; }
 }
+
+/* Local in-person shopping: availability and price freshness */
+.listing-trust-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .65rem; margin:.35rem 0 .55rem; font-size:.76rem; line-height:1.7; }
+.listing-trust-meta > span { display:inline-flex; align-items:center; border-radius:999px; padding:.18rem .55rem; font-weight:800; }
+.listing-trust-meta small { color:var(--color-muted, #64748B); }
+.stock-available { color:#047857; background:#D1FAE5; }
+.stock-unavailable { color:#B91C1C; background:#FEE2E2; }
+.stock-confirm { color:#92400E; background:#FEF3C7; }
+.seller-stock-status { margin:.35rem 0 .55rem; color:var(--color-muted, #64748B); font-size:.78rem; line-height:1.7; }

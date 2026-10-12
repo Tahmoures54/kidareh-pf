@@ -360,6 +360,8 @@ def _initialize_schema_v1() -> None:
                 store_id INTEGER,
                 latitude REAL,
                 longitude REAL,
+                availability_status TEXT NOT NULL DEFAULT 'ask',
+                price_updated_at TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -382,6 +384,11 @@ def _initialize_schema_v1() -> None:
             connection.execute("ALTER TABLE listings ADD COLUMN longitude REAL")
         if "featured_until" not in columns:
             connection.execute("ALTER TABLE listings ADD COLUMN featured_until TEXT NOT NULL DEFAULT ''")
+        if "availability_status" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN availability_status TEXT NOT NULL DEFAULT 'ask'")
+        if "price_updated_at" not in columns:
+            connection.execute("ALTER TABLE listings ADD COLUMN price_updated_at TEXT NOT NULL DEFAULT ''")
+        connection.execute("UPDATE listings SET price_updated_at = created_at WHERE price_updated_at = ''")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

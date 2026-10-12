@@ -774,6 +774,15 @@
           <input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required>
         </label>
         <label>
+          وضعیت موجودی
+          <select name="availability_status" required>
+            <option value="in_stock">موجود است</option>
+            <option value="out_of_stock">فعلاً ناموجود است</option>
+            <option value="ask" selected>برای اطمینان تماس بگیرید</option>
+          </select>
+        </label>
+        <p class="muted-copy">وضعیت را صادقانه به‌روز نگه دار تا مشتری بی‌دلیل به فروشگاه نیاید.</p>
+        <label>
           شماره تماس روی کالا (اختیاری)
           <input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789" dir="ltr">
         </label>
