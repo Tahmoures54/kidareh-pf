@@ -145,12 +145,14 @@
     const form = document.querySelector("#pageSearchForm");
     const queryInput = document.querySelector("#pageQuery");
     const categoryInput = document.querySelector("#pageCategory");
+    const availabilityInput = document.querySelector("#pageAvailability");
     const cityInput = document.querySelector("#pageCity");
     const target = document.querySelector("#pageListings");
     if (!form || !queryInput || !categoryInput || !cityInput || !target) return;
 
     const normalize = value => String(value || "").trim().replace(/[ي]/g, "ی").replace(/[ك]/g, "ک");
     const paramsAtLoad = new URLSearchParams(window.location.search);
+    if (availabilityInput) availabilityInput.value = paramsAtLoad.get("availability") || "";
     try {
       if (!paramsAtLoad.has("city")) {
         const savedCity = localStorage.getItem("kidareh.marketCity") || "";
@@ -187,6 +189,7 @@
 
     function currentParams() {
       const params = { q: queryInput.value.trim(), category: categoryInput.value };
+      if (availabilityInput?.value) params.availability = availabilityInput.value;
       if (nearbyCoords) {
         params.lat = String(nearbyCoords.lat);
         params.lon = String(nearbyCoords.lon);
@@ -203,6 +206,7 @@
       const params = new URLSearchParams();
       if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
       if (categoryInput.value) params.set("category", categoryInput.value);
+      if (availabilityInput?.value) params.set("availability", availabilityInput.value);
       if (cityInput.value.trim()) params.set("city", cityInput.value.trim());
       if (scope === "province" && cityProvince) params.set("province", cityProvince);
       if (scope === "country") params.set("scope", "country");
@@ -282,12 +286,15 @@
       const params = new URLSearchParams(window.location.search);
       queryInput.value = params.get("q") || "";
       categoryInput.value = params.get("category") || "";
+      if (availabilityInput) availabilityInput.value = params.get("availability") || "";
       cityInput.value = params.get("city") || cityInput.value;
       cityProvince = params.get("province") || "";
       const nextScope = params.get("scope") === "country" ? "country" : (cityProvince ? "province" : "city");
       if (nextScope === "city") cityProvince = await resolveProvince();
       run(nextScope);
     });
+    availabilityInput?.addEventListener("change", () => run(scope, true));
+
     cityInput.addEventListener("change", () => {
       cityProvince = "";
       scope = "city";
