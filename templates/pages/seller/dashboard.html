@@ -306,9 +306,32 @@
   }
   .seller-console .muted-copy {
     margin: 0;
-    color: #94A3B8;
+    color: #64748B;
     font-size: 0.78rem;
     line-height: 1.7;
+  }
+  .seller-location-tools {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.9rem;
+    border: 1px solid #A5F3FC;
+    border-radius: 13px;
+    background: #F0FDFA;
+  }
+  .seller-location-tools [data-capture-store-location] {
+    min-height: 48px;
+    width: 100%;
+    justify-content: center;
+    font-weight: 800;
+  }
+  .seller-location-tools [data-location-status] { color: #475569; }
+  .seller-coordinate-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  @media (max-width: 520px) {
+    .seller-coordinate-fields { grid-template-columns: minmax(0, 1fr); }
   }
   #sellerProductFeedback {
     margin: 0;
@@ -669,6 +692,18 @@
           <input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="نام شهر را جست‌وجو کنید">
         </label>
         <label>
+          نشانی فروشگاه (اختیاری)
+          <input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…">
+        </label>
+        <div class="seller-location-tools">
+          <button class="button button-outline" type="button" data-capture-store-location>📍 ثبت خودکار موقعیت فروشگاه</button>
+          <p class="muted-copy" data-location-status role="status" aria-live="polite">با زدن دکمه و اجازهٔ مرورگر، موقعیت فروشگاه به‌صورت خودکار ثبت می‌شود.</p>
+          <div class="seller-coordinate-fields">
+            <label>عرض جغرافیایی <input name="latitude" type="text" readonly placeholder="پس از ثبت موقعیت تکمیل می‌شود"></label>
+            <label>طول جغرافیایی <input name="longitude" type="text" readonly placeholder="پس از ثبت موقعیت تکمیل می‌شود"></label>
+          </div>
+        </div>
+        <label>
           درباره فروشگاه (اختیاری)
           <textarea name="description" rows="3" maxlength="500" placeholder="چه کالاهایی ارائه می‌کنی؟"></textarea>
         </label>
@@ -698,19 +733,14 @@
           نشانی حضوری
           <input name="address" maxlength="300" placeholder="خیابان، کوچه، پلاک…">
         </label>
-        <div class="seller-dashboard-grid">
-          <label>
-            عرض جغرافیایی
-            <input name="latitude" type="number" step="any" min="-90" max="90" placeholder="مثلاً 35.6892">
-          </label>
-          <label>
-            طول جغرافیایی
-            <input name="longitude" type="number" step="any" min="-180" max="180" placeholder="مثلاً 51.3890">
-          </label>
+        <div class="seller-location-tools">
+          <button class="button button-outline" type="button" data-capture-store-location>📍 ثبت خودکار موقعیت فروشگاه</button>
+          <p class="muted-copy" data-location-status role="status" aria-live="polite">برای به‌روزرسانی موقعیت، دکمه را بزن و اجازهٔ مرورگر را تأیید کن.</p>
+          <div class="seller-coordinate-fields">
+            <label>عرض جغرافیایی <input name="latitude" type="text" readonly placeholder="ثبت نشده"></label>
+            <label>طول جغرافیایی <input name="longitude" type="text" readonly placeholder="ثبت نشده"></label>
+          </div>
         </div>
-        <p class="muted-copy">
-          ثبت مختصات اختیاری است؛ با آن مشتری می‌تواند مسیر فروشگاه را پیدا کند.
-        </p>
         <button class="button button-primary" type="submit">ذخیره تغییرات ویترین</button>
       </form>
     </div>

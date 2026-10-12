@@ -123,6 +123,11 @@
         if (productForm) productForm.hidden = true;
       } else {
         storeId = store.id;
+        if (editForm && store) {
+          ["name", "category", "city", "description", "address", "latitude", "longitude"].forEach((key) => {
+            if (editForm.elements[key]) editForm.elements[key].value = store[key] ?? "";
+          });
+        }
         if (status)
           status.innerHTML =
             "<strong>" +
@@ -146,12 +151,39 @@
               city: createForm.city.value.trim(),
               description: createForm.description.value.trim(),
               category: createForm.category?.value || "",
+              address: createForm.address?.value.trim() || "",
+              latitude: createForm.latitude?.value || null,
+              longitude: createForm.longitude?.value || null,
             }),
           });
           notify("ویترین ساخته شد.");
           location.reload();
         } catch (err) {
           notify(err.message);
+        }
+      });
+
+      editForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!storeId) return;
+        try {
+          await api("/api/stores/" + storeId, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: editForm.name.value.trim(),
+              city: editForm.city.value.trim(),
+              description: editForm.description.value.trim(),
+              category: editForm.category?.value || "",
+              address: editForm.address?.value.trim() || "",
+              latitude: editForm.latitude?.value || null,
+              longitude: editForm.longitude?.value || null,
+            }),
+          });
+          notify("اطلاعات و موقعیت فروشگاه ذخیره شد.");
+          location.reload();
+        } catch (err) {
+          notify(err.message || "ذخیرهٔ اطلاعات فروشگاه انجام نشد.");
         }
       });
 
@@ -197,6 +229,45 @@
     } catch (e) {
       if (status) status.textContent = e.message || "بارگذاری پنل فروشنده ناموفق بود.";
     }
+  }
+
+  function setupStoreLocationCapture() {
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-capture-store-location]");
+      if (!button) return;
+      const form = button.closest("form");
+      const status = form?.querySelector("[data-location-status]");
+      const latitude = form?.elements.latitude;
+      const longitude = form?.elements.longitude;
+      if (!form || !latitude || !longitude) return;
+      if (!("geolocation" in navigator)) {
+        if (status) status.textContent = "این مرورگر امکان دریافت موقعیت مکانی را ندارد؛ شهر و نشانی را وارد کن.";
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "در حال دریافت موقعیت…";
+      if (status) status.textContent = "لطفاً اجازهٔ دسترسی به موقعیت مکانی را در مرورگر تأیید کن.";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          latitude.value = position.coords.latitude.toFixed(6);
+          longitude.value = position.coords.longitude.toFixed(6);
+          if (status) status.textContent = "موقعیت ثبت شد. مختصات همراه فرم ذخیره می‌شود.";
+          button.disabled = false;
+          button.textContent = "📍 دریافت دوبارهٔ موقعیت";
+        },
+        (error) => {
+          const messages = {
+            1: "اجازهٔ موقعیت مکانی داده نشد؛ از تنظیمات مرورگر اجازه بده یا شهر و نشانی را وارد کن.",
+            2: "موقعیت فعلاً در دسترس نیست؛ GPS یا سرویس مکان‌یابی دستگاه را بررسی کن.",
+            3: "دریافت موقعیت بیش از حد طول کشید؛ دوباره تلاش کن.",
+          };
+          if (status) status.textContent = messages[error.code] || "دریافت موقعیت ناموفق بود؛ شهر و نشانی را وارد کن.";
+          button.disabled = false;
+          button.textContent = "📍 تلاش دوباره برای ثبت موقعیت";
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      );
+    });
   }
 
   function setupLivePreview() {

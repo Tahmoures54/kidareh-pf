@@ -518,3 +518,17 @@ def test_store_directory_exposes_city_filter_and_routing_fallback():
     assert 'https://www.google.com/maps/dir/?api=1&destination=' in script
     assert 'destination})' in script
     assert 'stores: initStores' in script
+
+
+def test_seller_store_forms_capture_geolocation_without_manual_coordinates():
+    html = read("templates/pages/seller/dashboard.html")
+    script = read("static/js/seller.js")
+    assert html.count('data-capture-store-location') == 2
+    assert 'navigator.geolocation.getCurrentPosition' in script
+    assert 'position.coords.latitude.toFixed(6)' in script
+    assert 'position.coords.longitude.toFixed(6)' in script
+    assert 'data-location-status' in html
+    assert 'latitude: createForm.latitude?.value || null' in script
+    assert 'latitude: editForm.latitude?.value || null' in script
+    assert 'method: "PATCH"' in script
+    assert 'شهر و نشانی را وارد کن' in script
