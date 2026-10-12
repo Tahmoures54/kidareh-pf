@@ -162,11 +162,6 @@
     });
   }
 
-  document.querySelector("#continueRoleButton")?.addEventListener("click", () => {
-    message("");
-    showStep("phone");
-  });
-
   document.querySelector("#backToRoleButton")?.addEventListener("click", () => {
     message("");
     showStep("role");
