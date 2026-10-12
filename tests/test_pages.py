@@ -294,4 +294,6 @@ def test_search_page_prefills_city_from_saved_home_city_and_supports_scope_expan
     assert 'id="pageNearbySearchButton"' in template
     assert 'if (!paramsAtLoad.has("city"))' in script
     assert 'navigator.geolocation.getCurrentPosition' in script
-    assert 'params.radius_km = "25"' in script
+    assert 'params.radius_km = String(selectedRadius())' in script
+    assert 'id="pageNearbyRadius"' in template
+    assert 'params.availability = availabilityInput.value' in script
