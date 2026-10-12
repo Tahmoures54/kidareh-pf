@@ -57,7 +57,7 @@
               '" class="button button-outline">حذف</button></div></div></article>'
             );
           }).join("")
-        : '<div class="empty-page-state"><span aria-hidden="true">＋</span><h3>ویترین هنوز خالی است</h3><p>اولین کالا را با عنوان روشن، عکس واقعی و قیمت به‌روز اضافه کن تا مشتری‌های شهر پیدایت کنند.</p></div>';
+        : '<div class="empty-page-state"><span aria-hidden="true">＋</span><h3>یک قدم تا آنلاین‌شدن فروشگاهت</h3><p>اولین کالا را ثبت کن تا ویترینت برای مشتری‌ها قابل مشاهده شود. عکس و توضیحات ضروری نیستند.</p><a class="button button-primary" href="#sellerProductForm">ثبت اولین کالا</a></div>';
       const count = document.querySelector("#pageResultsCount");
       if (count) count.textContent = fmt.format(items.length) + " کالا";
       const productMetric = document.querySelector("#sellerProductMetric");
@@ -131,12 +131,20 @@
             if (editForm.elements[key]) editForm.elements[key].value = store[key] ?? "";
           });
         }
+        if (productForm && store) {
+          if (productForm.elements.city) productForm.elements.city.value = store.city || "";
+          const categorySelect = productForm.elements.category;
+          if (categorySelect && store.category && [...categorySelect.options].some((option) => option.value === store.category)) {
+            categorySelect.value = store.category;
+          }
+        }
         if (status)
           status.innerHTML =
             "<strong>" +
             escapeHTML(store.name) +
             "</strong><br>" +
-            escapeHTML(store.city);
+            escapeHTML(store.city) +
+            '<br><a href="/store/' + encodeURIComponent(store.id) + '" class="text-link">مشاهده ویترین عمومی ←</a>';
         if (createForm) createForm.hidden = true;
         if (editForm) editForm.hidden = false;
         if (productForm) productForm.hidden = false;
@@ -209,9 +217,15 @@
           });
           const data = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(data.message || data.error || "ثبت کالا انجام نشد.");
-          notify("آگهی‌ات منتشر شد 🎉");
+          notify("کالا ثبت شد؛ ویترینت آمادهٔ معرفی است 🎉");
           productForm.reset();
+          if (productForm.elements.city) productForm.elements.city.value = store?.city || "";
+          const categorySelect = productForm.elements.category;
+          if (categorySelect && store?.category && [...categorySelect.options].some((option) => option.value === store.category)) {
+            categorySelect.value = store.category;
+          }
           await loadSellerListings(storeId);
+          document.querySelector("#myProductsPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (err) {
           notify(err.message);
         }
