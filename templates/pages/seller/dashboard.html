@@ -341,6 +341,11 @@
     color: #0E7490;
   }
   #sellerProductFeedback:empty { display: none; }
+  .seller-optional-product-details { padding:.8rem .9rem; border:1px solid #DDE8ED; border-radius:12px; background:#F8FAFC; }
+  .seller-optional-product-details summary { cursor:pointer; color:#0E7490; font-weight:750; }
+  .seller-optional-product-details[open] summary { margin-bottom:.9rem; }
+  .seller-optional-product-details .stack-form { gap:.8rem; }
+
 
   /* Secondary cards */
   .seller-secondary-grid {
@@ -749,52 +754,55 @@
       <div class="seller-panel-heading">
         <span class="seller-panel-icon" aria-hidden="true">📦</span>
         <div>
-          <h2>افزودن محصول</h2>
-          <p>برای شروع، نام، دسته‌بندی و قیمت را وارد کن. عکس و توضیحات را هم می‌توانی اضافه کنی.</p>
+          <h2>اولین کالایت را ثبت کن</h2>
+          <p>فقط نام و قیمت را وارد کن؛ شهر و دسته‌بندی تا جای ممکن از اطلاعات فروشگاهت تکمیل می‌شوند.</p>
         </div>
       </div>
 
       <form id="sellerProductForm" class="stack-form" enctype="multipart/form-data">
         <label>
-          عنوان کالا
-          <input name="title" required maxlength="100" placeholder="مثلاً میز کار چوبی">
+          نام کالا
+          <input name="title" required maxlength="100" placeholder="مثلاً روغن موتور، مانتو، میز ناهارخوری" autocomplete="off">
         </label>
+        <input name="city" type="hidden" value="">
         <label>
           دسته‌بندی کالا
           <select name="category" required>
-            {{ category_options(category_tree, include_empty=true) }}
+            {{ category_options(category_tree, include_empty=true, empty_label="انتخاب دسته‌بندی") }}
           </select>
-        </label>
-        <label>
-          شهر یا روستا
-          <input name="city" required maxlength="100" list="iranCityOptions" data-iran-location autocomplete="off" placeholder="شهر یا نام روستا">
+          <small class="muted-copy">اگر صنف فروشگاهت ثبت شده باشد، این گزینه خودکار انتخاب می‌شود.</small>
         </label>
         <label>
           قیمت (تومان)
-          <input name="price" type="number" min="0" max="1000000000000" step="1" value="0" required>
+          <input name="price" type="number" min="0" max="1000000000000" step="1" value="" placeholder="مثلاً ۲۵۰۰۰۰" inputmode="numeric" required>
         </label>
         <label>
           وضعیت موجودی
           <select name="availability_status" required>
-            <option value="in_stock">موجود است</option>
+            <option value="in_stock" selected>موجود است</option>
+            <option value="ask">برای اطمینان تماس بگیرید</option>
             <option value="out_of_stock">فعلاً ناموجود است</option>
-            <option value="ask" selected>برای اطمینان تماس بگیرید</option>
           </select>
         </label>
-        <p class="muted-copy">وضعیت را صادقانه به‌روز نگه دار تا مشتری بی‌دلیل به فروشگاه نیاید.</p>
-        <label>
-          شماره تماس روی کالا (اختیاری)
-          <input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789" dir="ltr">
-        </label>
-        <label>
-          توضیحات (اختیاری)
-          <textarea name="description" rows="3" maxlength="1000" placeholder="جزئیات مهم کالا"></textarea>
-        </label>
-        <label>
-          عکس کالا (اختیاری، حداکثر ۴ مگابایت)
-          <input name="image" type="file" accept="image/jpeg,image/png,image/webp">
-        </label>
-        <button class="button button-primary" type="submit">ثبت کالا در ویترین</button>
+        <details class="seller-optional-product-details">
+          <summary>افزودن عکس و توضیحات (اختیاری)</summary>
+          <div class="stack-form">
+            <label>
+              عکس کالا (حداکثر ۴ مگابایت)
+              <input name="image" type="file" accept="image/jpeg,image/png,image/webp">
+            </label>
+            <label>
+              توضیحات کوتاه
+              <textarea name="description" rows="3" maxlength="1000" placeholder="برند، اندازه یا نکتهٔ مهم کالا"></textarea>
+            </label>
+            <label>
+              شماره تماس متفاوت برای این کالا (اختیاری)
+              <input name="seller_phone" type="tel" maxlength="16" placeholder="09123456789" dir="ltr" inputmode="tel">
+            </label>
+          </div>
+        </details>
+        <p class="muted-copy">قیمت و موجودی را هر زمان خواستی از همین داشبورد تغییر بده.</p>
+        <button class="button button-primary" type="submit">ثبت کالا و فعال‌کردن ویترین</button>
         <p class="form-note" id="sellerProductFeedback" role="status" aria-live="polite"></p>
       </form>
     </div>
