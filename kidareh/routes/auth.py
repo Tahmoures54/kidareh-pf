@@ -30,6 +30,22 @@ def ensure_tables() -> None:
                 PRIMARY KEY(scope, key_hash)
             )"""
         )
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS otp_challenges (
+                id TEXT PRIMARY KEY,
+                phone TEXT NOT NULL,
+                otp_hash TEXT NOT NULL,
+                expires_at REAL NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                terms_accepted_at TEXT NOT NULL,
+                existing_user INTEGER NOT NULL DEFAULT 0,
+                consumed_at REAL,
+                created_at REAL NOT NULL
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_otp_challenges_phone_created ON otp_challenges(phone, created_at)"
+        )
 
 
 def _normalize_phone(value):
@@ -129,13 +145,23 @@ def request_otp():
             detail,
         )
         return jsonify({"error": "sms_unavailable", "message": "ارسال پیامک ممکن نشد. تنظیمات یا سرویس پیامک را بررسی کنید."}), 503
-    session["otp_phone"] = phone
-    session["otp_hash"] = generate_password_hash(code)
-    session["otp_expires_at"] = time.time() + 300
-    session["otp_attempts"] = 0
-    session["otp_last_sent_at"] = time.time()
-    session["otp_terms_accepted_at"] = datetime.now(timezone.utc).isoformat()
-    session["otp_existing_user"] = exists
+    challenge_id = uuid.uuid4().hex
+    accepted_at = datetime.now(timezone.utc).isoformat()
+    now = time.time()
+    with get_connection() as connection:
+        connection.execute(
+            """INSERT INTO otp_challenges
+               (id, phone, otp_hash, expires_at, attempts, terms_accepted_at, existing_user, created_at)
+               VALUES (?, ?, ?, ?, 0, ?, ?, ?)""",
+            (challenge_id, phone, generate_password_hash(code), now + 300, accepted_at, int(exists), now),
+        )
+    # Only the opaque challenge ID stays in the signed browser session; the OTP
+    # hash, phone, expiry, attempt count, and acceptance timestamp remain server-side.
+    session.pop("otp_phone", None)
+    session.pop("otp_hash", None)
+    session.pop("otp_expires_at", None)
+    session.pop("otp_attempts", None)
+    session["otp_challenge_id"] = challenge_id
     result = {"ok": True, "message": "کد تأیید ارسال شد.", "expires_in": 300}
     if current_app.testing and current_app.config.get("TESTING_OTP_CODE"):
         result["test_code"] = code
@@ -149,39 +175,77 @@ def verify_otp():
     payload = request.get_json(silent=True) or {}
     code = payload.get("code", "")
     code = code.translate(PHONE_TRANSLATION).strip() if isinstance(code, str) else str(code)
-    if not session.get("otp_phone") or time.time() > session.get("otp_expires_at", 0):
+    challenge_id = session.get("otp_challenge_id")
+    if not isinstance(challenge_id, str) or not challenge_id:
         return jsonify({"error": "otp_expired", "message": "کد منقضی شده است؛ دوباره درخواست کد کنید."}), 400
-    attempts = session.get("otp_attempts", 0)
-    if attempts >= 5:
-        session.pop("otp_hash", None)
-        return jsonify({"error": "otp_locked", "message": "تعداد تلاش‌ها تمام شد؛ کد تازه درخواست کنید."}), 429
-    if not check_password_hash(session.get("otp_hash", ""), code):
-        session["otp_attempts"] = attempts + 1
-        return jsonify({"error": "otp_invalid", "message": "کد تأیید نادرست است."}), 400
-    phone = session["otp_phone"]
-    accepted_at = session.get("otp_terms_accepted_at")
+
+    now = time.time()
     with get_connection() as connection:
-        user = connection.execute("SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?", (phone,)).fetchone()
+        # Serialize attempts and consumption so parallel requests cannot reuse a
+        # valid OTP or bypass the maximum number of guesses.
+        connection.execute("BEGIN IMMEDIATE")
+        challenge = connection.execute(
+            """SELECT id, phone, otp_hash, expires_at, attempts, terms_accepted_at
+               FROM otp_challenges WHERE id = ? AND consumed_at IS NULL""",
+            (challenge_id,),
+        ).fetchone()
+        if not challenge or now > challenge["expires_at"]:
+            connection.execute(
+                "UPDATE otp_challenges SET consumed_at = ? WHERE id = ? AND consumed_at IS NULL",
+                (now, challenge_id),
+            )
+            session.pop("otp_challenge_id", None)
+            return jsonify({"error": "otp_expired", "message": "کد منقضی شده است؛ دوباره درخواست کد کنید."}), 400
+
+        if challenge["attempts"] >= 5:
+            connection.execute(
+                "UPDATE otp_challenges SET consumed_at = ? WHERE id = ?",
+                (now, challenge_id),
+            )
+            session.pop("otp_challenge_id", None)
+            return jsonify({"error": "otp_locked", "message": "تعداد تلاش‌ها تمام شد؛ کد تازه درخواست کنید."}), 429
+
+        if not check_password_hash(challenge["otp_hash"], code):
+            attempts = challenge["attempts"] + 1
+            connection.execute(
+                "UPDATE otp_challenges SET attempts = ?, consumed_at = ? WHERE id = ?",
+                (attempts, now if attempts >= 5 else None, challenge_id),
+            )
+            if attempts >= 5:
+                session.pop("otp_challenge_id", None)
+                return jsonify({"error": "otp_locked", "message": "تعداد تلاش‌ها تمام شد؛ کد تازه درخواست کنید."}), 429
+            return jsonify({"error": "otp_invalid", "message": "کد تأیید نادرست است."}), 400
+
+        phone = challenge["phone"]
+        accepted_at = challenge["terms_accepted_at"]
+        connection.execute(
+            "UPDATE otp_challenges SET consumed_at = ? WHERE id = ? AND consumed_at IS NULL",
+            (now, challenge_id),
+        )
+        user = connection.execute(
+            "SELECT id, name, phone, role, is_banned FROM users WHERE phone = ?",
+            (phone,),
+        ).fetchone()
         if user and user["is_banned"]:
+            session.pop("otp_challenge_id", None)
             return jsonify({"error": "account_banned", "message": "حساب کاربری شما مسدود شده است."}), 403
         if user:
             connection.execute(
-                "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
+                "UPDATE users SET phone_verified_at = COALESCE(NULLIF(phone_verified_at, ''), ?), "
+                "terms_accepted_at = COALESCE(NULLIF(terms_accepted_at, ''), ?) WHERE id = ?",
                 (datetime.now(timezone.utc).isoformat(), accepted_at or "", user["id"]),
             )
+
+    session.pop("otp_challenge_id", None)
     if user:
         session.clear()
         session["user_id"] = user["id"]
         session["csrf_token"] = uuid.uuid4().hex
         return jsonify({"existing_user": True, "user": {"id": user["id"], "name": user["name"], "phone": user["phone"], "role": user["role"]}, "csrf_token": session["csrf_token"]})
-    # An unknown phone is never auto-registered: the account is created by
-    # /complete-profile so the shopper's own name and store details are used
-    # instead of a placeholder such as "فروشگاه‌دار".
+
+    # An unknown phone is never auto-registered: profile completion creates the account.
     session["verified_phone"] = phone
     session["verified_terms_accepted_at"] = accepted_at
-    session.pop("otp_hash", None)
-    session.pop("otp_expires_at", None)
-    session.pop("otp_attempts", None)
     return jsonify({"existing_user": False, "phone": phone})
 
 
