@@ -17,18 +17,28 @@
       google: "https://www.google.com/maps/dir/?api=1&destination=" + sLat + "," + sLng,
     };
   }
+  function navigationSearchLinks(destination) {
+    const query = encodeURIComponent(String(destination || "").trim());
+    if (!query) return null;
+    return {
+      neshan: "https://nshn.ir/?destination=" + query,
+      balad: "https://balad.ir/search/" + query,
+      google: "https://www.google.com/maps/dir/?api=1&destination=" + query,
+    };
+  }
   function navigateButtonsHTML(lat, lng, opts) {
     const links = navLinks(lat, lng);
-    if (!links) return "";
     const label = (opts && opts.label) || "مسیریابی به فروشگاه";
+    const actions = links || navigationSearchLinks(opts && opts.destination);
+    if (!actions) return "";
     return '<div class="nav-to-store" role="group" aria-label="مسیریابی">' +
       '<span class="nav-to-store-label">' + escapeHTML(label) + '</span>' +
       '<div class="nav-to-store-actions">' +
-      '<a class="nav-btn nav-btn-neshan" target="_blank" rel="noopener noreferrer" href="' + links.neshan + '">نشان</a>' +
-      '<a class="nav-btn nav-btn-balad" target="_blank" rel="noopener noreferrer" href="' + links.balad + '">بلد</a>' +
-      '<a class="nav-btn nav-btn-google" target="_blank" rel="noopener noreferrer" href="' + links.google + '">گوگل مپ</a>' +
+      '<a class="nav-btn nav-btn-neshan" target="_blank" rel="noopener noreferrer" href="' + actions.neshan + '">نشان</a>' +
+      '<a class="nav-btn nav-btn-balad" target="_blank" rel="noopener noreferrer" href="' + actions.balad + '">بلد</a>' +
+      '<a class="nav-btn nav-btn-google" target="_blank" rel="noopener noreferrer" href="' + actions.google + '">گوگل مپ</a>' +
       '</div>' +
-      '<p class="nav-to-store-hint">مسیر در اپ مسیریابی باز می‌شود.</p></div>';
+      '<p class="nav-to-store-hint">مسیر در اپ مسیریابی باز می‌شود؛ مقصد بر اساس اطلاعات ثبت‌شده است.</p></div>';
   }
   function notify(message){if(!toast)return;toast.textContent=message;toast.classList.add("visible");window.setTimeout(()=>toast.classList.remove("visible"),2600);}
   async function api(url, options={}) {
@@ -76,13 +86,17 @@
   }
   async function loadStores(container, query="", options={}) {
     const target=document.querySelector(container);if(!target)return;
+    const city=String(options.city||"").trim();
     const append=Boolean(options.append);
     const stateKey=container+"|stores";
     window.__kidarehPageState=window.__kidarehPageState||{};
     const state=window.__kidarehPageState[stateKey]||{items:[],cursor:null,hasMore:false};
     if(!append){ state.items=[]; state.cursor=null; state.hasMore=false; target.innerHTML='<div class="loading-card">در حال دریافت فروشگاه‌ها…</div>'; }
     try {
-      const qs=new URLSearchParams(query?{q:query}:{}); qs.set("limit","50");
+      const qs=new URLSearchParams();
+      if(query) qs.set("q",query);
+      if(city) qs.set("city",city);
+      qs.set("limit","50");
       if(append && state.cursor) qs.set("before_id", String(state.cursor));
       const data=await api("/api/stores?"+qs.toString());
       const items=data.items||[];
@@ -93,9 +107,21 @@
       target.innerHTML=state.items.length?state.items.map(storeCard).join(""):'<div class="empty-page-state">فروشگاهی پیدا نشد. نام دیگری جست‌وجو کن.</div>';
       const count=document.querySelector("#pageResultsCount");if(count)count.textContent=fmt.format(state.items.length)+" فروشگاه";
       let more=document.querySelector("#pageLoadMoreStores");
-      if(!more){ more=document.createElement("button"); more.id="pageLoadMoreStores"; more.type="button"; more.className="button button-outline"; more.style.margin="1rem auto"; more.textContent="نمایش فروشگاه‌های بیشتر"; target.insertAdjacentElement("afterend", more); more.addEventListener("click",()=>loadStores(container, query, {append:true})); }
+      if(!more){ more=document.createElement("button"); more.id="pageLoadMoreStores"; more.type="button"; more.className="button button-outline"; more.style.margin="1rem auto"; more.textContent="نمایش فروشگاه‌های بیشتر"; target.insertAdjacentElement("afterend", more); more.addEventListener("click",()=>loadStores(container, query, {append:true, city})); }
       more.style.display=state.hasMore?"block":"none";
     }catch(e){if(!append) target.innerHTML='<div class="empty-page-state">'+escapeHTML(e.message)+'</div>';}
+  }
+  async function initStores(){
+    const target=document.querySelector("#pageStores");
+    const form=document.querySelector("#storeSearchForm");
+    const queryInput=document.querySelector("#storeQuery");
+    const cityInput=document.querySelector("#storeCity");
+    if(!target || !form || !queryInput || !cityInput) return;
+    const run=()=>loadStores("#pageStores", queryInput.value.trim(), {city: cityInput.value.trim()});
+    form.addEventListener("submit", event=>{event.preventDefault();run();});
+    queryInput.addEventListener("search", run);
+    cityInput.addEventListener("change", run);
+    await run();
   }
   async function initSearch(){
     const form = document.querySelector("#pageSearchForm");
@@ -291,9 +317,12 @@
       if (contact) contact.innerHTML = details.join("");
       const navHost = document.querySelector("#storeNavigate");
       if (navHost) {
-        if (s.latitude != null && s.longitude != null) navHost.innerHTML = navigateButtonsHTML(s.latitude, s.longitude, {label: "مسیریابی به «" + (s.name || "فروشگاه") + "»"});
-        else if (s.address) {
-          navHost.innerHTML = '<div class="nav-to-store nav-to-store-address"><span class="nav-to-store-label">آدرس فروشگاه</span><p class="nav-address-text">' + escapeHTML(s.address) + '</p><button type="button" class="button button-outline" id="copyStoreAddress">کپی آدرس</button></div>';
+        const destination = [s.name, s.address, s.city].filter(Boolean).join("، ");
+        if (s.latitude != null && s.longitude != null) {
+          navHost.innerHTML = navigateButtonsHTML(s.latitude, s.longitude, {label: "مسیریابی به «" + (s.name || "فروشگاه") + "»"});
+        } else if (destination) {
+          navHost.innerHTML = navigateButtonsHTML(null, null, {label: "جست‌وجوی مسیر بر اساس آدرس", destination}) +
+            (s.address ? '<div class="nav-to-store-address"><p class="nav-address-text">' + escapeHTML(s.address) + '</p><button type="button" class="button button-outline" id="copyStoreAddress">کپی آدرس</button></div>' : '');
           document.querySelector("#copyStoreAddress")?.addEventListener("click", async () => { try { await navigator.clipboard.writeText(s.address); notify("آدرس کپی شد."); } catch { notify("کپی پشتیبانی نشد."); } });
         } else navHost.innerHTML = "";
       }

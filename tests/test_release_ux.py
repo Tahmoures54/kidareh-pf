@@ -507,3 +507,15 @@ def test_registration_form_uses_vertical_layout_and_mobile_sizing(client):
     assert 'name="role" value="seller" checked' not in html
     assert "با وارد کردن شماره موبایل،" in html
     assert "auth-legal-note" in html
+
+
+def test_store_directory_exposes_city_filter_and_routing_fallback():
+    directory = read("templates/pages/stores/list.html")
+    script = read("static/js/pages.js")
+    assert 'id="storeCity"' in directory
+    assert 'cityInput.value.trim()' in script
+    assert 'if(city) qs.set("city",city);' in script
+    assert 'function navigationSearchLinks(destination)' in script
+    assert 'https://www.google.com/maps/dir/?api=1&destination=' in script
+    assert 'destination})' in script
+    assert 'stores: initStores' in script
