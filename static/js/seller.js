@@ -47,7 +47,10 @@
               escapeHTML(item.title) +
               "</h3><p>" +
               escapeHTML(item.description || "") +
-              '</p><div class="page-listing-footer"><strong>' +
+              '</p><div class="seller-stock-status">' +
+              (item.availability_status === "in_stock" ? "موجود است" : item.availability_status === "out_of_stock" ? "فعلاً ناموجود" : "موجودی را از فروشنده بپرسید") +
+              (item.price_updated_at ? " · آخرین به‌روزرسانی قیمت: " + escapeHTML(new Date(item.price_updated_at).toLocaleDateString("fa-IR")) : "") +
+              '</div><div class="page-listing-footer"><strong>' +
               price +
               '</strong><button type="button" data-delete-listing="' +
               item.id +
