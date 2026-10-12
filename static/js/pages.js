@@ -163,6 +163,11 @@
     let requestSerial = 0;
     let nearbyCoords = null;
     const nearbyButton = document.querySelector("#pageNearbySearchButton");
+    const nearbyRadius = document.querySelector("#pageNearbyRadius");
+    const selectedRadius = () => {
+      const value = Number(nearbyRadius?.value || 10);
+      return [3, 5, 10, 25, 50].includes(value) ? value : 10;
+    };
 
     async function resolveProvince() {
       if (!cityInput.value.trim()) return "";
@@ -185,7 +190,7 @@
       if (nearbyCoords) {
         params.lat = String(nearbyCoords.lat);
         params.lon = String(nearbyCoords.lon);
-        params.radius_km = "25";
+        params.radius_km = String(selectedRadius());
       } else if (scope === "city" && cityInput.value.trim()) {
         params.city = cityInput.value.trim();
       } else if (scope === "province" && cityProvince) {
@@ -292,6 +297,10 @@
         else localStorage.removeItem("kidareh.marketCity");
       } catch (_) { /* Manual city selection still works without storage. */ }
       run("city", true);
+    });
+
+    nearbyRadius?.addEventListener("change", () => {
+      if (nearbyCoords) run(scope, false);
     });
 
     nearbyButton?.addEventListener("click", () => {
