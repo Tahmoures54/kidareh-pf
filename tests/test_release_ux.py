@@ -533,6 +533,23 @@ def test_seller_store_forms_capture_geolocation_without_manual_coordinates():
     assert 'method: "PATCH"' in script
     assert 'شهر و نشانی را وارد کن' in script
 
+
+def test_first_product_form_is_minimal_and_uses_store_defaults():
+    html = read("templates/pages/seller/dashboard.html")
+    script = read("static/js/seller.js")
+    form = html.split('<form id="sellerProductForm"', 1)[1].split("</form>", 1)[0]
+    assert 'name="title" required' in form
+    assert 'name="price"' in form and 'value=""' in form
+    assert 'name="city" type="hidden"' in form
+    assert 'name="city" required' not in form
+    assert '<details class="seller-optional-product-details">' in form
+    assert 'name="image" type="file"' in form
+    assert 'productForm.elements.city.value = store.city || ""' in script
+    assert 'categorySelect.value = store.category' in script
+    assert 'ثبت اولین کالا' in script
+    assert 'مشاهده ویترین عمومی' in script
+
+
 def test_registration_collects_only_core_seller_details_and_optional_coordinates(client):
     html = client.get("/register").get_data(as_text=True)
     script = read("static/js/auth-pages.js")
